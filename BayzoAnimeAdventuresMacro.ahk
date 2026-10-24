@@ -2,8 +2,7 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Off
 
-; === STRIPPED STUBS (network/cloud/update removed - safe rebuild) ===
-; SafeTarget: path safety check (local filesystem only, no network)
+; === STRIPPED STUBS (network/cloud/update removed - safe rebuild v1.4) ===
 SafeTarget(path) {
     SplitPath(path,,&directory)
     loop {
@@ -16,11 +15,10 @@ SafeTarget(path) {
     }
 }
 
-; CrusadersConfigCodes stub: SafeTarget + HashBytes (local crypto only), NO cloud worker
 class CrusadersConfigCodes {
     static SharingBusy := false
-    static SafeTarget(path) => SafeTarget(path)
     static MaxCode := 1048576
+    static SafeTarget(path) => SafeTarget(path)
     static HashBytes(bytes) {
         provider := 0, hash := 0
         try {
@@ -42,28 +40,27 @@ class CrusadersConfigCodes {
                 DllCall("advapi32\CryptReleaseContext","Ptr",provider,"UInt",0)
         }
     }
-    static ExportSelected(*) => ""     ; disabled - no cloud sharing
-    static Upload(*) => ""             ; disabled - no cloud upload
-    static Import(*) => 0              ; disabled - no cloud import
-    static Decode(*) => ""             ; disabled
-    static Work(*) => ""               ; disabled
-    static Stage(*) => 0               ; disabled
-    static Clean(*) => 0               ; disabled
-    static ClipboardCode(*) => ""      ; disabled - no clipboard sharing
-    static IsHosted(*) => false        ; disabled - always local
-    static List(*) => []               ; disabled
-    static Preview(*) => ""            ; disabled
-    static Resolve(*) => ""            ; disabled
+    static ExportSelected(*) => ""
+    static Upload(*) => ""
+    static Import(*) => 0
+    static Decode(*) => ""
+    static Work(*) => ""
+    static Stage(*) => 0
+    static Clean(*) => 0
+    static ClipboardCode(*) => ""
+    static IsHosted(*) => false
+    static List(*) => []
+    static Preview(*) => ""
+    static Resolve(*) => ""
     static Settings := ["ZoomInDelay", "ZoomOutDelay", "DragDelay", "ScanDelay", "PlacementRetryDelay", "StageClickDelay", "VictoryDelay", "WebhookScreenshotDelay", "PathingDelay", "DailyChallengeEnabled", "ChallengeEnabled", "ChallengeFirstMode", "ChallengeForceLeave"]
 }
 
-; CrusadersUpdater stub: version info only, NO GitHub check/download/exec
 class CrusadersUpdater {
-    static Version := "1.1-clean"
+    static Version := "1.4-clean"
     static Repo := ""
     static AssetRoot := EnvGet("LOCALAPPDATA") "\BayzoAnimeAdventuresMacro"
-    static Check(window) => 0       ; disabled - no auto-update
-    static Respond(accepted, window) => 0  ; disabled
+    static Check(window) => 0
+    static Respond(accepted, window) => 0
     static checked := true
     static pending := 0
     static installing := false
@@ -2175,6 +2172,345 @@ return DllCall("gdiplus\GdipSetPixelOffsetMode", "ptr", pGraphics, "int", offset
 Gdip_SetPixelOffsetMode(pGraphics, PixelOffsetMode) {
 return DllCall("gdiplus\GdipSetPixelOffsetMode", "ptr", pGraphics, "int", PixelOffsetMode)
 }
+class AAMyConfigs {
+static Name(value) {
+value := Trim(value)
+if StrLen(value)<1 || StrLen(value)>80 || RegExMatch(value,"[\x00-\x1f\x7f]")
+throw Error("Enter a bundle name (1-80 characters).")
+return value
+}
+static Root(root) {
+SplitPath(root,,&settings)
+return settings
+}
+static Read(root) {
+path := this.Root(root) "\MyConfigs.json"
+if !FileExist(path)
+return Map("created",Map(),"imported",Map())
+text := FileRead(path,"UTF-8"), data := Jxon_Load(&text)
+if !(data is Map) || !(data.Get("created",0) is Map) || !(data.Get("imported",0) is Map)
+throw Error("My Configs storage is invalid.")
+return data
+}
+static Save(root,data) => StoryFiles.Write(this.Root(root) "\MyConfigs.json",Jxon_Dump(data))
+static Public(root) {
+result := Map("created",[],"imported",[])
+for group in ["created","imported"]
+for code,row in this.Read(root)[group] {
+safe := row.Clone()
+for field in ["ownerKey","baseline","published"]
+if safe.Has(field)
+safe.Delete(field)
+result[group].Push(safe)
+}
+return result
+}
+static Refresh(root) {
+data := this.Read(root)
+for code,stored in data["created"] {
+remote := this.Remote(code)
+for field in ["name","revision","sha256"]
+stored[field] := remote[field]
+}
+this.Save(root,data)
+return this.Public(root)
+}
+static Remote(code) {
+if !CrusadersConfigCodes.IsHosted(code)
+throw Error("Invalid shared code.")
+response := CrusadersConfigCodes.Http("GET","/v2/shares/" code), text := response["body"], row := Jxon_Load(&text)
+this.Validate(row,row.Get("payload",""))
+if row["code"] != code
+throw Error("Shared bundle identity mismatch.")
+return row
+}
+static Validate(row,payload) {
+if !CrusadersConfigCodes.IsHosted(row.Get("code","")) || !IsInteger(row.Get("revision",0)) || row["revision"]<1 || row.Get("sha256","")!=CrusadersConfigCodes.Hash(payload)
+throw Error("Shared bundle response failed its integrity check.")
+this.Name(row.Get("name","")), CrusadersConfigCodes.Decode(payload)
+}
+static Publish(root,model,tasks,options) {
+title := this.Name(options.Get("name","")), data := this.Read(root), code := options.Get("code","")
+old := code!="" && data["created"].Has(code) ? data["created"][code] : 0
+if code!="" && !old
+throw Error("Only bundles created on this computer can be published.")
+if old
+key := CrusadersCredentials.Decode(old["ownerKey"])
+else {
+bytes := Buffer(32)
+if !DllCall("advapi32\SystemFunction036","Ptr",bytes,"UInt",32)
+throw Error("Could not generate a publishing key.")
+key := ""
+loop 32
+key .= Format("{:02x}",NumGet(bytes,A_Index-1,"UChar"))
+}
+warnings := [], payload := CrusadersConfigCodes.ExportSelected(model,tasks,options.Get("configs",[]),options.Get("modes",false),options.Get("settings",false),options.Get("themes",false),warnings,options.Get("recordings",[]),options.Get("customThemes",[]))
+body := Map("name",title,"payload",payload,"ownerKey",key,"revision",old ? old["revision"] : 0)
+if old && old["name"] == title && old["sha256"] = CrusadersConfigCodes.Hash(payload)
+row := Map("code",code,"name",title,"revision",old["revision"],"sha256",old["sha256"],"unchanged",true)
+else {
+response := CrusadersConfigCodes.Http(old ? "PUT" : "POST","/v2/shares" (old ? "/" code : ""),Jxon_Dump(body))
+text := response["body"], row := Jxon_Load(&text)
+}
+this.Validate(row,payload)
+result := row.Clone(), result["warnings"] := warnings
+row["ownerKey"] := old ? old["ownerKey"] : CrusadersCredentials.Encode(key)
+selection := Map()
+for field in ["configs","recordings","customThemes","modes","settings","themes"]
+selection[field] := options.Get(field,InStr("|modes|settings|themes|","|" field "|") ? false : [])
+row["selection"] := selection, row["configs"] := []
+for config in CrusadersConfigCodes.Decode(payload)["configs"]
+row["configs"].Push(config["path"])
+row["recordings"] := []
+for recording in CrusadersConfigCodes.Decode(payload).Get("recordings",[])
+row["recordings"].Push(recording["name"])
+data["created"][row["code"]] := row, this.Save(root,data)
+A_Clipboard := row["code"]
+return result
+}
+static UpdatePayload(payload) {
+data := CrusadersConfigCodes.Decode(payload)
+data["modes"] := [], data["settings"] := Map(), data["themes"] := []
+if data.Has("appearance")
+data.Delete("appearance")
+return CrusadersConfigCodes.Encode(data)
+}
+static Baseline(root,payload) {
+result := Map(), data := CrusadersConfigCodes.Decode(this.UpdatePayload(payload))
+for config in data["configs"] {
+relative := CrusadersCatalog.ConfigRelative(config["path"]), path := root "\" StrReplace(relative,"/","\")
+if FileExist(path)
+result[relative] := CrusadersConfigCodes.HashBytes(FileRead(path,"RAW"))
+}
+for recording in data.Get("recordings",[]) {
+path := this.Root(root) "\Recordings\" recording["name"]
+if FileExist(path)
+result["@recording/" recording["name"]] := CrusadersConfigCodes.HashBytes(FileRead(path,"RAW"))
+}
+return result
+}
+static Track(root,row,payload,applied := 0) {
+data := this.Read(root), safe := Map()
+for field in ["code","name","revision","sha256"]
+safe[field] := row[field]
+safe["baseline"] := this.Baseline(root,payload), safe["configs"] := []
+safe["published"] := this.Fingerprints(payload)
+if applied is Map && data["imported"].Has(row["code"])
+for relative,hash in data["imported"][row["code"]].Get("baseline",Map())
+if safe["published"].Has(relative) && !applied.Has(relative)
+safe["baseline"][relative] := hash
+for config in CrusadersConfigCodes.Decode(payload)["configs"]
+safe["configs"].Push(CrusadersCatalog.ConfigRelative(config["path"]))
+data["imported"][row["code"]] := safe, this.Save(root,data)
+}
+static Apply(root,settingsFile,expected,replaceLocal := false,log := 0) {
+checked := this.Check(root,expected["row"]["code"])
+if checked.Get("current",false) || checked["revision"] != expected["revision"]
+throw Error("The bundle changed. Check for updates again.")
+if checked["conflicts"].Length && !replaceLocal
+throw Error("Local edits exist. Confirm replacing them before updating.")
+result := checked["changed"].Length ? CrusadersConfigCodes.Import(checked["payload"],root,settingsFile,"append","replace",false,log) : Map("configs",0,"recordings",0,"warnings",[])
+applied := Map()
+for relative in checked["changed"]
+applied[relative] := true
+this.Track(root,checked["row"],checked["fullPayload"],applied)
+return result
+}
+static Normalized(value) {
+if value is Map {
+result := Map(), keys := ""
+for key,item in value
+keys .= key "`n"
+loop parse Sort(RTrim(keys,"`n"),"C"), "`n"
+result[A_LoopField] := this.Normalized(value[A_LoopField])
+return result
+}
+if value is Array {
+result := []
+for item in value
+result.Push(this.Normalized(item))
+return result
+}
+return value
+}
+static Fingerprints(payload) {
+result := Map(), package := CrusadersConfigCodes.Decode(this.UpdatePayload(payload))
+for config in package["configs"]
+result[CrusadersCatalog.ConfigRelative(config["path"])] := CrusadersConfigCodes.Hash(Jxon_Dump(this.Normalized(config)))
+for recording in package.Get("recordings",[])
+result["@recording/" recording["name"]] := CrusadersConfigCodes.Hash(Jxon_Dump(this.Normalized(recording["data"])))
+return result
+}
+static LegacyFingerprints(root,payload,old) {
+result := Map(), work := CrusadersConfigCodes.Work()
+try {
+CrusadersConfigCodes.Stage(CrusadersConfigCodes.Decode(payload),work)
+for relative,hash in this.Fingerprints(payload) {
+staged := this.Target(work "\Settings\Configs",relative), target := this.Target(root,relative)
+expected := old.Get("baseline",Map()).Get(relative,"")
+if !FileExist(staged) || expected = ""
+continue
+if CrusadersConfigCodes.HashBytes(FileRead(staged,"RAW")) = expected {
+result[relative] := hash
+continue
+}
+if !InStr(relative,"@recording/") && FileExist(target) {
+image := IniRead(target,"Map","Image","")
+if image != ""
+IniWrite(image,staged,"Map","Image")
+if CrusadersConfigCodes.HashBytes(FileRead(staged,"RAW")) = expected
+result[relative] := hash
+}
+}
+} finally CrusadersConfigCodes.Clean(work)
+return result
+}
+static Target(root,relative) {
+if InStr(relative,"@recording/") = 1
+return CrusadersRecording.Path(SubStr(relative,12),this.Root(root) "\Recordings")
+return root "\" StrReplace(CrusadersCatalog.ConfigRelative(relative),"/","\")
+}
+static Acknowledge(root,data,old,row,payload) {
+for field in ["revision","name","sha256"]
+old[field] := row[field]
+old["published"] := this.Fingerprints(payload)
+this.Save(root,data)
+return Map("current",true,"name",row["name"],"revision",row["revision"])
+}
+static DeleteCreated(root,code) {
+data := this.Read(root)
+if !data["created"].Has(code)
+throw Error("This shared config was not created on this computer.")
+row := data["created"][code]
+response := CrusadersConfigCodes.Http("GET","/health"), text := response["body"], health := Jxon_Load(&text), supported := false
+for feature in health.Get("features",[])
+if feature = "delete-shares"
+supported := true
+if !supported
+throw Error("The sharing service needs the updated Worker before deletion. Your config was kept.")
+body := Map("ownerKey",CrusadersCredentials.Decode(row["ownerKey"]),"revision",row["revision"])
+try response := CrusadersConfigCodes.Http("DELETE","/v2/shares/" code,Jxon_Dump(body))
+catch Error as err {
+if !InStr(err.Message,"404")
+throw err
+response := 0
+}
+if response {
+text := response["body"], deleted := Jxon_Load(&text)
+if !deleted.Get("deleted",false) || deleted.Get("code","") != code
+throw Error("The sharing service did not confirm deletion.")
+}
+data["created"].Delete(code), this.Save(root,data)
+return Map("deleted",true,"code",code)
+}
+static Removal(root,code) {
+data := this.Read(root)
+if !data["imported"].Has(code)
+throw Error("This imported code was already removed.")
+referenced := Map(), row := data["imported"][code]
+for group in ["created","imported"]
+for other,entry in data[group] {
+if group = "imported" && other = code
+continue
+for path in entry.Get("configs",[])
+referenced[CrusadersCatalog.ConfigRelative(path)] := true
+for path,hash in entry.Get("baseline",Map())
+referenced[path] := true
+for name in entry.Get("recordings",[])
+referenced["@recording/" name] := true
+}
+for task in CrusadersTasks(root).items
+referenced[CrusadersCatalog.Folder(task.mode) "/" task.config] := true
+for relative,used in referenced.Clone() {
+if InStr(relative,"@recording/") = 1
+continue
+configPath := this.Target(root,relative)
+if !FileExist(configPath)
+continue
+content := FileRead(configPath), position := 1
+while found := RegExMatch(content,"im)^recording=([^`r`n]+)",&match,position) {
+referenced["@recording/" Trim(match[1])] := true
+position := found+StrLen(match[0])
+}
+}
+removable := [], kept := []
+for relative,expected in row.Get("baseline",Map()) {
+path := this.Target(root,relative)
+if !FileExist(path)
+continue
+if referenced.Has(relative) || CrusadersConfigCodes.HashBytes(FileRead(path,"RAW")) != expected
+kept.Push(relative)
+else removable.Push(relative)
+}
+return Map("code",code,"name",row["name"],"removable",removable,"kept",kept)
+}
+static DeleteImported(root,code,deleteFiles := false) {
+plan := this.Removal(root,code), data := this.Read(root), moved := [], work := CrusadersConfigCodes.Work(), rollbackFailed := false
+try {
+if deleteFiles
+for index,relative in plan["removable"] {
+source := this.Target(root,relative)
+CrusadersConfigCodes.SafeTarget(source)
+if CrusadersConfigCodes.HashBytes(FileRead(source,"RAW")) != data["imported"][code]["baseline"][relative]
+throw Error("An imported file changed. Review deletion again.")
+destination := work "\removed-" index
+FileMove(source,destination)
+moved.Push(Map("source",source,"temporary",destination))
+}
+data["imported"].Delete(code), this.Save(root,data)
+} catch Error as err {
+for item in moved {
+try FileMove(item["temporary"],item["source"])
+catch Error
+rollbackFailed := true
+}
+if rollbackFailed
+throw Error("File cleanup stopped. Recoverable files were kept in " work)
+throw err
+} finally {
+if !rollbackFailed
+CrusadersConfigCodes.Clean(work)
+}
+return Map("deleted",true,"files",moved.Length,"kept",plan["kept"].Length)
+}
+static Check(root,code) {
+data := this.Read(root)
+if !data["imported"].Has(code)
+throw Error("Import this bundle first.")
+old := data["imported"][code], row := this.Remote(code)
+full := this.UpdatePayload(row["payload"])
+if row["revision"]<=old["revision"]
+return Map("current",true,"name",row["name"],"revision",row["revision"])
+if row["sha256"] = old["sha256"]
+return this.Acknowledge(root,data,old,row,full)
+CrusadersConfigCodes.Preview(full,root)
+fresh := this.Fingerprints(full), previous := old.Get("published",0)
+if !(previous is Map)
+previous := this.LegacyFingerprints(root,full,old)
+changed := [], conflicts := [], removed := [], wanted := Map(), current := this.Baseline(root,full)
+for relative,hash in fresh
+if !previous.Has(relative) || previous[relative] != hash {
+changed.Push(relative), wanted[relative] := true
+before := old.Get("baseline",Map())
+if (current.Has(relative) && current[relative] != before.Get(relative,"")) || (!current.Has(relative) && before.Has(relative))
+conflicts.Push(relative)
+}
+for relative in old.Get("configs",[])
+if !fresh.Has(relative)
+removed.Push(relative)
+if !changed.Length && !removed.Length
+return this.Acknowledge(root,data,old,row,full)
+package := CrusadersConfigCodes.Decode(full), configs := [], recordings := []
+for config in package["configs"]
+if wanted.Has(CrusadersCatalog.ConfigRelative(config["path"]))
+configs.Push(config)
+for recording in package.Get("recordings",[])
+if wanted.Has("@recording/" recording["name"])
+recordings.Push(recording)
+package["configs"] := configs, package["recordings"] := recordings
+return Map("current",false,"name",row["name"],"revision",row["revision"],"changed",changed,"conflicts",conflicts,"removed",removed,"row",row,"payload",changed.Length ? CrusadersConfigCodes.Encode(package) : "","fullPayload",full)
+}
+}
 class CrusadersStorage {
 static Temporary(path) {
 guid := Buffer(16), text := Buffer(78)
@@ -3981,7 +4317,7 @@ normalized .= (normalized = "" ? "" : "|") name
 return normalized
 }
 static StoryMaps := ["Planet Greenie", "Walled City", "Snowy Town", "Sand Village", "Navy Bay", "Fiend City", "Spirit World", "Ant Kingdom", "Magic Town", "Haunted Academy", "Magic Hills", "Space Center", "Alien Spaceship", "Fabled Kingdom", "Ruined City", "Puppet Island", "Virtual Dungeon", "Snowy Kingdom", "Dungeon Throne", "Mountain Temple", "Rain Village", "Shibuya District"]
-static MansionMaps := ["Planet Greenie", "Walled City", "Snowy Town", "Sand Village", "Navy Bay", "Fiend City", "Spirit World", "Ant Kingdom", "Magic Town", "Haunted Academy", "Magic Hills", "Space Center", "Alien Spaceship", "Fabled Kingdom", "Ruined City", "Puppet Island", "Virtual Dungeon", "Snowy Kingdom", "Dungeon Throne", "Mountain Temple", "Rain Village", "Shibuya District", "Sacred Planet", "Strange Town", "Cursed Festival", "Future City", "Storm Hideout", "Nightmare Train", "Assassin Park"]
+static MansionMaps := ["Planet Greenie", "Walled City", "Snowy Town", "Sand Village", "Navy Bay", "Fiend City", "Spirit World", "Ant Kingdom", "Magic Town", "Haunted Academy", "Magic Hills", "Space Center", "Alien Spaceship", "Fabled Kingdom", "Ruined City", "Puppet Island", "Virtual Dungeon", "Snowy Kingdom", "Dungeon Throne", "Mountain Temple", "Rain Village", "Shibuya District", "Sacred Planet", "Strange Town", "Cursed Festival", "Future City", "Storm Hideout", "Nightmare Train", "Assassin Park", "Spirit Town"]
 static Maps := Map("Events",["April Fools"],"Portals",["Portals"],"Challenges",this.StoryMaps,"Infinity Mansion", this.MansionMaps, "Story", this.StoryMaps, "Infinite", this.StoryMaps,
 "Legend Stages", ["Magic Hills [Elf Invasion]", "Spirit Invasion", "Space Center", "Fabled Kingdom [Generals]", "Ruined City [Midnight]", "Virtual Dungeon [Bosses]", "Dungeon Throne", "Rain Village"], "Raids", ["Ant Kingdom [Midnight]", "Sacred Planet", "Strange Town", "Ruined City [The Menace]", "Cursed Festival", "Future City [Tyrant's Invasion]", "Storm Hideout", "Future City", "Nightmare Train", "Sand Village"],
 "Boss Rush", [], "Event", [], "Infinity Castle", [], "InfinityCastle", [])
@@ -3991,6 +4327,8 @@ return mode = "Legend" ? "Legend Stages" : mode = "Raid" ? "Raids" : mode = "Inf
 }
 static ConfigMaps(mode) => mode = "Challenges" ? this.Maps["Story"] : this.Maps[mode]
 static ConfigRelative(relative) {
+if relative = "Legend Stages/SpiritTownLegend.txt"
+return "Legend Stages/SpiritInvasionLegend.txt"
 for alias,canonical in AADefaultPaths.Aliases
 if alias != canonical && relative = "Infinity Mansion/" RegExReplace(alias,"[^A-Za-z0-9]","") "Mansion.txt"
 return "Infinity Mansion/" RegExReplace(canonical,"[^A-Za-z0-9]","") "Mansion.txt"
@@ -4001,6 +4339,7 @@ return "Challenges/" this.Filename("Challenges",name,1)
 return relative
 }
 static MigrateMansion(root, settingsFile := "") {
+this.MigrateSpiritLegend(root)
 for alias,canonical in AADefaultPaths.Aliases {
 if alias = canonical
 continue
@@ -4032,6 +4371,27 @@ saved := IniRead(settingsFile,"Config","Path","")
 normalized := StrReplace(this.ConfigRelative(StrReplace(saved,"\","/")),"/","\")
 if saved != normalized && !FileExist(root "\" saved)
 IniWrite(normalized,settingsFile,"Config","Path")
+}
+}
+static MigrateSpiritLegend(root) {
+old := root "\Legend Stages\SpiritTownLegend.txt", target := root "\Legend Stages\SpiritInvasionLegend.txt"
+if !FileExist(old)
+return
+if !FileExist(target) || IniRead(target,"Selector","Count","0") = "0" {
+FileCopy(old,target,1)
+IniWrite("Spirit Invasion",target,"Settings","Map")
+if IniRead(target,"Settings","DisplayName","") = "Spirit Town"
+IniWrite("Spirit Invasion",target,"Settings","DisplayName")
+FileDelete(old)
+} else if IniRead(old,"Selector","Count","0") = "0"
+FileDelete(old)
+else {
+directory := root "\..\MansionVariants"
+DirCreate(directory)
+saved := directory "\SpiritTownLegend.txt"
+if FileExist(saved)
+saved := directory "\SpiritTownLegend-" A_Now "-" DllCall("GetTickCount64","UInt64") ".txt"
+FileMove(old,saved)
 }
 }
 static MigrateChallenges(root, settingsFile := "") {
@@ -4085,6 +4445,8 @@ return path
 }
 static ActCount(mode, name) {
 mode := this.Folder(mode)
+if mode = "Legend Stages" && name = "Spirit Town"
+name := "Spirit Invasion"
 if !this.Maps.Has(mode)
 throw Error("Unknown gamemode: " mode)
 for mapName in this.Maps[mode] {
@@ -4100,6 +4462,8 @@ static EffectiveDifficulty(mode, name, difficulty) {
 return this.HasDifficultySelection(mode,name) ? difficulty : "Normal"
 }
 static Filename(mode, name, act) {
+if mode = "Legend Stages" && name = "Spirit Town"
+name := "Spirit Invasion"
 mode := this.Folder(mode), count := this.ActCount(mode,name)
 if act < 1 || act > count
 throw Error("Invalid act for " name)
@@ -4321,17 +4685,33 @@ for item in indexes
 result.Push(item.Clone())
 return result
 }
-static Preview(source) {
+static Preview(source,matching := false,copyCoordinates := true) {
 source.Validate()
 SplitPath(source.path,,&directory)
 SplitPath(directory,&category,&parent)
 if StrLower(parent) != StrLower(source.configRoot) || !InStr("|Story|Infinite|Legend Stages|Raids|Infinity Mansion|Dungeons|Challenges|Portals|","|" category "|")
 throw Error("This config category cannot be copied.")
-plan := {id:CrusadersStorage.Temporary(source.path),path:source.path,source:source.ConfigText(),disk:FileRead(source.path),category:category,rows:[],overwrites:0}
-Loop Files directory "\*.txt", "F" {
-path := A_LoopFileFullPath
-if StrLower(path) = StrLower(source.path)
+plan := {id:CrusadersStorage.Temporary(source.path),path:source.path,source:source.ConfigText(),disk:FileRead(source.path),category:category,matching:matching,copyCoordinates:copyCoordinates,rows:[],overwrites:0}
+paths := [], seen := Map()
+if matching {
+mapName := AADefaultPaths.CanonicalName(source.preferences["Map"])
+for mode in ["Story","Infinite","Legend Stages","Raids","Infinity Mansion","Dungeons","Challenges"] {
+if mode = category
 continue
+for name in CrusadersCatalog.ConfigMaps(mode) {
+if AADefaultPaths.CanonicalName(name) != mapName
+continue
+path := CrusadersCatalog.Resolve(source.configRoot,mode,name,1)
+if FileExist(path) && !seen.Has(StrLower(path))
+paths.Push(path), seen[StrLower(path)] := true
+}
+}
+} else {
+Loop Files directory "\*.txt", "F"
+if StrLower(A_LoopFileFullPath) != StrLower(source.path)
+paths.Push(A_LoopFileFullPath)
+}
+for path in paths {
 target := CrusadersSelector(path,"",source.settingsFile,source.imageRoot)
 old := FileRead(path), bytes := FileRead(path,"RAW")
 for item in target.indexes
@@ -4339,19 +4719,28 @@ if item.configured {
 plan.overwrites++
 break
 }
+if !copyCoordinates {
+for number,item in source.indexes {
+placement := target.indexes[number], copied := item.Clone()
+for key in ["x","y","configured","recording"]
+copied.%key% := placement.%key%
+target.indexes[number] := copied
+}
+} else {
 target.indexes := this.CloneIndexes(source.indexes)
-target.preferences["Team"] := source.preferences["Team"]
 target.mapWidth := source.mapWidth, target.mapHeight := source.mapHeight
+}
+target.preferences["Team"] := source.preferences["Team"]
 target.Validate()
-plan.rows.Push({path:path,old:old,bytes:bytes,text:target.ConfigText(),name:target.preferences["DisplayName"],temporary:""})
+plan.rows.Push({path:path,old:old,bytes:bytes,text:target.ConfigText(),name:(matching ? target.preferences["Mode"] " — " : "") target.preferences["DisplayName"],temporary:""})
 }
 if !plan.rows.Length
-throw Error("There are no other configs in this category.")
+throw Error(matching ? "No matching map configs were found in other categories." : "There are no other configs in this category.")
 return plan
 }
 static Apply(source,plan) {
 if source.path != plan.path || source.ConfigText() != plan.source
-throw Error("The source config changed. Open Copy to Category again.")
+throw Error("The source config changed. Open Copy Settings again.")
 CrusadersStorage.CheckCurrent(source.path,plan.disk)
 committed := []
 try {
@@ -4516,6 +4905,9 @@ for key, value in this.DefaultPreferences() {
 source := this.IsMapPreference(key) ? mapPreferences : globalPreferences
 this.preferences[key] := source.Get(key, value)
 }
+for pair in [["WebhookShowModeRecord","WebhookShowModeRuns"],["WebhookShowChallengeRecord","WebhookShowChallengeRuns"]]
+if !globalPreferences.Has(pair[1]) && globalPreferences.Has(pair[2])
+this.preferences[pair[1]] := globalPreferences[pair[2]]
 if this.preferences["ThemePreset"] = "Midnight"
 this.preferences["ThemePreset"] := "Graphite"
 for key in ["RecordKey", "RecordingTestKey"] {
@@ -4602,7 +4994,7 @@ return values
 DefaultPreferences() {
 preferences := Map("Team", "0", "Mode", "Story", "Map", "", "DisplayName", "", "Act", "1", "Runs", "1", "Difficulty", "Normal", "BossRushMode", "Traits", "MakimaCard", "Unit Slot", "ContractPriority", CrusadersCatalog.DefaultContractPriority,
 "PortalName", "", "PrivateServer", "", "UsePrivateServerLink", "1", "PublicRejoin", "1", "SkipGuideTutorial", "0", "SkipMacroOverview", "0", "WaveRestart", "0", "Webhook", "", "WebhookEnabled", "0",
-"WebhookShowMap", "1", "WebhookShowMode", "1", "WebhookShowRecord", "1", "WebhookShowSessionTime", "1", "WebhookShowChallengeRuns", "1", "WebhookShowModeRuns", "1", "WebhookShowAct", "1", "WebhookShowNext", "1", "WebhookShowCompletion", "1", "WebhookPingEnabled", "0", "WebhookDiscordId", "",
+"WebhookShowMap", "1", "WebhookShowMode", "1", "WebhookShowRecord", "1", "WebhookShowSessionTime", "1", "WebhookShowChallengeRuns", "1", "WebhookShowModeRuns", "1", "WebhookShowModeRecord", "1", "WebhookShowChallengeRecord", "1", "WebhookShowAct", "1", "WebhookShowNext", "1", "WebhookShowCompletion", "1", "WebhookPingEnabled", "0", "WebhookDiscordId", "",
 "DiscordBotEnabled", "0", "DiscordChannel", "", "DiscordToken", "", "DiscordUserId", "",
 "ZoomInDelay", "50", "ZoomOutDelay", "75", "DragDelay", "1", "ScanDelay", "150", "PlacementRetryDelay", "450", "StageClickDelay", "500", "VictoryDelay", "500", "WebhookScreenshotDelay", "1500", "PathingDelay", "1000",
 "DailyChallengeEnabled", "0", "ChallengeEnabled", "0", "ChallengeFirstMode", "Challenges", "ChallengeForceLeave", "0", "ThemePreset", "Default", "CustomTheme", "", "CustomThemeName", "", "ThemeBackground", "",
@@ -4681,7 +5073,7 @@ throw Error("First Mode must be Mode List or Challenges.")
 for key in ["WebhookEnabled", "DiscordBotEnabled", "UsePrivateServerLink", "PublicRejoin", "SkipGuideTutorial", "SkipMacroOverview", "DailyChallengeEnabled", "ChallengeEnabled", "ChallengeForceLeave"]
 if this.preferences[key] != "0" && this.preferences[key] != "1"
 throw Error("Invalid toggle: " key)
-for key in ["WebhookShowMap", "WebhookShowMode", "WebhookShowRecord", "WebhookShowSessionTime", "WebhookShowChallengeRuns", "WebhookShowModeRuns", "WebhookShowAct", "WebhookShowNext", "WebhookShowCompletion", "WebhookPingEnabled"]
+for key in ["WebhookShowMap", "WebhookShowMode", "WebhookShowRecord", "WebhookShowSessionTime", "WebhookShowChallengeRuns", "WebhookShowModeRuns", "WebhookShowModeRecord", "WebhookShowChallengeRecord", "WebhookShowAct", "WebhookShowNext", "WebhookShowCompletion", "WebhookPingEnabled"]
 if this.preferences[key] != "0" && this.preferences[key] != "1"
 throw Error("Invalid toggle: " key)
 if this.preferences["WebhookDiscordId"] != "" && !CrusadersWebhook.PingId(this.preferences["WebhookDiscordId"])
@@ -5567,6 +5959,8 @@ details .= " | Enabled: No"
 return details
 }
 Validate(item) {
+if item.mode = "Legend Stages" && item.config = "SpiritTownLegend.txt"
+item.config := "SpiritInvasionLegend.txt"
 if item.mode = "Infinity Mansion" && this.HasOwnProp("root") && !FileExist(this.root "\Infinity Mansion\" item.config)
 item.config := StrReplace(CrusadersCatalog.ConfigRelative("Infinity Mansion/" item.config),"Infinity Mansion/","")
 if !item.HasOwnProp("portalName")
@@ -6566,7 +6960,7 @@ this.originalRegion := region
 else
 DllCall("DeleteObject", "Ptr", region)
 }
-this.gui := Gui("-DPIScale -Caption " (webShell ? "-Border" : "+Border") " +MinimizeBox -MaximizeBox", "Bayzo's AA Macro v1.1")
+this.gui := Gui("-DPIScale -Caption " (webShell ? "-Border" : "+Border") " +MinimizeBox -MaximizeBox", "Bayzo's AA Macro v1.4")
 CrusadersTheme.ApplyAppIcon(this.gui)
 this.gui.BackColor := webShell ? "18191C" : CrusadersTheme.Background
 this.gui.SetFont("s10 c" CrusadersTheme.Ink, "Segoe UI")
@@ -6574,7 +6968,7 @@ this.backgroundPainter := ObjBindMethod(this, "PaintBackground")
 OnMessage(0x14, this.backgroundPainter)
 if FileExist(CrusadersTheme.Mascot)
 this.gui.AddPicture("x12 y10 w28 h28", CrusadersTheme.Mascot)
-title := this.gui.AddText("x52 y14 w360 h24 BackgroundTrans", "Bayzo's AA Macro v1.1")
+title := this.gui.AddText("x52 y14 w360 h24 BackgroundTrans", "Bayzo's AA Macro v1.4")
 title.SetFont("s11 bold")
 title.OnEvent("Click", (*) => PostMessage(0xA1, 2, 0, this.gui))
 this.status := this.gui.AddText("x890 y15 w290 h22 Right BackgroundTrans c" CrusadersTheme.Muted, "Ready")
@@ -7247,7 +7641,7 @@ this.Setting("General", "Webhook", "Webhook URL", 212, 504, 370)
 this.settingsFields["WebhookEnabled"] := this.AddSetting("General", "Checkbox", "x504 y286 w370 h24 Background202125", "Enable webhook")
 this.settingsFields["WebhookPingEnabled"] := this.AddSetting("General", "Checkbox", "x504 y350 w370 h24 Background202125", "Enable Pings")
 this.Setting("General", "WebhookDiscordId", "Discord User ID", 380, 504, 370)
-for index, key in ["WebhookShowMap", "WebhookShowMode", "WebhookShowRecord", "WebhookShowSessionTime", "WebhookShowChallengeRuns", "WebhookShowModeRuns", "WebhookShowAct", "WebhookShowNext", "WebhookShowCompletion"]
+for index, key in ["WebhookShowMap", "WebhookShowMode", "WebhookShowRecord", "WebhookShowSessionTime", "WebhookShowChallengeRecord", "WebhookShowModeRecord", "WebhookShowAct", "WebhookShowNext", "WebhookShowCompletion"]
 this.settingsFields[key] := this.AddSetting("General", "Checkbox", "x504 y" (430 + (index - 1) * 24) " w370 h24 Background202125", key)
 this.Setting("General", "DiscordChannel", "Discord channel ID", 212, 924, 370)
 this.Setting("General", "DiscordToken", "Bot token", 312, 924, 370)
@@ -7711,6 +8105,8 @@ DllCall("RedrawWindow", "Ptr", this.gui.Hwnd, "Ptr", 0, "Ptr", 0, "UInt", 0x185)
 return true
 }
 SyncGameClip(hwnd) {
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
 region := DllCall("CreateRectRgn", "Int", 0, "Int", 0, "Int", 0, "Int", 0, "Ptr")
 try {
 kind := DllCall("GetWindowRgn", "Ptr", hwnd, "Ptr", region)
@@ -7907,6 +8303,8 @@ this.original := 0
 } finally this.attachingGame := false
 }
 EnsureGameSize(activate := false) {
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return !!this.game
 global selector
 if !this.game || !WinExist("ahk_id " this.game)
 return false
@@ -8432,8 +8830,6 @@ ToolTip()
 this.lastTooltip := 0
 }
 Log(message) {
-line := FormatTime(, "HH:mm:ss") "  " message
-CrusadersLogFile.Append(line "`n")
 message := CrusadersProcessLog.Display(message)
 if message = "" || (this.HasOwnProp("lastProcessMessage") && this.lastProcessMessage = message && !RegExMatch(message, "i)^Map image (?:replaced:|updated$)"))
 return
@@ -8498,6 +8894,8 @@ if !DllCall("SetWindowRgn", "Ptr", this.gui.Hwnd, "Ptr", region, "Int", true)
 DllCall("DeleteObject", "Ptr", region)
 }
 Arrange() {
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
 global selector
 if this.HasOwnProp("interfaceVisible") && !this.interfaceVisible
 return
@@ -8521,6 +8919,8 @@ DllCall("DeleteObject", "Ptr", region)
 this.RaiseGame()
 }
 RaiseGame() {
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
 global selector
 if this.HasOwnProp("detectionDialog") && this.detectionDialog
 return
@@ -8663,10 +9063,10 @@ if preferences.Get("WebhookShowRecord", "1") = "1"
 fields.Push({name:"Wins / Losses", value:window.wins " / " window.losses, inline:ComValue(11, -1)})
 if preferences.Get("WebhookShowSessionTime", "1") = "1"
 fields.Push({name:"Session Time", value:window.HasOwnProp("stats") && window.stats.Has("Elapsed") ? window.stats["Elapsed"].Text : "00:00:00", inline:ComValue(11, -1)})
-if preferences.Get("WebhookShowChallengeRuns", "1") = "1" && (preferences.Get("ChallengeEnabled","0") = "1" || preferences.Get("DailyChallengeEnabled","0") = "1")
-fields.Push({name:"Challenge Runs", value:String(window.HasOwnProp("challengeRuns") ? window.challengeRuns : 0), inline:ComValue(11, -1)})
-if preferences.Get("WebhookShowModeRuns", "1") = "1"
-fields.Push({name:"Mode Runs", value:String(window.HasOwnProp("modeRuns") ? window.modeRuns : 0), inline:ComValue(11, -1)})
+if preferences.Get("WebhookShowModeRecord",preferences.Get("WebhookShowModeRuns","1")) = "1"
+fields.Push({name:"Mode W/L", value:(window.HasOwnProp("modeWins") ? window.modeWins : 0) " / " (window.HasOwnProp("modeLosses") ? window.modeLosses : 0), inline:ComValue(11,-1)})
+if preferences.Get("WebhookShowChallengeRecord",preferences.Get("WebhookShowChallengeRuns","1")) = "1"
+fields.Push({name:"Challenge W/L", value:(window.HasOwnProp("challengeWins") ? window.challengeWins : 0) " / " (window.HasOwnProp("challengeLosses") ? window.challengeLosses : 0), inline:ComValue(11,-1)})
 if preferences.Get("WebhookShowAct", "1") = "1" && (mode = "Story" || mode = "Legend Stages" || mode = "Raids")
 fields.Push({name:"Act / Difficulty", value:preferences["Act"] " / " preferences["Difficulty"], inline:ComValue(11, -1)})
 for field in fields
@@ -8685,7 +9085,7 @@ timing .= (timing != "" ? "`n`n" : "") "**" StrReplace("Total Time", " ", Chr(0x
 if timing != ""
 fields.Push({name:Chr(0x200B), inline:ComValue(11, 0), value:timing})
 embed := {title:title, color:(test || recoveryNotice) ? 0xE4BB66 : result = "Victory" ? 0x70B68C : 0xE47F85,
-fields:fields, footer:{text:"Bayzo's AA Macro v1.1 | Bayzo Session Report"},
+fields:fields, footer:{text:"Bayzo's AA Macro v1.4 | Bayzo Session Report"},
 timestamp:FormatTime(A_NowUTC, "yyyy-MM-dd") "T" FormatTime(A_NowUTC, "HH:mm:ss") "Z"}
 if accessPaused
 embed.description := privateAccess
@@ -8699,7 +9099,7 @@ if !test && (result = "Victory" || result = "Defeat")
 embed.thumbnail := {url:result = "Victory" ? this.VictoryThumbnailUrl : this.LossThumbnailUrl}
 if !fields.Length
 embed.DeleteProp("fields")
-payload := {username:"Bayzo's AA Macro v1.1", allowed_mentions:{parse:[]}, embeds:[embed]}
+payload := {username:"Bayzo's AA Macro v1.4", allowed_mentions:{parse:[]}, embeds:[embed]}
 if preferences.Get("WebhookPingEnabled", "0") = "1" {
 id := this.PingId(preferences.Get("WebhookDiscordId", ""))
 if id != "" {
@@ -12620,7 +13020,7 @@ this.ValidateInterfaceDirectory(interfaceDirectory)
 } catch Error as err {
 super.Restore()
 MsgBox("The interface files could not be loaded. Extract the complete release folder and try again.`n`n" err.Message,
-"Bayzo's AA Macro v1.1", "Iconx")
+"Bayzo's AA Macro v1.4", "Iconx")
 ExitApp(1)
 }
 this.HideNativeControls()
@@ -12631,7 +13031,7 @@ A_ScriptDir "\Other\WebView2\" (A_PtrSize * 8) "bit\WebView2Loader.dll"))
 catch Error as err {
 super.Restore()
 MsgBox("The interface could not start. Check that Microsoft Edge WebView2 Runtime is installed.`n`n" err.Message,
-"Bayzo's AA Macro v1.1", "Iconx")
+"Bayzo's AA Macro v1.4", "Iconx")
 ExitApp(1)
 }
 this.controller.as(WebView2.Controller, WebView2.Controller.IID_2)
@@ -12946,7 +13346,7 @@ this.lastStateJson := json
 } catch Error as err {
 if !this.restoring && (!this.HasOwnProp("lastPushError") || CrusadersRuntime.Tick()-this.lastPushError>=30000) {
 this.lastPushError := CrusadersRuntime.Tick()
-CrusadersLogFile.Append(FormatTime(,"HH:mm:ss") "  UI refresh delayed: " err.Message "`n")
+this.Log("UI refresh delayed: " err.Message)
 }
 } finally this.pushingState := false
 }
@@ -13171,21 +13571,21 @@ case "config.category.preview":
 if testRunning || this.inputRecorder.recording || this.inputRecorder.playing
 throw Error("Stop the macro and recorder before copying configs.")
 if !data.Has("path") || data["path"] != selector.path
-throw Error("Current config changed. Open Copy to Category again.")
-this.pendingCategoryCopy := AACategoryCopy.Preview(selector)
+throw Error("Current config changed. Open Copy Settings again.")
+this.pendingCategoryCopy := AACategoryCopy.Preview(selector,false,data.Get("copyCoordinates",false))
 plan := this.pendingCategoryCopy, names := []
 for row in plan.rows
 names.Push(row.name)
-resultData := Map("id",plan.id,"path",plan.path,"category",plan.category,"count",plan.rows.Length,"overwrites",plan.overwrites,"names",names)
+resultData := Map("id",plan.id,"path",plan.path,"category",plan.category,"count",plan.rows.Length,"overwrites",plan.overwrites,"names",names,"matching",plan.matching,"copyCoordinates",plan.copyCoordinates)
 case "config.category.copy":
 if testRunning || this.inputRecorder.recording || this.inputRecorder.playing
 throw Error("Stop the macro and recorder before copying configs.")
 if !this.HasOwnProp("pendingCategoryCopy") || !data.Has("id") || data["id"] != this.pendingCategoryCopy.id
-throw Error("Copy preview expired. Open Copy to Category again.")
+throw Error("Copy preview expired. Open Copy Settings again.")
 plan := this.pendingCategoryCopy
 this.DeleteProp("pendingCategoryCopy")
 count := AACategoryCopy.Apply(selector,plan)
-this.Log("Copied config indexes, coordinates and team to " count " other " plan.category " configs")
+this.Log("Copied " (plan.copyCoordinates ? "all indexes, coordinates and team" : "index settings and team; destination coordinates and recordings preserved") " to " count " other " plan.category " configs")
 resultData := Map("count",count)
 case "config.save":
 if !selector.Apply()
@@ -13236,25 +13636,48 @@ if !this.AutoSaveTask()
 throw Error(this.modeStatus.Text)
 this.tasks.Save()
 case "settings.update": this.UpdateSettings(data["fields"])
-case "share.export":
+case "share.export", "my.publish":
+if testRunning || this.inputRecorder.recording || this.inputRecorder.playing
+throw Error("Stop the macro and recording before publishing.")
 if CrusadersConfigCodes.SharingBusy
 throw Error("A config transfer is already in progress.")
 CrusadersConfigCodes.SharingBusy := true
 try {
-exportWarnings := []
-code := CrusadersConfigCodes.ExportSelected(selector,this.tasks,data["configs"],data.Get("modes",false),data.Get("settings",false),data.Get("themes",false),exportWarnings,data.Get("recordings",[]),data.Get("customThemes",[]))
-shortCode := CrusadersConfigCodes.Upload(code)
-A_Clipboard := shortCode
-resultData := Map("code",shortCode,"warnings",exportWarnings)
-for warning in exportWarnings
-this.Log("Config export note: " warning)
-if CrusadersConfigCodes.IsHosted(shortCode)
-this.Log("Config bundle uploaded; short code copied")
-else {
-warning := "Sharing server needs Worker v4 for this bundle. Copied a complete offline code; its length grows with selected configs and recordings."
-exportWarnings.Push(warning)
-resultData["warnings"] := exportWarnings
-this.Log(warning)
+resultData := AAMyConfigs.Publish(this.tasks.root,selector,this.tasks,data)
+this.Log(resultData.Get("unchanged",false) ? "No config changes to publish; same code copied" : "Published " resultData["name"] " revision " resultData["revision"] "; code copied")
+} finally CrusadersConfigCodes.SharingBusy := false
+case "my.list":
+resultData := AAMyConfigs.Public(this.tasks.root)
+case "my.refresh", "my.check", "my.apply", "my.deleteCreated", "my.removePreview", "my.deleteImported":
+if testRunning || this.inputRecorder.recording || this.inputRecorder.playing
+throw Error("Stop the macro and recording before updating configs.")
+if CrusadersConfigCodes.SharingBusy
+throw Error("A config transfer is already in progress.")
+CrusadersConfigCodes.SharingBusy := true
+try {
+if action = "my.refresh"
+resultData := AAMyConfigs.Refresh(this.tasks.root)
+else if action = "my.check" {
+this.pendingMyUpdate := 0
+resultData := AAMyConfigs.Check(this.tasks.root,data["code"])
+if !resultData["current"] {
+this.pendingMyUpdate := resultData.Clone(), this.pendingMyAt := CrusadersRuntime.Tick()
+resultData.Delete("row"), resultData.Delete("payload"), resultData.Delete("fullPayload")
+}
+} else if action = "my.deleteCreated"
+resultData := AAMyConfigs.DeleteCreated(this.tasks.root,data["code"])
+else if action = "my.removePreview"
+resultData := AAMyConfigs.Removal(this.tasks.root,data["code"])
+else if action = "my.deleteImported" {
+resultData := AAMyConfigs.DeleteImported(this.tasks.root,data["code"],data.Get("deleteFiles",false))
+selector.Load(), this.LoadFields()
+} else {
+if !this.HasOwnProp("pendingMyUpdate") || !this.pendingMyUpdate || CrusadersRuntime.Tick()-this.pendingMyAt>600000
+throw Error("Update preview expired; check again.")
+resultData := AAMyConfigs.Apply(this.tasks.root,selector.settingsFile,this.pendingMyUpdate,data.Get("replaceLocal",false),ObjBindMethod(this,"Log"))
+this.pendingMyUpdate := 0
+selector.Load(), this.LoadFields()
+this.Log("Shared configs updated; local mode queue and settings preserved")
 }
 } finally CrusadersConfigCodes.SharingBusy := false
 case "share.list":
@@ -13273,7 +13696,16 @@ CrusadersConfigCodes.SharingBusy := true
 try {
 if this.HasOwnProp("pendingShareCode")
 this.DeleteProp("pendingShareCode")
-resolved := CrusadersConfigCodes.Resolve(CrusadersConfigCodes.ClipboardCode(data.Has("code") ? data["code"] : A_Clipboard))
+original := CrusadersConfigCodes.ClipboardCode(data.Has("code") ? data["code"] : A_Clipboard)
+this.pendingMySource := 0
+if CrusadersConfigCodes.IsHosted(original) {
+try this.pendingMySource := AAMyConfigs.Remote(original)
+catch Error as err {
+if !InStr(err.Message,"404")
+throw err
+}
+}
+resolved := this.pendingMySource ? this.pendingMySource["payload"] : CrusadersConfigCodes.Resolve(original)
 resultData := CrusadersConfigCodes.Preview(resolved,this.tasks.root)
 this.pendingShareCode := resolved
 this.pendingShareAt := CrusadersRuntime.Tick()
@@ -13292,6 +13724,9 @@ if this.inputRecorder.recording || this.inputRecorder.playing || (testRunning &&
 throw Error("Stop playback and pause the macro before importing configs.")
 this.Log("Importing all bundle contents...")
 resultData := CrusadersConfigCodes.Import(resolved,this.tasks.root,selector.settingsFile,data.Get("queuePolicy","append"),data.Get("conflict","replace"),data.Get("applySettings",true),ObjBindMethod(this,"Log"))
+if this.HasOwnProp("pendingMySource") && this.pendingMySource
+AAMyConfigs.Track(this.tasks.root,this.pendingMySource,resolved)
+this.pendingMySource := 0
 this.DeleteProp("pendingShareCode")
 } finally CrusadersConfigCodes.SharingBusy := false
 SetTimer(this.taskSaveTimer,0)
@@ -13526,9 +13961,10 @@ if !this.SaveModes()
 throw Error(this.modeStatus.Text)
 }
 UpdateSettings(fields) {
-for key, value in fields {
+for key,value in fields
 if !this.settingsFields.Has(key)
-throw Error("Unknown setting")
+throw Error("Unknown setting: " key)
+for key, value in fields {
 control := this.settingsFields[key]
 if control.Type = "DDL" || control.Type = "DropDownList"
 control.Choose(value)
@@ -13578,6 +14014,8 @@ return this.pageRendered && !InStr(coveredPages, "|" this.page "|")
 && !InStr(coveredPages, "|" page "|")
 }
 SyncPageGameClip() {
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
 global selector
 if !this.game || !WinExist("ahk_id " this.game)
 return
@@ -13625,6 +14063,8 @@ else
 this.cutoutSignature := signature
 }
 Arrange() {
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
 global selector
 if !this.interfaceVisible
 return
@@ -13758,9 +14198,6 @@ try this.controller.Close()
 }
 HandleMacroError(err, mode) {
 global selector, macroWindow
-if !IsSet(macroWindow) {
-CrusadersLogFile.Append(FormatTime(, "HH:mm:ss") "  Startup error: " err.Message " at line " err.Line "`n")
-}
 CrusadersLog("Error: " err.Message)
 if IsSet(selector) && selector.HasOwnProp("status")
 selector.status.Text := err.Message
@@ -15062,6 +15499,11 @@ if stage = "placement" && RegExMatch(text,"i)\b(?:Sell|First|Strongest|Closest|L
 result["kind"] := "unit-panel"
 return result
 }
+static DungeonResult(reader,bitmap) {
+if CrusadersDetection.FindBitmap(bitmap,"dungeon-victory-title") && (CrusadersDetection.FindBitmap(bitmap,"victory") || CrusadersDetection.FindBitmap(bitmap,"dungeon-next-label"))
+return Map("kind","victory","text","Dungeon Victory + Next","ownerWait",0)
+return this.Parse("result",reader.Read(bitmap,125,150,390,275,2))
+}
 static ReadReward(reader,bitmap) {
 text := ""
 for crop in [[200,420,400,100,2],[200,445,400,45,3],[200,420,400,100,3]] {
@@ -15287,13 +15729,20 @@ dark++
 }
 if dark < 3
 return false
+if !CrusadersDetection.FindBitmap(bitmap,"dungeon-xp-title") {
 heading := reader.Read(bitmap,525,120,245,60,2)
 if !InStr(StrLower(RegExReplace(heading,"[^a-zA-Z]","")),"xpprogress")
 return false
+}
+if this.FastPlacement(reader,bitmap)
+return true
 panel := this.Parse("placement",reader.Read(bitmap,5,180,335,225,2))
 return panel["kind"] = "unit-panel"
 }
 static Read(reader,bitmap,stage,autoAbility := true) {
+connection := AAConnection.Poll(reader,bitmap)
+if connection["kind"] != "none"
+return connection
 if stage = "dungeon-board" {
 board := AADungeons.Read(reader,bitmap,false,true)
 if board["kind"] = "dungeon-board" && board["cards"].Length
@@ -15310,17 +15759,25 @@ if stage = "dungeon" || stage = "dungeon-transition" || stage = "dungeon-result"
 if stage != "dungeon-transition" && (menu := AADungeons.FastMenu(reader,bitmap))
 return AADungeons.Read(reader,bitmap,false,false,menu)
 if stage != "dungeon-transition" {
+if this.CoveredResult(reader,bitmap)
+return Map("kind","result-covered","text","Unit panel covers dungeon results","ownerWait",0)
+ended := this.DungeonResult(reader,bitmap)
+if ended["kind"] != "none"
+return ended
 reward := this.ReadReward(reader,bitmap)
 if reward["kind"] = "reward"
 return reward
 }
-connection := AAConnection.Read(reader,bitmap)
-if connection["kind"] != "none"
-return connection
 result := AADungeons.Read(reader,bitmap,stage = "dungeon-transition")
 if result["kind"] != "none" || stage = "dungeon-transition"
 return result
 stage := "result"
+}
+if stage = "april-vote-or-wave" {
+mapScan := AAAprilFools.ReadMap(reader,bitmap)
+if mapScan["kind"] != "none"
+return mapScan
+stage := "vote-or-wave"
 }
 startedMatchCheck := stage = "vote-or-wave"
 if startedMatchCheck
@@ -15334,16 +15791,6 @@ if vote["kind"] = "vote"
 return vote
 stage := "choice"
 }
-static lastConnectionScan := 0, connectionCandidate := "", connectionFrames := 0
-if Adventures.Tick()-lastConnectionScan >= 2000 {
-lastConnectionScan := Adventures.Tick()
-failure := AAConnection.Read(reader,bitmap)
-signature := failure["kind"] "|" failure["text"]
-connectionFrames := failure["kind"] != "none" && signature = connectionCandidate ? connectionFrames+1 : 1
-connectionCandidate := failure["kind"] != "none" ? signature : ""
-if failure["kind"] != "none" && connectionFrames >= 2
-return failure
-}
 if AALeaderboard.Visible(bitmap)
 return Map("kind","leaderboard","text","Leaderboard","ownerWait",0)
 if stage = "portal-picker"
@@ -15354,7 +15801,12 @@ valid := RegExMatch(text,"^\s*(\d(?:[ \t]*\d){0,11})\s*$",&digits)
 return Map("kind",valid ? "matchmaking-numbers" : "matchmaking-missing",
 "text",valid ? RegExReplace(digits[1],"\s","") : text,"ownerWait",0)
 }
+if stage = "april-map"
+return AAAprilFools.ReadMap(reader,bitmap)
 if stage = "matchmaking-lobby" {
+mapScan := AAAprilFools.ReadMap(reader,bitmap)
+if mapScan["kind"] != "none"
+return mapScan
 status := reader.Read(bitmap,180,350,450,135,3)
 greenPixels := 0
 loop 45 {
@@ -15375,11 +15827,13 @@ normalized := StrLower(RegExReplace(text,"[^A-Za-z]",""))
 ready := InStr(normalized,"findmatch") || (InStr(normalized,"joinmatchmaking") && InStr(normalized,"playhere"))
 return Map("kind",ready ? "april-entry" : "none","text",text,"ownerWait",0)
 }
-if stage = "april" {
+if stage = "april" || stage = "april-upgrade" {
 ended := AAAprilFools.ReadResult(reader,bitmap)
 if ended["kind"] != "none"
 return ended
 }
+if stage = "april-upgrade"
+return Map("kind","none","text","","ownerWait",0)
 if (stage = "april" || stage = "priority" || stage = "placement-auto") && this.CoveredResult(reader,bitmap)
 return Map("kind","result-covered","text","Unit panel covers results","ownerWait",0)
 if stage = "april"
@@ -15549,8 +16003,15 @@ throw err
 }
 }
 Ready() {
-if FileExist(this.root "\error.txt")
-throw Error("OCR: " FileRead(this.root "\error.txt","UTF-8"))
+statusFile := this.root "\ready.txt"
+if FileExist(statusFile) {
+status := Trim(StoryFiles.Read(statusFile))
+if SubStr(status,1,1) = "{" {
+detail := Jxon_Load(&status)
+if detail.Has("error")
+throw Error("OCR: " detail["error"])
+}
+}
 if !ProcessExist(this.pid)
 return this.Restart("worker exited")
 if !FileExist(this.root "\ready.txt") && Adventures.Tick()-this.born>StoryOcrClient.InitTimeout
@@ -15645,7 +16106,7 @@ StoryFiles.Write(root "\response.json",Jxon_Dump(response))
 Sleep(15)
 }
 } catch Error as err {
-try StoryFiles.Write(root "\error.txt",err.Message)
+try StoryFiles.Write(root "\ready.txt",Jxon_Dump(Map("error",err.Message)))
 } finally {
 if reader
 reader.Dispose()
@@ -15882,7 +16343,7 @@ this.dungeon.Handle(scan)
 else this.DismissReward()
 } else this.dungeon.Handle(scan)
 }
-if this.app.status = "Running" && this.stage = "Dungeon" && now-this.scanned >= 180 {
+if this.app.status = "Running" && this.stage = "Dungeon" && now-this.scanned >= 125 {
 this.worker.Request(this.dungeon.RequestStage())
 this.scanned := now
 }
@@ -16012,11 +16473,13 @@ return
 if now<this.due
 return
 waitingWave := this.stage = "Actions" && this.app.index <= this.app.profile["actions"].Length && this.app.profile["actions"][this.app.index]["type"] = "wave"
-region := this.stage = "Actions" && HasMethod(this.app,"IsAprilFools") && this.app.IsAprilFools() ? "april" : waitingWave ? "wave" : this.stage="AwaitMansionMap" ? "mansion-transition" : this.stage="Priority" ? "priority" : this.stage="PlacementAuto" ? "placement-auto" : this.stage="Upgrade" ? "upgrade" : this.stage="PlaceClear" || this.stage="PlaceVerify" ? "placement" : this.stage="Vote" || this.stage="AwaitVote" || this.stage="AwaitStart" ? "vote-or-wave"
+region := this.stage = "Actions" && HasMethod(this.app,"IsAprilFools") && this.app.IsAprilFools() ? (this.april.placementDone ? "april-upgrade" : "april") : waitingWave ? "wave" : this.stage="AwaitMansionMap" ? "mansion-transition" : this.stage="Priority" ? "priority" : this.stage="PlacementAuto" ? "placement-auto" : this.stage="Upgrade" ? "upgrade" : this.stage="PlaceClear" || this.stage="PlaceVerify" ? "placement" : this.stage="Vote" || this.stage="AwaitVote" || this.stage="AwaitStart" ? "vote-or-wave"
 : this.stage="AwaitChoice" || this.stage="AwaitTransition" ? "choice" : "result"
 if this.HasOwnProp("dungeon") && (region = "result" || region = "choice")
 region := "dungeon-result"
-if now-this.scanned>=(this.stage="AwaitMansionMap" ? 150 : (region = "april" ? 150 : region = "priority" ? 75 : region = "placement-auto" ? 100 : region = "placement" || region = "upgrade" ? 50 : Max(150,this.Delay("ScanDelay",800)))) {
+if region = "vote-or-wave" && HasMethod(this.app,"IsAprilFools") && this.app.IsAprilFools()
+region := "april-vote-or-wave"
+if now-this.scanned>=(this.stage="AwaitMansionMap" ? 150 : ((region = "april" || region = "april-upgrade") ? 150 : region = "priority" ? 75 : region = "placement-auto" ? 100 : region = "placement" || region = "upgrade" ? 50 : Max(150,this.Delay("ScanDelay",800)))) {
 wantsAuto := region != "placement" && region != "upgrade" ? true : this.placement.Get("autoAbility",false) && !(this.HasOwnProp("autoState") && this.autoState.done)
 this.worker.Request(region,wantsAuto)
 this.scanned := now
@@ -16034,6 +16497,10 @@ this.FinishDispose()
 }
 Handle(scan) {
 kind := scan["kind"]
+if kind = "april-map" && HasMethod(this.app,"IsAprilFools") && this.app.IsAprilFools() {
+this.app.owner.aprilMap := scan["map"]
+return
+}
 if this.HasOwnProp("postUnitSerial") && scan.Get("id",0) >= this.postUnitSerial
 this.DeleteProp("postUnitSerial")
 if kind = "april-state" && this.stage = "Actions" && this.HasOwnProp("april") {
@@ -16746,9 +17213,7 @@ return
 global launchTick
 SetTimer(this.startupReadyTimer,0)
 this.startupReadyTimer := 0
-path := A_ScriptDir "\Other\State\LastStartup.json"
-DirCreate(A_ScriptDir "\Other\State")
-Adventures.Write(path,Jxon_Dump(Map("pid",DllCall("GetCurrentProcessId"),"readyMs",DllCall("GetTickCount64","UInt64")-launchTick,"hwnd",this.gui.Hwnd)))
+this.startupReadyMs := DllCall("GetTickCount64","UInt64")-launchTick
 }
 RequiresElyssiaReminder() {
 global selector
@@ -16934,11 +17399,12 @@ throw err
 }
 return
 }
-if selector.preferences["Mode"] != "Infinity Mansion" && selector.preferences["Mode"] != "Dungeons"
+if selector.preferences["Mode"] != "Dungeons"
 this.CheckIndexes(selector)
 this.Stop()
 testCancelled := false
 macroWindow.wins := 0, macroWindow.losses := 0
+this.ResetRecords(macroWindow)
 AAChallenges.Begin(macroWindow,selector.preferences)
 if AAChallenges.Launch(macroWindow,macroWindow.tasks.Current().Clone())
 return
@@ -16953,6 +17419,15 @@ throw err
 return
 }
 this.StartMatch(macroWindow,selector)
+}
+static ResetRecords(owner) {
+owner.modeWins := 0, owner.modeLosses := 0, owner.challengeWins := 0, owner.challengeLosses := 0
+}
+static RecordResult(owner,challenge,result) {
+if result != "Victory" && result != "Defeat"
+return
+key := (challenge ? "challenge" : "mode") (result = "Victory" ? "Wins" : "Losses")
+owner.%key% := (owner.HasOwnProp(key) ? owner.%key% : 0)+1
 }
 static Recover(forcePublic := false) {
 global macroWindow, selector, testCancelled
@@ -17054,6 +17529,7 @@ this.loop.Pause("Rejoining server")
 SetTimer((*)=>AAExecution.Recover(forcePublic),-1)
 }
 ReportResult(result) {
+AAExecution.RecordResult(this.owner,this.IsChallenge(),result)
 if this.loop.HasOwnProp("dungeon") {
 if result = "Victory"
 this.loop.dungeon.roomWins++
@@ -17082,14 +17558,16 @@ SetTimer((*)=>AAChallenges.Finished(this,defeated),-1)
 IsAprilFools() => this.currentTask.mode = "Events"
 NeedsSpawnReset() => true
 NeedsMapPath() {
+if HasMethod(this,"IsAprilFools") && this.IsAprilFools()
+return this.owner.HasOwnProp("aprilMap") && this.owner.aprilMap = "Snowy Town"
 name := CrusadersCatalog.Name(this.currentTask.config)
 return InStr("|Story|Infinite|Challenges|Infinity Mansion|Dungeons|Legend Stages|Raids|","|" this.currentTask.mode "|") && AADefaultPaths.Has(name)
 }
 PlayMapPath() {
 this.CheckClient()
-name := CrusadersCatalog.Name(this.currentTask.config)
+name := HasMethod(this,"IsAprilFools") && this.IsAprilFools() ? this.owner.aprilMap : CrusadersCatalog.Name(this.currentTask.config)
 this.Log("Walking " name " route")
-data := AADefaultPaths.Get(name)
+data := HasMethod(this,"IsAprilFools") && this.IsAprilFools() ? AAAprilFools.SnowyTownPath() : AADefaultPaths.Get(name)
 return this.owner.inputRecorder.Play(data,
 (*)=>this.status = "Idle",(*)=>this.CheckPlaybackFocus())
 }
@@ -17296,7 +17774,7 @@ if !FileExist(path)
 throw Error("Config is missing. Select an existing config.")
 candidate := path = model.path ? model : CrusadersSelector(path,"",model.settingsFile,model.imageRoot)
 candidate.Validate()
-if item.mode != "Infinity Mansion" && item.mode != "Dungeons"
+if item.mode != "Dungeons"
 for issue in this.Config(candidate,number) {
 issue["message"] := "Mode " number ": " issue["message"]
 issues.Push(issue)
@@ -17703,7 +18181,72 @@ recoverable := InStr("|256|260|261|262|264|266|273|274|277|278|279|285|288|517|5
 || RegExMatch(text,"i)(lost\s*(?:your\s*)?connection|connection\s*(?:was\s*)?(?:lost|timed\s*out)|failed\s*to\s*connect|server\s*(?:has\s*)?(?:shut\s*down|shutdown)|idle\s*for|same\s*account|server\s*is\s*full|teleport\s*failed)")
 return Map("kind",recoverable ? "rejoin" : "none","text",recoverable ? "Roblox disconnected" (code ? " (" code ")" : "") : text,"ownerWait",0)
 }
-static Read(reader,bitmap) => this.Parse(reader.Read(bitmap,120,70,560,450,2))
+static Register() {
+if CrusadersDetection.definitions.Has("connection-idle-278")
+return
+root := A_ScriptDir "\Images\Detection\AA\Connection"
+DirCreate(root)
+FileInstall("Images\Detection\AA\Connection\title.png",root "\title.png",1)
+FileInstall("Images\Detection\AA\Connection\idle-278.png",root "\idle-278.png",1)
+FileInstall("Images\Detection\AA\Connection\reconnect.png",root "\reconnect.png",1)
+for name in ["title","idle-278","reconnect"]
+CrusadersDetection.definitions["connection-" name] := {name:"Connection " name,group:"Connection",file:"AA\Connection\" name ".png",kind:"Image",x:200,y:165,w:400,h:280,tolerance:12,frames:2,cx:0,cy:0,cw:0,ch:0}
+}
+static Modal(bitmap) {
+base := Gdip_GetPixel(bitmap,220,240), red := (base>>16)&255, green := (base>>8)&255, blue := base&255
+if Min(red,green,blue)<25 || Max(red,green,blue)>105 || Max(red,green,blue)-Min(red,green,blue)>20
+return false
+flat := 0
+for x in [220,225,575,580]
+for y in [210,240,270,300,330] {
+pixel := Gdip_GetPixel(bitmap,x,y)
+if Max(Abs(((pixel>>16)&255)-red),Abs(((pixel>>8)&255)-green),Abs((pixel&255)-blue))<=12
+flat++
+}
+return flat>=18
+}
+static Read(reader,bitmap) {
+if !this.Modal(bitmap)
+return Map("kind","none","text","","ownerWait",0)
+title := reader.Read(bitmap,210,165,380,65,2)
+buttons := reader.Read(bitmap,210,355,380,80,2)
+words := StrLower(RegExReplace(title,"[^A-Za-z]",""))
+header := RegExMatch(words,"disconnected|connectionfailed|joinerror|teleportfailed")
+if header && RegExMatch(buttons,"i)\b(Leave|Reconnect|Retry|OK)\b") {
+body := reader.Read(bitmap,215,235,370,125,2)
+result := this.Parse(title "`n" body)
+if result["kind"] != "none"
+return result
+result := this.Parse(title "`n" reader.Read(bitmap,215,235,370,125,3))
+if result["kind"] != "none"
+return result
+}
+this.Register()
+if CrusadersDetection.FindBitmap(bitmap,"connection-idle-278") && CrusadersDetection.FindBitmap(bitmap,"connection-title") && CrusadersDetection.FindBitmap(bitmap,"connection-reconnect")
+return Map("kind","rejoin","text","Roblox disconnected (278)","ownerWait",0)
+return Map("kind","none","text","","ownerWait",0)
+}
+static Reset() {
+this.candidate := "", this.frames := 0, this.scanned := 0
+}
+static Poll(reader,bitmap) {
+if !this.Modal(bitmap) {
+this.Reset()
+return Map("kind","none","text","","ownerWait",0)
+}
+now := Adventures.Tick()
+if this.HasOwnProp("scanned") && now-this.scanned<250
+return Map("kind","none","text","","ownerWait",0)
+this.scanned := now, result := this.Read(reader,bitmap)
+signature := result["kind"] "|" result["text"]
+if result["kind"] = "none" {
+this.candidate := "", this.frames := 0
+return result
+}
+this.frames := this.HasOwnProp("candidate") && this.candidate=signature ? this.frames+1 : 1
+this.candidate := signature
+return this.frames>=2 ? result : Map("kind","none","text","","ownerWait",0)
+}
 }
 class AAServer {
 static PlaceId := "8304191830"
@@ -17712,6 +18255,37 @@ link := CrusadersServer.PrivateLink(preferences)
 if link != ""
 return CrusadersServer.JoinUrl(link)
 return preferences.Get("PublicRejoin","0") = "1" ? CrusadersServer.JoinUrl("") : ""
+}
+}
+class AATransitionVision {
+static Read(reader,bitmap,names) {
+title := reader.Read(bitmap,10,65,780,56,2)
+name := AAMansionRoute.MatchMap(title,names)
+if name = "" {
+title := reader.Read(bitmap,10,65,780,56,3)
+name := AAMansionRoute.MatchMap(title,names)
+}
+detail := reader.Read(bitmap,10,122,780,65,2), text := title "`n" detail
+normalized := StrLower(RegExReplace(detail,"[^A-Za-z0-9]",""))
+context := InStr(normalized,"contract") || InStr(normalized,"infinitymansion") ? "mansion"
+: RegExMatch(detail,"i)Dungeon\s*Room\s*\(?\s*Depth") ? "dungeon"
+: RegExMatch(detail,"i)\bAct\s*([1-6])\b",&act) ? "stage" : ""
+if context = "" && name = "Cursed Festival" && InStr(AAMansionRoute.CleanMapText(title),"mountaintemple")
+context := "alternate-loading"
+difficulty := RegExMatch(detail,"i)\b(Hard|Normal)\b",&level) ? level[1] : ""
+blue := 0
+loop 19 {
+y := 65+(A_Index-1)*3
+loop 180 {
+color := Gdip_GetPixel(bitmap,15+(A_Index-1)*4,y)
+red := (color>>16)&255, green := (color>>8)&255, cyan := color&255
+if red < 140 && green > 105 && cyan > 155 && cyan-green > 12
+blue++
+}
+}
+valid := name != "" && context != "" && blue >= 35
+return Map("kind",valid ? "transition-map" : "none","map",valid ? name : "","context",context,
+"act",context = "stage" ? Integer(act[1]) : 0,"difficulty",difficulty,"text",text,"ownerWait",0)
 }
 }
 class AAMansionRoute {
@@ -17744,6 +18318,13 @@ static MatchMap(text,names := unset) {
 if !IsSet(names)
 names := CrusadersCatalog.MansionMaps
 text := this.CleanMapText(text), exact := "", longest := 0
+if InStr(text,"mountaintemple")
+for name in names
+if name = "Cursed Festival"
+return "Cursed Festival"
+for name in names
+if name = "Spirit Invasion" && InStr(text,"spirittown")
+return "Spirit Invasion"
 for alias,canonical in AADefaultPaths.Aliases {
 for name in names
 if name = canonical && InStr(text,this.CleanMapText(alias))
@@ -17775,11 +18356,17 @@ else second := Max(second,score)
 return best >= 0.90 && best-second >= 0.12 ? selected : ""
 }
 static ReadLoadingMap(reader,bitmap) {
-r := this.LoadingMapRegion
-text := reader.Read(bitmap,r[1],r[2],r[3],r[4],2)
+scan := AATransitionVision.Read(reader,bitmap,CrusadersCatalog.MansionMaps)
+if scan["kind"] != "none" && (scan["context"] = "mansion" || scan["context"] = "alternate-loading") {
+scan["kind"] := "mansion-map"
+return scan
+}
+r := this.LoadingMapRegion, text := reader.Read(bitmap,r[1],r[2],r[3],r[4],2)
 context := this.CleanMapText(text)
-if !InStr(context,"infinitymansion") && !InStr(context,"contract") && !RegExMatch(text,"i)Travell?ing\s+to")
-return Map("kind","none","text",text,"ownerWait",0)
+if InStr(context,"dungeonroom")
+return Map("kind","none","map","","text",text,"ownerWait",0)
+if !InStr(context,"infinitymansion") && !InStr(context,"contract")
+return Map("kind","none","map","","text",text,"ownerWait",0)
 name := this.MatchMap(text)
 return Map("kind",name != "" ? "mansion-map" : "none","map",name,"text",text,"ownerWait",0)
 }
@@ -17844,6 +18431,7 @@ this.teamDone := false, this.teamPhase := "units", this.teamLoaded := false
 }
 Start(rejoin := true,forcePublic := false) {
 global testRunning
+this.owner.aprilMap := ""
 url := rejoin ? AAServer.Url(this.model.preferences) : ""
 if rejoin && forcePublic && url = ""
 url := CrusadersServer.JoinUrl("")
@@ -17911,6 +18499,20 @@ this.BeginAprilMinimizeHold()
 return
 }
 if this.stage = "AprilMinimizeHold" {
+if IsObject(this.worker) && this.worker.Ready() && this.owner.aprilMap != "Snowy Town" {
+scan := this.worker.Poll()
+if scan && scan["kind"] = "april-map"
+this.owner.aprilMap := scan["map"]
+if now-this.scanned >= 200 {
+this.worker.Request("april-map"), this.scanned := now
+}
+}
+remaining := Max(0,Ceil((this.holdUntil-now)/1000))
+if !this.HasOwnProp("holdSecondsShown") || this.holdSecondsShown != remaining {
+this.holdSecondsShown := remaining
+this.owner.runStatus := "April Fools: Waiting " remaining "s"
+this.owner.PushState()
+}
 if now < this.holdUntil
 return
 SendEvent("{RButton up}")
@@ -18004,6 +18606,8 @@ return
 scan := this.worker.Poll()
 if scan {
 kind := scan["kind"]
+if kind = "april-map"
+this.owner.aprilMap := scan["map"]
 if kind = "rejoin" || kind = "access-denied" {
 this.Handle(scan)
 return
@@ -18040,7 +18644,7 @@ this.Log("Matchmaking status detected; waiting for the green notice to disappear
 }
 if this.stage = "AprilWaiting" && kind = "matchmaking-visible"
 this.noticeAbsentFrames := 0
-if this.stage = "AprilWaiting" && (kind = "matchmaking-waiting" || kind = "matchmaking-transition") && this.matchNoticeSeen {
+if this.stage = "AprilWaiting" && (kind = "matchmaking-waiting" || kind = "matchmaking-transition" || kind = "april-map") && this.matchNoticeSeen {
 this.noticeAbsentFrames := (this.HasOwnProp("noticeAbsentFrames") ? this.noticeAbsentFrames : 0)+1
 if this.noticeAbsentFrames < 2
 return
@@ -18648,12 +19252,13 @@ this.WaitForClick()
 }
 BeginAprilPopOut() {
 this.aprilPoppedOut := true
-this.owner.Minimize()
+this.owner.aprilDetached := true
 this.owner.SetGameFrame(this.hwnd,false)
 DllCall("SetWindowRgn","Ptr",this.hwnd,"Ptr",0,"Int",true)
 if WinGetMinMax(this.hwnd) = -1
 WinRestore(this.hwnd)
 WinShow(this.hwnd)
+DllCall("SetWindowPos","Ptr",this.hwnd,"Ptr",0,"Int",0,"Int",0,"Int",0,"Int",0,"UInt",0x43)
 WinActivate(this.hwnd)
 this.stage := "AprilHoldPrepare", this.due := Adventures.Tick()+350
 }
@@ -18690,11 +19295,12 @@ this.rightHeld := true
 SendEvent("{RButton down}")
 this.holdUntil := Adventures.Tick()+120000
 this.stage := "AprilMinimizeHold"
-this.Log("Roblox popped out; holding right-click on native minimize for 120 seconds")
+this.Log("April Fools: Waiting 120 seconds. The macro is still running; Roblox will return automatically.")
 }
 RestoreAprilWindow() {
 if !this.HasOwnProp("aprilPoppedOut") || !this.aprilPoppedOut
 return
+this.owner.aprilDetached := false
 WinRestore(this.owner.gui)
 if !this.owner.ShowGame()
 throw Error("Roblox could not be restored to the macro after the April Fools hold.")
@@ -18805,9 +19411,15 @@ r := this.PodMapRegion
 return this.ParseMap(reader.Read(bitmap,r[1],r[2],r[3],r[4],3))
 }
 static ReadLoadingMap(reader,bitmap) {
+scan := AATransitionVision.Read(reader,bitmap,CrusadersCatalog.StoryMaps)
+if scan["kind"] != "none" && scan["context"] = "stage" {
+scan["kind"] := "challenge-map"
+scan["config"] := CrusadersCatalog.Filename("Challenges",scan["map"],scan["act"])
+return scan
+}
 r := this.LoadingMapRegion
 text := reader.Read(bitmap,r[1],r[2],r[3],r[4],2)
-if !RegExMatch(text,"i)Travell?ing\s+to|Challenge")
+if RegExMatch(text,"i)Contract|Dungeon\s*Room") || !RegExMatch(text,"i)Travell?ing\s+to|Challenge")
 return Map("kind","none","map","","config","","act",0,"text",text,"ownerWait",0)
 return this.ParseMap(text)
 }
@@ -18907,29 +19519,29 @@ runner.scanned := now
 }
 }
 class AADefaultPaths {
-static Routes := Map("Ant Kingdom",Map("duration",16442,"events",[Map("action","keyDown","at",1115,"key","a"),Map("action","keyUp","at",1428,"key","a"),Map("action","keyDown","at",1510,"key","s"),Map("action","keyUp","at",3277,"key","s"),Map("action","keyDown","at",3280,"key","a"),Map("action","keyUp","at",4750,"key","a"),Map("action","keyDown","at",4807,"key","s"),Map("action","keyDown","at",6760,"key","a"),Map("action","keyUp","at",6811,"key","s"),Map("action","keyDown","at",7208,"key","s"),Map("action","keyUp","at",7303,"key","a"),Map("action","keyDown","at",8207,"key","a"),Map("action","keyUp","at",8282,"key","s"),Map("action","keyUp","at",10937,"key","a"),Map("action","keyDown","at",10945,"key","w"),Map("action","keyDown","at",11973,"key","a"),Map("action","keyUp","at",12188,"key","w"),Map("action","keyDown","at",13197,"key","w"),Map("action","keyUp","at",13349,"key","a"),Map("action","keyUp","at",14912,"key","w")],"height",600,"version",1,"width",800),
-"Fabled Kingdom",Map("duration",8195,"events",[Map("action","keyDown","at",1307,"key","s"),Map("action","keyUp","at",3985,"key","s"),Map("action","keyDown","at",4357,"key","s"),Map("action","keyUp","at",6937,"key","s")],"height",600,"version",1,"width",800),
-"Fiend City",Map("duration",12864,"events",[Map("action","keyDown","at",1120,"key","s"),Map("action","keyUp","at",1756,"key","s"),Map("action","keyDown","at",1760,"key","a"),Map("action","keyUp","at",5655,"key","a"),Map("action","keyDown","at",5738,"key","s"),Map("action","keyUp","at",8226,"key","s"),Map("action","keyDown","at",8244,"key","d"),Map("action","keyUp","at",9687,"key","d"),Map("action","keyDown","at",10484,"key","d"),Map("action","keyUp","at",10609,"key","d")],"height",600,"version",1,"width",800),
-"Haunted Academy",Map("duration",7275,"events",[Map("action","keyDown","at",1470,"key","d"),Map("action","keyUp","at",6296,"key","d")],"height",600,"version",1,"width",800),
-"Mountain Temple",Map("duration",6057,"events",[Map("action","keyDown","at",1727,"key","a"),Map("action","keyUp","at",2715,"key","a"),Map("action","keyDown","at",2761,"key","s"),Map("action","keyUp","at",3752,"key","s"),Map("action","keyDown","at",3965,"key","a"),Map("action","keyUp","at",4620,"key","a")],"height",600,"version",1,"width",800),
-"Sand Village",Map("duration",15070,"events",[Map("action","keyDown","at",1728,"key","s"),Map("action","keyUp","at",2222,"key","s"),Map("action","keyDown","at",2273,"key","d"),Map("action","keyUp","at",3437,"key","d"),Map("action","keyDown","at",3692,"key","d"),Map("action","keyUp","at",5164,"key","d"),Map("action","keyDown","at",5579,"key","s"),Map("action","keyDown","at",6314,"key","d"),Map("action","keyUp","at",6336,"key","s"),Map("action","keyUp","at",6439,"key","d"),Map("action","keyDown","at",6673,"key","d"),Map("action","keyUp","at",6749,"key","d"),Map("action","keyDown","at",7032,"key","s"),Map("action","keyUp","at",8773,"key","s"),Map("action","keyDown","at",8877,"key","a"),Map("action","keyUp","at",9745,"key","a"),Map("action","keyDown","at",10049,"key","s"),Map("action","keyUp","at",10217,"key","s"),Map("action","keyDown","at",10296,"key","a"),Map("action","keyUp","at",11249,"key","a"),Map("action","keyDown","at",11294,"key","s"),Map("action","keyUp","at",11567,"key","s"),Map("action","keyDown","at",11609,"key","a"),Map("action","keyUp","at",12146,"key","a"),Map("action","keyDown","at",12236,"key","s"),Map("action","keyUp","at",12900,"key","s")],"height",600,"version",1,"width",800),
-"Snowy Kingdom",Map("duration",9096,"events",[Map("action","keyDown","at",585,"key","w"),Map("action","keyDown","at",857,"key","d"),Map("action","keyUp","at",1401,"key","d"),Map("action","keyDown","at",2713,"key","d"),Map("action","keyUp","at",4217,"key","w"),Map("action","keyDown","at",5033,"key","w"),Map("action","keyUp","at",6184,"key","d"),Map("action","keyUp","at",6945,"key","w"),Map("action","keyDown","at",7393,"key","a"),Map("action","keyUp","at",7769,"key","a")],"height",600,"version",1,"width",800),
-"Space Center",Map("duration",11024,"events",[Map("action","keyDown","at",1373,"key","w"),Map("action","keyUp","at",2121,"key","w"),Map("action","keyDown","at",2136,"key","a"),Map("action","keyDown","at",4994,"key","s"),Map("action","keyUp","at",5071,"key","a"),Map("action","keyUp","at",8799,"key","s")],"height",600,"version",1,"width",800),
-"Spirit World",Map("duration",9413,"events",[Map("action","keyDown","at",1010,"key","s"),Map("action","keyDown","at",3658,"key","a"),Map("action","keyUp","at",3720,"key","s"),Map("action","keyUp","at",7369,"key","a"),Map("action","keyDown","at",7476,"key","s"),Map("action","keyUp","at",7947,"key","s")],"height",600,"version",1,"width",800),
-"Magic Town",Map("duration",10490,"events",[Map("action","keyDown","at",959,"key","d"),Map("action","keyDown","at",3710,"key","s"),Map("action","keyUp","at",3752,"key","d"),Map("action","keyDown","at",4855,"key","d"),Map("action","keyUp","at",4858,"key","s"),Map("action","keyUp","at",8754,"key","d"),Map("action","keyDown","at",8778,"key","w"),Map("action","keyUp","at",9173,"key","w")],"height",600,"version",1,"width",800),
-"Magic Hills",Map("duration",27620,"events",[Map("action","keyDown","at",1462,"key","w"),Map("action","keyUp","at",1834,"key","w"),Map("action","keyDown","at",1912,"key","a"),Map("action","keyDown","at",3106,"key","w"),Map("action","keyUp","at",3431,"key","w"),Map("action","keyDown","at",4170,"key","w"),Map("action","keyUp","at",4798,"key","w"),Map("action","keyDown","at",6129,"key","s"),Map("action","keyUp","at",6645,"key","s"),Map("action","keyDown","at",7164,"key","s"),Map("action","keyUp","at",7385,"key","s"),Map("action","keyDown","at",7505,"key","s"),Map("action","keyUp","at",7838,"key","s"),Map("action","keyDown","at",8029,"key","s"),Map("action","keyUp","at",8863,"key","s"),Map("action","keyDown","at",9401,"key","s"),Map("action","keyUp","at",10161,"key","s"),Map("action","keyDown","at",12482,"key","w"),Map("action","keyUp","at",13268,"key","a"),Map("action","keyDown","at",14396,"key","a"),Map("action","keyUp","at",14940,"key","a"),Map("action","keyDown","at",14994,"key","a"),Map("action","keyUp","at",15743,"key","w"),Map("action","keyDown","at",16511,"key","w"),Map("action","keyUp","at",17854,"key","w"),Map("action","keyDown","at",18188,"key","w"),Map("action","keyUp","at",19227,"key","w"),Map("action","keyDown","at",20081,"key","s"),Map("action","keyUp","at",24815,"key","a"),Map("action","keyUp","at",25415,"key","s"),Map("action","keyDown","at",25592,"key","s"),Map("action","keyUp","at",26096,"key","s")],"height",600,"version",1,"width",800),
-"Snowy Town",Map("duration",14500,"events",[Map("action","keyDown","at",1163,"key","d"),Map("action","keyUp","at",3129,"key","d"),Map("action","keyDown","at",3172,"key","w"),Map("action","keyUp","at",4709,"key","w"),Map("action","keyDown","at",4802,"key","d"),Map("action","keyUp","at",6128,"key","d"),Map("action","keyDown","at",6142,"key","w"),Map("action","keyUp","at",7154,"key","w"),Map("action","keyDown","at",7173,"key","d"),Map("action","keyUp","at",11219,"key","d"),Map("action","keyDown","at",11250,"key","s"),Map("action","keyDown","at",12888,"key","d"),Map("action","keyUp","at",12928,"key","s"),Map("action","keyUp","at",13244,"key","d")],"height",600,"version",1,"width",800),
+static Routes := Map("Spirit Town",Map("duration",8445,"events",[Map("action","keyDown","at",792,"key","s"),Map("action","keyUp","at",3265,"key","s"),Map("action","keyDown","at",3496,"key","a"),Map("action","keyUp","at",6760,"key","a")],"height",600,"version",1,"width",800),"Ant Kingdom",Map("duration",10783,"events",[Map("action","keyDown","at",608,"key","a"),Map("action","keyDown","at",872,"key","s"),Map("action","keyUp","at",2672,"key","a"),Map("action","keyDown","at",3016,"key","a"),Map("action","keyUp","at",3376,"key","a"),Map("action","keyDown","at",3848,"key","a"),Map("action","keyUp","at",4824,"key","a"),Map("action","keyDown","at",5824,"key","a"),Map("action","keyUp","at",6600,"key","s"),Map("action","keyDown","at",7600,"key","w"),Map("action","keyUp","at",8928,"key","a"),Map("action","keyUp","at",9072,"key","w")],"height",600,"version",1,"width",800),
+"Fabled Kingdom",Map("duration",11567,"events",[Map("action","keyDown","at",560,"key","s"),Map("action","keyUp","at",1144,"key","s"),Map("action","keyDown","at",1352,"key","a"),Map("action","keyDown","at",2688,"key","s"),Map("action","keyUp","at",2936,"key","s"),Map("action","keyDown","at",3456,"key","s"),Map("action","keyUp","at",3864,"key","a"),Map("action","keyDown","at",6472,"key","d"),Map("action","keyUp","at",7000,"key","s"),Map("action","keyUp","at",8152,"key","d"),Map("action","keyDown","at",8208,"key","s"),Map("action","keyUp","at",9120,"key","s"),Map("action","keyDown","at",9936,"key","s"),Map("action","keyUp","at",10168,"key","s"),Map("action","keyDown","at",10368,"key","d"),Map("action","keyUp","at",10768,"key","d")],"height",600,"version",1,"width",800),
+"Fiend City",Map("duration",10208,"events",[Map("action","keyDown","at",868,"key","s"),Map("action","keyUp","at",1145,"key","s"),Map("action","keyDown","at",1441,"key","a"),Map("action","keyDown","at",3017,"key","s"),Map("action","keyUp","at",3137,"key","s"),Map("action","keyUp","at",5049,"key","a"),Map("action","keyDown","at",5145,"key","s"),Map("action","keyUp","at",5594,"key","s"),Map("action","keyDown","at",5641,"key","a"),Map("action","keyUp","at",5905,"key","a"),Map("action","keyDown","at",5929,"key","s"),Map("action","keyUp","at",8314,"key","s"),Map("action","keyDown","at",8425,"key","d"),Map("action","keyUp","at",9089,"key","d")],"height",600,"version",1,"width",800),
+"Haunted Academy",Map("duration",6884,"events",[Map("action","keyDown","at",845,"key","d"),Map("action","keyUp","at",5701,"key","d")],"height",600,"version",1,"width",800),
+"Mountain Temple",Map("duration",4656,"events",[Map("action","keyDown","at",560,"key","a"),Map("action","keyUp","at",1864,"key","a"),Map("action","keyDown","at",2089,"key","s"),Map("action","keyUp","at",2392,"key","s"),Map("action","keyDown","at",2712,"key","s"),Map("action","keyUp","at",3056,"key","s"),Map("action","keyDown","at",3440,"key","a"),Map("action","keyUp","at",3712,"key","a")],"height",600,"version",1,"width",800),
+"Sand Village",Map("duration",7088,"events",[Map("action","keyDown","at",536,"key","s"),Map("action","keyUp","at",5794,"key","s")],"height",600,"version",1,"width",800),
+"Snowy Kingdom",Map("duration",7496,"events",[Map("action","keyDown","at",552,"key","w"),Map("action","keyDown","at",880,"key","d"),Map("action","keyUp","at",1528,"key","d"),Map("action","keyDown","at",2768,"key","d"),Map("action","keyUp","at",4115,"key","w"),Map("action","keyDown","at",4744,"key","w"),Map("action","keyUp","at",5808,"key","d"),Map("action","keyUp","at",6488,"key","w")],"height",600,"version",1,"width",800),
+"Space Center",Map("duration",8687,"events",[Map("action","keyDown","at",536,"key","w"),Map("action","keyUp","at",1136,"key","w"),Map("action","keyDown","at",1232,"key","a"),Map("action","keyUp","at",4400,"key","a"),Map("action","keyDown","at",4496,"key","s"),Map("action","keyUp","at",7584,"key","s")],"height",600,"version",1,"width",800),
+"Spirit World",Map("duration",9204,"events",[Map("action","keyDown","at",536,"key","w"),Map("action","keyDown","at",1188,"key","d"),Map("action","keyUp","at",3776,"key","w"),Map("action","keyDown","at",5312,"key","w"),Map("action","keyUp","at",5952,"key","w"),Map("action","keyDown","at",6512,"key","w"),Map("action","keyUp","at",6544,"key","d"),Map("action","keyDown","at",6640,"key","d"),Map("action","keyUp","at",6960,"key","d"),Map("action","keyUp","at",7880,"key","w")],"height",600,"version",1,"width",800),
+"Magic Town",Map("duration",9463,"events",[Map("action","keyDown","at",561,"key","d"),Map("action","keyUp","at",3289,"key","d"),Map("action","keyDown","at",3441,"key","s"),Map("action","keyUp","at",4632,"key","s"),Map("action","keyDown","at",4777,"key","d"),Map("action","keyUp","at",8632,"key","d")],"height",600,"version",1,"width",800),
+"Magic Hills",Map("duration",25343,"events",[Map("action","keyDown","at",528,"key","a"),Map("action","keyDown","at",1336,"key","w"),Map("action","keyUp","at",1697,"key","w"),Map("action","keyDown","at",2208,"key","w"),Map("action","keyUp","at",2536,"key","w"),Map("action","keyDown","at",2792,"key","w"),Map("action","keyUp","at",3296,"key","w"),Map("action","keyDown","at",3616,"key","w"),Map("action","keyUp","at",3792,"key","w"),Map("action","keyDown","at",4936,"key","s"),Map("action","keyUp","at",5184,"key","s"),Map("action","keyDown","at",5312,"key","s"),Map("action","keyUp","at",5496,"key","s"),Map("action","keyDown","at",5808,"key","s"),Map("action","keyUp","at",6103,"key","s"),Map("action","keyDown","at",6264,"key","s"),Map("action","keyUp","at",6536,"key","s"),Map("action","keyDown","at",6664,"key","s"),Map("action","keyUp","at",7016,"key","s"),Map("action","keyDown","at",7200,"key","s"),Map("action","keyUp","at",7400,"key","s"),Map("action","keyDown","at",7640,"key","s"),Map("action","keyUp","at",7936,"key","s"),Map("action","keyDown","at",8152,"key","s"),Map("action","keyUp","at",8504,"key","s"),Map("action","keyDown","at",8712,"key","s"),Map("action","keyUp","at",8864,"key","s"),Map("action","keyDown","at",11024,"key","w"),Map("action","keyUp","at",11960,"key","a"),Map("action","keyDown","at",12960,"key","a"),Map("action","keyUp","at",14048,"key","w"),Map("action","keyDown","at",15272,"key","w"),Map("action","keyUp","at",17744,"key","w"),Map("action","keyDown","at",18440,"key","s"),Map("action","keyUp","at",18808,"key","s"),Map("action","keyDown","at",19112,"key","s"),Map("action","keyUp","at",23464,"key","a"),Map("action","keyUp","at",24520,"key","s")],"height",600,"version",1,"width",800),
+"Snowy Town",Map("duration",7377,"events",[Map("action","keyDown","at",1073,"key","d"),Map("action","keyUp","at",3593,"key","d"),Map("action","keyDown","at",3904,"key","w"),Map("action","keyUp","at",5745,"key","w"),Map("action","keyDown","at",5968,"key","d"),Map("action","keyUp","at",6624,"key","d")],"height",600,"version",1,"width",800),
 "Nightmare Train",Map("duration",16374,"events",[Map("action","keyDown","at",1150,"key","a"),Map("action","keyDown","at",2125,"key","LShift"),Map("action","keyUp","at",4052,"key","LShift"),Map("action","keyDown","at",4717,"key","w"),Map("action","keyUp","at",7477,"key","w"),Map("action","keyDown","at",8040,"key","s"),Map("action","keyUp","at",9871,"key","a"),Map("action","keyDown","at",10306,"key","a"),Map("action","keyUp","at",11164,"key","a"),Map("action","keyDown","at",11695,"key","a"),Map("action","keyUp","at",12883,"key","s"),Map("action","keyUp","at",13026,"key","a")],"height",600,"version",1,"width",800),
 "Future City",Map("duration",9420,"events",[Map("action","keyDown","at",828,"key","w"),Map("action","keyUp","at",4111,"key","w"),Map("action","keyDown","at",4234,"key","d"),Map("action","keyUp","at",4477,"key","d"),Map("action","keyDown","at",4554,"key","w"),Map("action","keyUp","at",6041,"key","w")],"height",600,"version",1,"width",800),
 "Strange Town",Map("duration",4185,"events",[Map("action","keyDown","at",940,"key","d"),Map("action","keyDown","at",2597,"key","s"),Map("action","keyUp","at",2606,"key","d"),Map("action","keyUp","at",3138,"key","s")],"height",600,"version",1,"width",800))
-static Aliases := Map("Magic Hills [Elf Invasion]","Magic Hills","Spirit Invasion","Spirit World","Space Center","Space Center","Fabled Kingdom [Generals]","Fabled Kingdom","Ruined City [Midnight]","Ruined City","Virtual Dungeon [Bosses]","Virtual Dungeon","Dungeon Throne","Dungeon Throne","Rain Village","Rain Village","Ant Kingdom [Midnight]","Ant Kingdom","Ruined City [The Menace]","Ruined City","Future City [Tyrant's Invasion]","Future City")
+static Aliases := Map("Magic Hills [Elf Invasion]","Magic Hills","Spirit Invasion","Spirit Town","Space Center","Space Center","Fabled Kingdom [Generals]","Fabled Kingdom","Ruined City [Midnight]","Ruined City","Virtual Dungeon [Bosses]","Virtual Dungeon","Dungeon Throne","Dungeon Throne","Rain Village","Rain Village","Ant Kingdom [Midnight]","Ant Kingdom","Ruined City [The Menace]","Ruined City","Future City [Tyrant's Invasion]","Future City")
 static CanonicalName(name) => this.Aliases.Get(name,name)
 static Has(name) => this.Routes.Has(this.CanonicalName(name))
 static Get(name) => CrusadersRecording.Validate(this.Routes[this.CanonicalName(name)])
 }
 class AAInstalledAssets {
-static Revision := "dungeon-throne-2026-10-23"
-static DefaultHashes := Map("ccf9a0bde5c0a2333106547acc18350414b741c9785c9715846368b0fc620239",true,"042c6195e78425f9bf7415685c808125ff924e9d67a55b9341e03199861211bc",true,"7bda3a623f5f4706e9747c70c9da748ebdeeff8003abc80cef6df383b528f994",true,"f067b39afc42df2de0719d3fad058229d763a86a81a41ee3454b0fcf9eaaa185",true,"00971e36d22c0e8984c89f9c070cf5ad86397f25991e8eade1df935bc30798c8",true,"0a46c3c895d37cb02928709a7d5dbec8b4fdca25d5a0848f2ddb7fe0c0613110",true,"2918adc914e37b77bf4f35662e899f8a0fe0c4c899b562072b428b403e3a192c",true,"2c7df0c8e45f63a677220ecf2f8c5a2148d42f62fe478b5baeb99557bb303d6d",true,"2fc4146a8b799057e0ad1a9f8b05c823b9fbbfb58cb83352222f6b913ff9f2bd",true,"346292d6d42b7a6567eac9a551d4e8f3c6094e316d53c78d856a3fcb327eeb7d",true,"3a9847df98d551581b285fab7057b5913cf27cdb7ed732749399c5cade71d32c",true,"3ce55cc502dc3ece8a9e20e83971a42a57b2e5bd2ce196c9bd8bf349522618b8",true,"48d84a03a1e85369a4ac44de1ab148ef23207b80a45fe9f9c51bd3020bca8793",true,"4d57ece9f2a6a25fefa7356cf88475eca017b93f5750182a98450e7f098307c5",true,"55465ae6c338b05c3224962a24a16817ca5351da6089ab5ee2e8413d890df957",true,"5d131d07f194fe6400bd81bbc3cc650ba86ce784ea2ac0b7e5244d33676cae90",true,"5de26ae37e6808e5d36093f14c445c401696b2cab1b03f226ae747223bfe60eb",true,"70ad6f6ac1981454b61076d57ba73232ec35d95208481655c04c47b95e162965",true,"71aa3c02fd0dbf52ace7595361bf918a6e819068971c8e442d6b05fb0a72d3a3",true,"761379ef773b0be3d83ef121d678875830215002d535cc51e7930b08dbf421a5",true,"854685f52813b86eb162da518821225a13ca4f2ab4a8b40ece99712a53cdc31c",true,"97aff761299f2e7cbcce258290cc4666586b0ab278f0effb05d4ff6fa899ab6c",true,"a1d78f01da048f75f9a56a2d7934071e0365d7da2e2fda42d5d164914d926db4",true,"a313fb24ad8c4e3979847b86571824f8157bfd16fa6e783c75943b59ed3b67b6",true,"a8101779553e2255273dabb35556c3d7816de83f964700b1241bb688b14a74f2",true,"ab23fdf68c36e2a111a285fe0ef8c205be30f965ecd36129ef475667ffe52311",true,"b0f7e7dd3b76b7cd602545c7e39e646707987d53c0bd5fe16c27ae7e8c49e8ab",true,"b762409db6bc60dc79925d14c936661509bbfda15feedcb944c04f4d4331cedf",true,"cba6aa0871145b67c284a929b5d020ed3ecfac045bd8d49aac7ed201e9bd4c71",true,"d2a7ca936570e4055b743df47c155ac879e19b7c284408d4eba64f7e0dfbe098",true,"d6e578883d74bcd94372e44d2cb04c20b73801eb76f2029d252dab3fd5202b62",true,"e0cabba8b9df0a237a81b865fb13b5bd66a7f456bca90db6321c33b7092992e4",true,"ebadd2928dfb22c961d76b6f83bda79e9b4a900f7c3732ebc404a5009b0e391f",true,"f809e872e5c48daa6a3fc2050267e4509d8219504a293c096e8ead04d1ce75c5",true)
+static Revision := "shared-maps-haunted-throne-2026-10-24"
+static DefaultHashes := Map("c2f4a6e684ee7017dca29ba225eb24ed125f3d43bf384d34af7dc97e79a94781",true,"88944fc2f390cd225aa1b4681646458057091d28c98aeee19c4166ad6ef509a0",true,"06add74b25a9c24ad18c8cfc1d0776fc072beac90df4629c4aceb35ed49b40c6",true,"07d2f004f9228eea546a5273d90155d67e99c59beadb84ac2bc2816810452008",true,"1969d708cd713499dd117fc4c4964424944d7aa4cc23a1530c288606b31c968e",true,"1def071289551780242ea5dcca568b5ca9eafaa75743100c644d0c2b83f08c4e",true,"39e1e420bc44d0e00152cf8f1fa9090577bbf1aea861c509464296c51e3b4654",true,"3c2922480b49e6a43ed4d70de20671803a04cab761252742f25b71c7a83fdf55",true,"423a546073d3e9be16b2d9228fb529d7b6b66bee4ed3e45a77c777c460211bec",true,"4297a0ff2df53cc7aeccfde376fae8fce2f33a1c442baf772cea536f2e1597a6",true,"46fd172b2508b19eb78d85f920109508461e1351c86484d1864d26404dd4253f",true,"4dfe9f2ce635602f1f340879b55976adf4ff89465a840065d507a11163a56c7b",true,"530f6563273600c3ffa8255fb1126eb119f2b5a411e792526dab69d7fd078e0b",true,"546190d366e941de790cc2d83045ec9028b374dd67e170e4b7faeb88a0b6423a",true,"5fd4a6ed08d6d70f8b3c002a21aa6f5a5ea4fe5197e182ca7784d0b13989490b",true,"60cbc8b3b0c7353a03f8d263a097fef5e25783dc00a6d0ede76caba4aa4e75b0",true,"9f653579e359f00870430ed36f9f6887ce4527db0cfec8de62662886cf37ae0e",true,"a2d0899489a5fa3f8d8e3b46f12191891eef744d54dc126e3b72e2f70702e803",true,"a8639e5f5cc4c1c49dcd25702f54b79895a705194131535cebfef5e4f0be9a7c",true,"aa4d6c9f62bad91810b468a00d236fc939ead63c7b6b86aaae20fdd573b7cac7",true,"b96f0bca8f426e1ee271bcc92d49b42076a0ed949c88cb03f77b97335a0b0e29",true,"e574f2f2c5cbc7837b574969cb43afa3c132401ad40b21e7c712c95d2c248e8b",true,"e6ed96f8fecc40c5f509d56fabb47fe8455b1558219a80074d0a74d670c9fb00",true,"e70c371a53ea7756d37f19860cb8018deeb19715d1c0a34b578f659ed28acef3",true,"f20a960c21d67cfd794ba255d95873f367e91417820e26544bca0413f7a5b5c8",true,"f394710cfa967fbb0d636d6cdcaa199bd0dce287a5cdd615ffb48a89151461d5",true,"f4683be6acf501c2a0471cc2184a18c15971c8a332f970eeefd4b08c938b59c4",true,"f774024ec050f0ac71f85debed59513e2db9f9a67e35d2195f9e93d60b741a23",true,"8bf561caa34158e12e9bbfbf81efb74a6296c5e831e9df2944b1f9bc12ab38e7",true,"2e41573dd4ee4c6b6088fb81cb8125b53cf777b47273e128339d1ff8b3a72f13",true,"743e98d4f66e8eeafa686ec112f359094c747c0022b74a6f9acc0d013cfebf48",true,"fc2182b24272af71618fb705833d3e13ed2b1288bc8d4decd72662cd84bd4754",true,"ea6f70b00d3a659d6ae6a72a57dfc00837aef6955491b85907d1b40f90b12dfe",true,"47aa09591f88647ea62d716ef1555399707d2e07e38b7f2e77c55c93c4280a5e",true,"a46709512953e1b736b09efa775e69bff4f2a2396579117099bba44ab2c17835",true,"ccf9a0bde5c0a2333106547acc18350414b741c9785c9715846368b0fc620239",true,"042c6195e78425f9bf7415685c808125ff924e9d67a55b9341e03199861211bc",true,"7bda3a623f5f4706e9747c70c9da748ebdeeff8003abc80cef6df383b528f994",true,"f067b39afc42df2de0719d3fad058229d763a86a81a41ee3454b0fcf9eaaa185",true,"00971e36d22c0e8984c89f9c070cf5ad86397f25991e8eade1df935bc30798c8",true,"0a46c3c895d37cb02928709a7d5dbec8b4fdca25d5a0848f2ddb7fe0c0613110",true,"2918adc914e37b77bf4f35662e899f8a0fe0c4c899b562072b428b403e3a192c",true,"2c7df0c8e45f63a677220ecf2f8c5a2148d42f62fe478b5baeb99557bb303d6d",true,"2fc4146a8b799057e0ad1a9f8b05c823b9fbbfb58cb83352222f6b913ff9f2bd",true,"346292d6d42b7a6567eac9a551d4e8f3c6094e316d53c78d856a3fcb327eeb7d",true,"3a9847df98d551581b285fab7057b5913cf27cdb7ed732749399c5cade71d32c",true,"3ce55cc502dc3ece8a9e20e83971a42a57b2e5bd2ce196c9bd8bf349522618b8",true,"48d84a03a1e85369a4ac44de1ab148ef23207b80a45fe9f9c51bd3020bca8793",true,"4d57ece9f2a6a25fefa7356cf88475eca017b93f5750182a98450e7f098307c5",true,"55465ae6c338b05c3224962a24a16817ca5351da6089ab5ee2e8413d890df957",true,"5d131d07f194fe6400bd81bbc3cc650ba86ce784ea2ac0b7e5244d33676cae90",true,"5de26ae37e6808e5d36093f14c445c401696b2cab1b03f226ae747223bfe60eb",true,"70ad6f6ac1981454b61076d57ba73232ec35d95208481655c04c47b95e162965",true,"71aa3c02fd0dbf52ace7595361bf918a6e819068971c8e442d6b05fb0a72d3a3",true,"761379ef773b0be3d83ef121d678875830215002d535cc51e7930b08dbf421a5",true,"854685f52813b86eb162da518821225a13ca4f2ab4a8b40ece99712a53cdc31c",true,"97aff761299f2e7cbcce258290cc4666586b0ab278f0effb05d4ff6fa899ab6c",true,"a1d78f01da048f75f9a56a2d7934071e0365d7da2e2fda42d5d164914d926db4",true,"a313fb24ad8c4e3979847b86571824f8157bfd16fa6e783c75943b59ed3b67b6",true,"a8101779553e2255273dabb35556c3d7816de83f964700b1241bb688b14a74f2",true,"ab23fdf68c36e2a111a285fe0ef8c205be30f965ecd36129ef475667ffe52311",true,"b0f7e7dd3b76b7cd602545c7e39e646707987d53c0bd5fe16c27ae7e8c49e8ab",true,"b762409db6bc60dc79925d14c936661509bbfda15feedcb944c04f4d4331cedf",true,"cba6aa0871145b67c284a929b5d020ed3ecfac045bd8d49aac7ed201e9bd4c71",true,"d2a7ca936570e4055b743df47c155ac879e19b7c284408d4eba64f7e0dfbe098",true,"d6e578883d74bcd94372e44d2cb04c20b73801eb76f2029d252dab3fd5202b62",true,"e0cabba8b9df0a237a81b865fb13b5bd66a7f456bca90db6321c33b7092992e4",true,"ebadd2928dfb22c961d76b6f83bda79e9b4a900f7c3732ebc404a5009b0e391f",true,"f809e872e5c48daa6a3fc2050267e4509d8219504a293c096e8ead04d1ce75c5",true)
 static PlaceholderHashes := Map("e75475b489bba3e650f1f2ea541600153abf88b56b2c9c79e1a119440c9f768e",true)
 static IsBundledDefault(path) {
 try return this.DefaultHashes.Has(CrusadersConfigCodes.HashBytes(FileRead(path,"RAW")))
@@ -18954,6 +19566,12 @@ try refresh := !A_IsCompiled || FileRead(marker,"UTF-8") != this.Revision
 catch Error
 refresh := true
 }
+path := root "\SpiritTown.png"
+if refresh || !FileExist(path)
+FileInstall("Images\DefaultMapImages\LegendStages\SpiritTown.png",path,1)
+path := root "\HauntedMansion.png"
+if refresh || !FileExist(path)
+FileInstall("Images\DefaultMapImages\Dungeons\HauntedMansion.png",path,1)
 path := root "\SkyAircraft.png"
 if refresh || !FileExist(path)
 FileInstall("Images\DefaultMapImages\Dungeons\SkyAircraft.png",path,1)
@@ -19028,7 +19646,7 @@ if refresh || !FileExist(path)
 FileInstall("Images\DefaultMapImages\Story\WalledCityStory.png",path,1)
 path := root "\AssassinPark.png"
 if refresh || !FileExist(path)
-FileInstall("Images\MapImages\Infinity Mansion\AssassinParkMansion.png",path,1)
+FileInstall("Images\DefaultMapImages\Dungeons\AssassinPark.png",path,1)
 path := root "\StormHideout.png"
 if refresh || !FileExist(path)
 FileInstall("Images\DefaultMapImages\Raids\StormHideout.png",path,1)
@@ -19189,6 +19807,16 @@ static Approach() {
 raw := '{"duration":5761,"events":[{"action":"keyDown","at":668,"key":"a"},{"action":"keyUp","at":5109,"key":"a"}],"height":600,"version":1,"width":800}'
 return Jxon_Load(&raw)
 }
+static SnowyTownPath() {
+raw := '{"duration":6120,"events":[{"action":"keyDown","at":593,"key":"d"},{"action":"keyUp","at":2523,"key":"d"},{"action":"keyDown","at":2605,"key":"w"},{"action":"keyUp","at":3959,"key":"w"},{"action":"keyDown","at":3996,"key":"d"},{"action":"keyUp","at":5188,"key":"d"}],"height":600,"version":1,"width":800}'
+return Jxon_Load(&raw)
+}
+static ReadMap(reader,bitmap) {
+scan := AATransitionVision.Read(reader,bitmap,["Snowy Town"])
+if scan["kind"] = "transition-map" && scan["context"] = "stage" && scan["act"] = 1
+return Map("kind","april-map","map","Snowy Town","text",scan["text"],"ownerWait",0)
+return Map("kind","none","text","","ownerWait",0)
+}
 static Slots := [276,326,376,426,476,526]
 static Upgrades := [[620,172],[756,172],[620,264],[756,264],[620,356],[756,356],[620,450],[756,450]]
 static CanPlace(x,y) => (x-400)**2+(y-300)**2 <= 220**2 && y >= 150 && y <= 450
@@ -19239,6 +19867,16 @@ if InStr(details,"completed") || InStr(details,"leted") || InStr(details,"time")
 ended := Map("kind",InStr(heading,"defeat") ? "defeat" : "victory","text",heading,"ownerWait",0)
 }
 }
+if ended["kind"] = "none" {
+nextVisible := InStr(next,"next") || CrusadersDetection.FindBitmap(bitmap,"dungeon-next-label")
+if nextVisible {
+health := reader.Read(bitmap,145,45,400,45,3)
+stats := reader.Read(bitmap,300,150,215,225,3)
+overviewText := reader.Read(bitmap,545,65,250,50,2)
+if this.CoveredDefeat(health,stats,overviewText)
+ended := Map("kind","defeat","text","Covered defeat: zero health, completed waves, time and Next","ownerWait",0)
+}
+}
 if ended["kind"] = "none"
 return ended
 overview := InStr(StrLower(RegExReplace(reader.Read(bitmap,545,65,250,50,2),"[^A-Za-z]","")),"unitoverview") > 0
@@ -19246,6 +19884,12 @@ panel := StoryVision.Parse("placement",reader.Read(bitmap,5,180,335,225,2))["kin
 if overview || panel
 return Map("kind","april-result-covered","result",ended["kind"],"overview",overview,"panel",panel,"text",ended["text"],"ownerWait",0)
 return ended
+}
+static CoveredDefeat(health,stats,overview) {
+return RegExMatch(health,"i)(?<![0-9.])0(?:[.,]0+)?\s*/\s*[1-9][0-9]*")
+&& RegExMatch(stats,"\b[0-9]{1,2}:[0-9]{2}\b")
+&& RegExMatch(stats,"i)(?:com)?pleted\s*:?\s*[0-9]+")
+&& InStr(StrLower(RegExReplace(overview,"[^A-Za-z]","")),"unitoverview")
 }
 static Read(reader,bitmap,checkResult := true) {
 if checkResult {
@@ -19268,7 +19912,7 @@ __New(runner) {
 this.loop := runner, this.slot := 1, this.phase := "select", this.due := 0
 this.placed := 0, this.clicked := false, this.panelFrames := 0, this.awaitSerial := 0
 this.points := AAAprilFools.PlacementPoints(), this.pointIndex := 1
-this.placementDone := false, this.upgrade := 1, this.overviewSerial := 0, this.observeSerial := 0
+this.placementDone := false, this.upgrade := 1, this.observeSerial := 0
 }
 Observe(scan) {
 if scan["kind"] != "april-state"
@@ -19285,14 +19929,8 @@ this.due := Adventures.Tick()+250
 this.loop.app.Log("April Fools | 20-unit limit detected; starting eight-unit upgrade loop")
 return
 }
-if this.placementDone {
-if scan.Get("overview",false) && serial > this.overviewSerial {
-this.phase := "upgrade"
-this.overviewSeen := Adventures.Tick()
-} else if this.phase = "upgrade" && !scan.Get("overview",false)
-this.phase := "open-overview"
+if this.placementDone
 return
-}
 if this.loop.worker.serial <= this.awaitSerial
 return
 if this.clicked && scan.Get("panel",false) {
@@ -19375,34 +20013,21 @@ Tick() {
 runner := this.loop, now := Adventures.Tick()
 if runner.app.status != "Running" || now < this.due || this.phase = "complete"
 return
-if this.ResultVisible()
+if !this.placementDone && this.ResultVisible()
 return
 if this.phase = "open-overview" {
 runner.ClickAt(780,300)
-this.overviewSerial := runner.worker.serial
 this.phase := "await-overview", this.due := now+500
 return
 }
 if this.phase = "await-overview" {
-if now-this.due >= 2000 {
-this.phase := "open-overview"
-this.due := now+250
-}
-return
+this.phase := "upgrade"
 }
 if this.phase = "upgrade" {
-if !this.HasOwnProp("overviewSeen") || now-this.overviewSeen > 30000 {
-this.phase := "open-overview", this.due := now+250
-return
-}
-if !this.latest.Get("overview",false) {
-this.phase := "open-overview", this.due := now+250
-return
-}
 point := AAAprilFools.Upgrades[this.upgrade]
 runner.ClickAt(point[1],point[2])
 this.upgrade := Mod(this.upgrade,8)+1
-this.due := Adventures.Tick()+300
+this.due := Adventures.Tick()+500
 return
 }
 if this.phase = "select" {
@@ -19430,6 +20055,7 @@ this.phase := "confirm", this.due := Adventures.Tick()+240
 }
 }
 class AADungeons {
+static ExtraMaps := ["Assassin Park","Hellish City","Sky Aircraft","Strange Town","Sacred Planet","Cursed Festival","Future City","Storm Hideout","Nightmare Train","Haunted Mansion"]
 static Rooms := "Rare Chest|Chest|Shop|Hoard|Shrine|Boss|Curse|Grey Room|Green Room|Purple Room"
 static Items := "Golden Mushroom|Mask of Riches|Genie Lamp|Shimmering Moon Fragment|Philosopher's Stone|Golden Branch|Golden Fishhook|Fishhook|Archmage's Hat|Magic Tome|Scimitar|Glacial Axe|Ice Dagger|Sylvanthorn|Stormbringer|Mage Coat|Sword|Elf Bow|Longbow|Bow|Reaper Scythe|Speedy Boots|Dagger|Ninja Belt|Nimble Cloak|Aureus Maul|Headsplitter|Axe|Solar Cleaver|Celestial Blade"
 static Defaults := Map("DungeonTeam","0","DungeonRoomPriority",this.Rooms,"DungeonShopPriority",this.Items,
@@ -19448,7 +20074,9 @@ name := AADefaultPaths.CanonicalName(name)
 if !seen.Has(name)
 maps.Push(name), seen[name] := true
 }
-maps.Push("Hellish City"), maps.Push("Sky Aircraft"), maps.Push("Strange Town")
+for name in this.ExtraMaps
+if !seen.Has(name)
+maps.Push(name), seen[name] := true
 CrusadersCatalog.Maps["Dungeons"] := maps
 keys := []
 for key in this.Defaults {
@@ -19456,6 +20084,9 @@ keys.Push(key)
 CrusadersConfigCodes.Settings.Push(key)
 }
 CrusadersSettingsLayout.Groups.Push(["Dungeons",keys])
+CrusadersDetection.definitions["dungeon-victory-title"] := {name:"Dungeon Victory Title",group:"Dungeons",file:"AA\Dungeons\victory-title.png",kind:"Image",x:145,y:150,w:350,h:90,tolerance:20,frames:2,cx:0,cy:0,cw:0,ch:0}
+CrusadersDetection.definitions["dungeon-next-label"] := {name:"Dungeon Next Label",group:"Dungeons",file:"AA\Dungeons\next-label.png",kind:"Image",x:260,y:365,w:125,h:65,tolerance:25,frames:2,cx:0,cy:0,cw:0,ch:0}
+CrusadersDetection.definitions["dungeon-xp-title"] := {name:"Dungeon XP Progress",group:"Dungeons",file:"AA\Dungeons\xp-title.png",kind:"Image",x:525,y:120,w:245,h:60,tolerance:25,frames:2,cx:0,cy:0,cw:0,ch:0}
 for name in ["shop-title","shrine-title","chests-title"]
 CrusadersDetection.definitions["dungeon-" name] := {name:"Dungeon " name,group:"Dungeons",file:"AA\Dungeons\" name ".png",kind:"Image",x:110,y:100,w:580,h:390,tolerance:20,frames:2,cx:0,cy:0,cw:0,ch:0}
 }
@@ -19512,11 +20143,12 @@ throw Error("Relic names must be one line, at most 1000 characters.")
 static Team(model) => Integer(model.preferences.Get(model.preferences["Mode"] = "Dungeons" ? "DungeonTeam" : "Team","0"))
 static MapName(text) {
 normalized := StrLower(RegExReplace(text,"[^A-Za-z0-9]",""))
-if InStr(normalized,"strangetown")
-return "Strange Town"
-if InStr(normalized,"skyaircraft")
-return "Sky Aircraft"
-if InStr(normalized,"hellishcity") || InStr(normalized,"cityhellish")
+if InStr(normalized,"spirittown")
+return "Spirit Town"
+for name in this.ExtraMaps
+if InStr(normalized,StrLower(RegExReplace(name,"[^A-Za-z0-9]","")))
+return name
+if InStr(normalized,"cityhellish")
 return "Hellish City"
 best := "", score := 0
 for mode in ["Story","Legend Stages"]
@@ -19589,22 +20221,75 @@ start := -1
 }
 return false
 }
-static PurpleRoom(bitmap,x) {
-filled := 0, frame := 0
-loop 11 {
-px := x+15+(A_Index-1)*5
-loop 11 {
-c := this.Pixel(bitmap,px,335+(A_Index-1)*5)
-r := (c>>16)&255, g := (c>>8)&255, b := c&255
-filled += Abs(r-27)<=5 && g<=5 && Abs(b-44)<=5
-}
+static RoomDifficulty(bitmap,x) {
+counts := Map("Grey Room",0,"Green Room",0,"Purple Room",0), border := Map("Grey Room",0,"Green Room",0,"Purple Room",0)
+points := []
+for dx in [12,20,35,50,65,72]
+for y in [332,338,390,396]
+points.Push([x+dx,y])
+for dx in [12,72]
+for y in [348,360,372,384]
+points.Push([x+dx,y])
+for point in points {
+c := this.Pixel(bitmap,point[1],point[2]), r := (c>>16)&255, g := (c>>8)&255, b := c&255
+counts["Grey Room"] += Abs(r-30)<=6 && Abs(g-31)<=6 && Abs(b-44)<=6
+counts["Green Room"] += Abs(r-18)<=6 && Abs(g-40)<=6 && Abs(b-15)<=6
+counts["Purple Room"] += Abs(r-27)<=6 && g<=6 && Abs(b-44)<=6
 }
 for point in [[x+3,325],[x+75,325],[x+3,397],[x+75,397]] {
-c := this.Pixel(bitmap,point[1],point[2])
-r := (c>>16)&255, g := (c>>8)&255, b := c&255
-frame += b>=60 && r>=25 && g<25 && b>r*1.3
+c := this.Pixel(bitmap,point[1],point[2]), r := (c>>16)&255, g := (c>>8)&255, b := c&255
+border["Grey Room"] += b>=100 && r>=40 && g>=45 && Abs(r-g)<=25
+border["Green Room"] += g>=60 && g>r*1.5 && g>b*1.5
+border["Purple Room"] += b>=60 && r>=25 && g<25 && b>r*1.3
 }
-return filled>=35 && frame>=3
+for difficulty,count in counts
+if count>=(difficulty = "Purple Room" ? 14 : 20) && border[difficulty]>=(difficulty = "Grey Room" ? 2 : 3)
+return difficulty
+return ""
+}
+static PurpleRoom(bitmap,x) => this.RoomDifficulty(bitmap,x) = "Purple Room"
+static cardTextCache := Map()
+static ReadCardText(reader,bitmap,x,scale) {
+if !this.framePixels || bitmap != this.frameBitmap
+return reader.Read(bitmap,x,320,86,85,scale)
+crop := Buffer(86*85*4)
+loop 85
+DllCall("ntdll\RtlMoveMemory","Ptr",crop.Ptr+(A_Index-1)*86*4,"Ptr",this.framePixels.Ptr+(320+A_Index-1)*this.frameStride+x*4,"UPtr",86*4)
+hash := CrusadersConfigCodes.HashBytes(crop), key := ObjPtr(reader) "|" x "|" scale, now := Adventures.Tick()
+if this.cardTextCache.Has(key) {
+cached := this.cardTextCache[key]
+if cached.hash = hash && now-cached.at<1000
+return cached.text
+}
+text := reader.Read(bitmap,x,320,86,85,scale)
+if this.cardTextCache.Count>32
+this.cardTextCache.Clear()
+if Trim(text) != ""
+this.cardTextCache[key] := {hash:hash,at:now,text:text}
+return text
+}
+static CardRewards(text) {
+label := StrLower(RegExReplace(text,"[^A-Za-z]","")), rewards := []
+if InStr(label,"ches") || InStr(label,"open")
+rewards.Push(InStr(label,"rare") ? "Rare Chest" : "Chest")
+for pair in [["hoard","Hoard"],["shop","Shop"],["shrine","Shrine"],["curse","Curse"],["boss","Boss"]]
+if InStr(label,pair[1])
+rewards.Push(pair[2])
+return rewards
+}
+static MatchesPriority(card,category) {
+if card["category"] = category || card.Get("difficulty","") = category
+return true
+for reward in card.Get("rewards",[])
+if reward = category
+return true
+return false
+}
+static PriorityScore(card,order) {
+score := 0
+for category in order
+score := score*2+(this.MatchesPriority(card,category) ? 1 : 0)
+return score
 }
 static PurpleClose(bitmap,enterX) {
 left := 800, right := 0, top := 600, bottom := 0, count := 0
@@ -19685,36 +20370,8 @@ dark += Max((c>>16)&255,(c>>8)&255,c&255)<70
 }
 return dark>=318
 }
-static GreenRoom(bitmap,x) {
-filled := 0, frame := 0
-loop 11 {
-px := x+15+(A_Index-1)*5
-loop 11 {
-c := this.Pixel(bitmap,px,335+(A_Index-1)*5)
-r := (c>>16)&255, g := (c>>8)&255, b := c&255
-filled += Abs(r-18)<=5 && Abs(g-40)<=5 && Abs(b-15)<=5
-}
-}
-for point in [[x+3,325],[x+75,325],[x+3,397],[x+75,397]] {
-c := this.Pixel(bitmap,point[1],point[2])
-r := (c>>16)&255, g := (c>>8)&255, b := c&255
-frame += g>=60 && g>r*1.5 && g>b*1.5
-}
-return filled>=80 && frame>=3
-}
-static GreyRoom(bitmap,x) {
-matched := 0
-loop 11 {
-px := x+15+(A_Index-1)*5
-loop 11 {
-color := this.Pixel(bitmap,px,335+(A_Index-1)*5)
-red := (color>>16)&255, green := (color>>8)&255, blue := color&255
-if Abs(red-30) <= 5 && Abs(green-31) <= 5 && Abs(blue-44) <= 5
-matched++
-}
-}
-return matched >= 115
-}
+static GreenRoom(bitmap,x) => this.RoomDifficulty(bitmap,x) = "Green Room"
+static GreyRoom(bitmap,x) => this.RoomDifficulty(bitmap,x) = "Grey Room"
 static GreenPixel(bitmap,x,y) {
 c := this.Pixel(bitmap,x,y), r := (c>>16)&255, g := (c>>8)&255, b := c&255
 return g>130 && g>r*1.6 && g>b*1.4
@@ -19779,9 +20436,13 @@ this.framePixels := previous[1], this.frameBitmap := previous[2], this.frameStri
 }
 static ReadFrame(reader,bitmap,transition := false,fastBoard := false,seed := 0) {
 if transition {
-text := reader.Read(bitmap,10,40,780,150,2), name := this.MapName(text)
-if name != ""
-return Map("kind","dungeon-map","map",name,"text",text,"ownerWait",0)
+scan := AATransitionVision.Read(reader,bitmap,CrusadersCatalog.Maps["Dungeons"])
+if scan["kind"] != "none" && (scan["context"] = "dungeon" || scan["context"] = "alternate-loading") {
+scan["kind"] := "dungeon-map"
+return scan
+}
+if scan["context"] != ""
+return Map("kind","none","text",scan["text"],"ownerWait",0)
 return this.ActiveRoom(reader,bitmap)
 }
 if fastBoard {
@@ -19874,63 +20535,44 @@ heartsText := fastBoard ? "" : reader.Read(bitmap,210,385,80,40,4)
 if RegExMatch(heartsText,"([0-5])\s*/\s*5",&life)
 result["hearts"] := Integer(life[1])
 for x in [202,280,357,435,512] {
-bright := 0
-for p in [[x+3,325],[x+75,325],[x+3,397],[x+75,397]] {
-c := this.Pixel(bitmap,p[1],p[2])
-bright += Max((c>>16)&255,(c>>8)&255,c&255) >= 100
+difficulty := this.RoomDifficulty(bitmap,x)
+boss := difficulty = "" && this.BossRoom(bitmap,x)
+if difficulty = "" && !boss
+continue
+cardText := this.ReadCardText(reader,bitmap,x,boss ? 3 : difficulty = "Purple Room" ? 3 : 4)
+rewards := this.CardRewards(cardText)
+if difficulty = "Purple Room" {
+i := rewards.Length
+while i>=1 {
+if rewards[i] = "Curse"
+rewards.RemoveAt(i)
+i--
 }
-if this.GreenRoom(bitmap,x) {
-result["cards"].Push(Map("category","Green Room","x",x+43,"y",360))
+}
+if boss {
+if !RegExMatch(StrLower(cardText),"boss|8066|b066")
+continue
+result["cards"].Push(Map("category","Boss","difficulty","Boss","rewards",["Boss"],"x",x+43,"y",360))
 continue
 }
-if this.PurpleRoom(bitmap,x) {
-label := StrLower(RegExReplace(reader.Read(bitmap,x,320,86,85,3),"[^A-Za-z]","")), rewards := []
-for pair in [["ches","Chest"],["hoard","Hoard"],["shop","Shop"],["shrine","Shrine"]]
-if InStr(label,pair[1])
-rewards.Push(pair[2])
-result["cards"].Push(Map("category","Purple Room","x",x+43,"y",360,"rewards",rewards))
-continue
-}
-if this.BossRoom(bitmap,x) && RegExMatch(StrLower(reader.Read(bitmap,x,320,86,85,3)),"boss|8066|b066") {
-result["cards"].Push(Map("category","Boss","x",x+43,"y",360))
-continue
-}
-if bright < 2
-continue
-if this.GreyRoom(bitmap,x) {
-result["cards"].Push(Map("category","Grey Room","x",x+43,"y",360))
-continue
-}
-cardText := reader.Read(bitmap,x,320,86,85,3)
-label := StrLower(RegExReplace(cardText,"[^A-Za-z]","")), category := ""
-for pair in [["hoard","Hoard"],["shop","Shop"],["shrine","Shrine"],["curse","Curse"],["boss","Boss"]]
-if InStr(label,pair[1])
-category := pair[2]
-if InStr(label,"chest") {
+category := difficulty
+if difficulty = "Grey Room" && rewards.Length {
+if rewards[1] = "Chest" && rewards.Length = 1 {
 gold := 0, white := 0
 loop 80 {
 px := x+A_Index
 loop 20 {
-color := this.Pixel(bitmap,px,365+A_Index)
-r := (color>>16)&255, g := (color>>8)&255, b := color&255
-if r > 160 && g > 90 && b < 90
-gold++
-if Min(r,g,b) > 160
-white++
+c := this.Pixel(bitmap,px,365+A_Index), red := (c>>16)&255, green := (c>>8)&255, blue := c&255
+gold += red>160 && green>90 && blue<90
+white += Min(red,green,blue)>160
 }
 }
-category := gold >= 5 && gold > white ? "Rare Chest" : white >= 5 ? "Chest" : ""
+if gold>=5 && gold>white
+rewards[1] := "Rare Chest"
 }
-bright := 0
-for p in [[x+3,325],[x+75,325],[x+3,397],[x+75,397]] {
-c := this.Pixel(bitmap,p[1],p[2])
-if Max((c>>16)&255,(c>>8)&255,c&255) >= 100
-bright++
+category := rewards[1]
 }
-if category = "" && bright >= 2 && this.GreyRoom(bitmap,x)
-category := "Grey Room"
-if category != "" && bright >= 2
-result["cards"].Push(Map("category",category,"x",x+43,"y",360))
+result["cards"].Push(Map("category",category,"difficulty",difficulty,"rewards",rewards,"x",x+43,"y",360))
 }
 }
 return result
@@ -19990,6 +20632,8 @@ return
 this.chestPending := false
 }
 signature := kind "|" scan.Get("map","") "|" scan.Get("depth",0)
+if kind = "dungeon-board"
+signature .= "|" Jxon_Dump(scan.Get("cards",[]))
 this.frames := signature = this.candidate ? this.frames+1 : 1, this.candidate := signature
 if this.frames < 2
 return
@@ -20153,14 +20797,11 @@ if this.depth = 20
 r.app.Log("Dungeon depth 20: checking boss room")
 best := 0
 roomOrder := this.depth = 20 ? ["Boss"] : AADungeons.Ordered(r.app.model.preferences["DungeonRoomPriority"],AADungeons.Rooms)
-for category in roomOrder {
-for card in scan.Get("cards",[])
-if card["category"] = category {
-best := card
-break
-}
-if best
-break
+bestScore := -1
+for card in scan.Get("cards",[]) {
+score := AADungeons.PriorityScore(card,roomOrder)
+if score>bestScore && score>0
+best := card, bestScore := score
 }
 if !best {
 if !this.HasOwnProp("unreadableBoardSince") || !this.unreadableBoardSince
@@ -20226,7 +20867,7 @@ Click(x,y) {
 r := this.runner
 r.ClickAt(x,y)
 this.minSerial := r.worker.serial+1, this.frames := 0, this.candidate := ""
-r.due := Adventures.Tick()+750
+r.due := Adventures.Tick()+500
 r.deadline := Adventures.Tick()+120000
 }
 Resume() {
@@ -20242,7 +20883,7 @@ parent := Integer(A_Args[2])
 if parent > 0
 ProcessWaitClose(parent,8)
 if parent <= 0 || ProcessExist(parent) {
-MsgBox("Restart could not finish because the previous macro did not close. Close it and open Start Macro.cmd.","Bayzo's AA Macro v1.1")
+MsgBox("Restart could not finish because the previous macro did not close. Close it and open Start Macro.cmd.","Bayzo's AA Macro v1.4")
 ExitApp(1)
 }
 A_Args.RemoveAt(1,2)
@@ -20258,7 +20899,7 @@ if !AAInstance.Acquire(mutexName)
 ExitApp()
 SendMode("Event")
 DetectHiddenWindows(true)
-A_IconTip := "Bayzo's AA Macro v1.1"
+A_IconTip := "Bayzo's AA Macro v1.4"
 AAInstalledAssets.Ensure()
 AAAprilFools.Register()
 if FileExist(CrusadersTheme.AppIcon)
@@ -20274,8 +20915,7 @@ try {
 global selector := CrusadersCreateSelector()
 global macroWindow := AAWindow()
 } catch Error as err {
-CrusadersLogFile.Append(FormatTime(,"HH:mm:ss") "  Startup failed: " err.Message " at line " err.Line "`n")
-MsgBox("The macro could not open.`n`n" err.Message "`nLine " err.Line,"Bayzo's AA Macro v1.1","Iconx")
+MsgBox("The macro could not open.`n`n" err.Message "`nLine " err.Line,"Bayzo's AA Macro v1.4","Iconx")
 ExitApp(1)
 }
 finally SetWinDelay(previousWindowDelay)

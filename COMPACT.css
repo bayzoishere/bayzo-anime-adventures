@@ -1,0 +1,73 @@
+body[data-theme=crimson]{
+  --bg:#18191c;--surface:#202125;--raised:#2a2c31;--field:#17181b;
+  --line:#37393f;--text:#f0f1f3;--muted:#b0b3bc;
+  --accent:#ef8293;--accent-ink:#28151a;--select:#35262d;
+  font-size:13px;
+}
+body[data-theme=crimson] .app{max-width:1266px;box-shadow:none;border-radius:6px}
+body[data-theme=crimson] header{height:48px;padding:0 14px}
+body[data-theme=crimson] .brand strong{font-size:15px}
+body[data-theme=crimson] .brand img{width:27px;height:27px}
+body[data-theme=crimson] .workspace{min-height:0}
+body[data-theme=crimson] .rail{width:56px;padding:12px 4px;gap:5px}
+body[data-theme=crimson] .rail button{height:54px;font-size:9px;gap:5px}
+body[data-theme=crimson] .rail button.active{background:var(--select);box-shadow:inset 2px 0 var(--accent)}
+body[data-theme=crimson] main{grid-template-columns:minmax(0,1fr) 384px}
+body[data-theme=crimson] .game-area{padding:12px 12px 0}
+body[data-theme=crimson] .game-meta{height:38px;font-size:12px}
+body[data-theme=crimson] .game-meta em{margin-left:8px}
+body[data-theme=crimson] .section-title{text-transform:none;font-size:12px;height:22px;margin-bottom:7px}
+body[data-theme=crimson] aside{padding:14px 16px}
+body[data-theme=crimson] h1{font-size:18px}
+body[data-theme=crimson] h2{font-size:14px}
+body[data-theme=crimson] .subtle{font-size:12px}
+body[data-theme=crimson] .panel-title{margin-bottom:12px}
+body[data-theme=crimson] .search-row{margin-bottom:8px}
+body[data-theme=crimson] input,body[data-theme=crimson] select{min-height:30px;padding:5px 8px;border-radius:3px}
+body[data-theme=crimson] .index-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 8px;max-height:160px;scrollbar-color:#59515a var(--field);scrollbar-width:thin}
+body[data-theme=crimson] .index{height:40px;flex-direction:row;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;min-width:0}
+body[data-theme=crimson] .index strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body[data-theme=crimson] .index span{font-size:11px;white-space:nowrap}
+body[data-theme=crimson] .tile-upgrade{margin-left:4px}
+body[data-theme=crimson] .index.active{background:var(--select);box-shadow:inset 2px 0 var(--accent)}
+body[data-theme=crimson] .index.active strong{color:var(--accent)}
+body[data-theme=crimson] .editor{margin-top:12px;padding-top:12px}
+body[data-theme=crimson] .editor-heading{margin-bottom:8px}
+body[data-theme=crimson] .editor .ct{font-size:12px}
+body[data-theme=crimson] .tabs{margin-bottom:12px}
+body[data-theme=crimson] .tabs button{font-size:12px;padding:6px 12px}
+body[data-theme=crimson] label{font-size:12px;gap:5px}
+body[data-theme=crimson] .fields{gap:10px 8px}
+body[data-theme=crimson] .coords{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);grid-template-columns:60px 60px minmax(0,1fr)}
+body[data-theme=crimson] .coords button{font-size:12px;gap:6px}
+body[data-theme=crimson] .checks{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);gap:10px}
+body[data-theme=crimson] .checks label{font-size:11px}
+body[data-theme=crimson] footer{padding-left:56px;min-height:132px;grid-template-columns:minmax(0,1fr) 228px 160px}
+body[data-theme=crimson] footer>section{padding:10px 14px}
+body[data-theme=crimson] .log p{font-size:12px;min-height:26px}
+body[data-theme=crimson] .log time{font-size:11px}
+body[data-theme=crimson] .config select{font-size:12px;min-height:26px}
+body[data-theme=crimson] .team{font-size:12px}
+body[data-theme=crimson] .actions>.primary{font-size:12px;gap:6px;white-space:nowrap}
+body[data-theme=crimson] .mode-row{padding:10px 8px}
+body[data-theme=crimson] .mode-row small{font-size:12px}
+body[data-theme=crimson] .full-settings{grid-template-columns:1fr}
+body[data-theme=crimson] .full-settings #settings{padding:22px 26px;min-height:610px}
+body[data-theme=crimson] .settings-body{gap:24px;margin-top:20px}
+body[data-theme=crimson] .settings-section{padding:16px 0}
+@media(max-width:1100px) and (min-width:781px){
+  body[data-theme=crimson] main{grid-template-columns:minmax(0,1fr) 360px}
+  body[data-theme=crimson] .index span{font-size:10px}
+}
+@media(max-width:780px){
+  body[data-theme=crimson] main{display:flex}
+  body[data-theme=crimson] .index-grid{max-height:176px}
+  body[data-theme=crimson] .index{height:44px;flex-direction:column;align-items:flex-start;gap:2px}
+  body[data-theme=crimson] input,body[data-theme=crimson] select{font-size:16px;min-height:36px}
+  body[data-theme=crimson] .coords{grid-template-columns:52px 52px minmax(0,1fr);gap:6px}
+  body[data-theme=crimson] .coords button{font-size:10px;min-height:36px}
+  body[data-theme=crimson] footer{grid-template-columns:minmax(0,1fr) 140px}
+  body[data-theme=crimson] .actions>.primary{font-size:10px}
+  body[data-theme=crimson] .full-settings #settings{padding:18px 14px}
+  body[data-theme=crimson] .log p{font-size:11px}
+}

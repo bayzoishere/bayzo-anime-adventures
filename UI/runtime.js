@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 const $ = s => document.querySelector(s);
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icons = () => lucide.createIcons();
@@ -96,8 +96,8 @@ const SETTING_HELP = {
   WebhookShowMode:'Includes the current mode or challenge type in webhook messages.',
   WebhookShowSessionTime:'Includes the elapsed macro session time in webhook messages.',
   WebhookShowRecord:'Includes this session\'s wins and losses in webhook messages.',
-  WebhookShowChallengeRuns:'Includes completed challenge runs.',
-  WebhookShowModeRuns:'Includes completed mode runs.',
+  WebhookShowChallengeRecord:'Includes challenge wins and losses.',
+  WebhookShowModeRecord:'Includes mode wins and losses.',
   WebhookShowAct:'Includes the selected act and difficulty in webhook messages.',
   WebhookShowNext:'Includes the next half hourly and daily challenge countdowns.',
   WebhookShowCompletion:'Includes the match completion time from the results screen.',
@@ -186,8 +186,8 @@ function request(action, data = {}) {
   if (!bridge) return Promise.reject(new Error('Macro connection unavailable'));
   const id = ++serial;
   return new Promise((resolve, reject) => {
-    const transfer=['share.export','share.import'].includes(action);
-    const timer = setTimeout(() => { requests.delete(id); reject(new Error(transfer?'Config transfer took too long. Check Process Log before trying again.':'Macro did not respond')); }, action==='theme.background.choose' ? 300000 : transfer ? 120000 : action.startsWith('share.') ? 30000 : 10000);
+    const transfer=['share.export','share.import','my.publish','my.apply'].includes(action);
+    const timer = setTimeout(() => { requests.delete(id); reject(new Error(transfer?'Config transfer took too long. Check Process Log before trying again.':'Macro did not respond')); }, action==='theme.background.choose' ? 300000 : transfer ? 120000 : action.startsWith('share.')||action.startsWith('my.') ? 120000 : 10000);
     requests.set(id, {resolve, reject, timer});
     try {
       bridge.postMessage({id, action, data});
@@ -245,7 +245,10 @@ function indexTiles() {
   return html;
 }
 function renderIndexes() {
-  if(state.preferences.Mode==='Events'){ $('#panel').innerHTML='<h1 class="april-fools-title">April Fools</h1><div class="april-fools-requirement" role="note"><span class="april-fools-required-label">REQUIRED</span><strong>Equip Elyssia in Unit Slot 1</strong><p>Elyssia must be equipped in Unit Slot 1 for this macro to work.</p></div><p>This is a built-in feature, no need for indexes or configs</p>'; return; }
+  if(state.preferences.Mode==='Events'){
+    $('#panel').innerHTML='<div class="april-fools-header"><h1 class="april-fools-title">April Fools</h1><button id="import-config" class="primary" title="Import Config from a copied code"><i data-lucide="download"></i>Import Config</button></div><div class="april-fools-requirement" role="note"><div class="april-fools-required-icon"><i data-lucide="shield-check"></i></div><div><span class="april-fools-required-label">Required Unit</span><strong>Equip Elyssia In Unit Slot 1</strong><p>Equip Elyssia in Slot 1 before starting the macro.</p></div></div><p class="april-fools-built-in-note">This is a built-in feature, no need for indexes or configs</p>';
+    lucide.createIcons();return;
+  }
   editorPage = 1;
   const existingPicker=$('.index-picker'),existingTabs=$('.index-editor-tabs');
   $('#panel').classList.toggle('index-settings-page',editorPage === 1);
@@ -658,11 +661,12 @@ function renderCustomPreviewPage() {
   icons();
 }
 function renderExport() {
-  $('#settings').innerHTML = `<div class="config-export-page"><div class="export-list-heading"><h1>Export Configs</h1></div><section class="share-section"><div class="export-list-heading"><h2>Choose Configs</h2><button id="refresh-export-configs" title="Refresh Configs"><i data-lucide="refresh-cw"></i>Refresh</button></div><div class="export-list-tools"><select id="export-config-mode" aria-label="Config Mode"></select><input id="export-config-search" type="search" aria-label="Search Configs" placeholder="Search Configs" value="${esc(exportConfigQuery)}"><div class="setting-check"><input type="checkbox" id="select-all-export-configs" aria-label="Select All Configs" title="Select all configs across every mode"><span>Select All</span></div></div><div id="export-config-list"></div><div class="share-options"><div class="check-row setting-check"><input type="checkbox" id="export-mode-list" checked aria-label="Add Mode List"><span>Add Mode List</span>${help('modes','export')}</div><div class="check-row setting-check"><input type="checkbox" id="export-safe-settings" checked aria-label="Add Settings"><span>Add Settings</span>${help('settings','export')}</div></div><div class="share-code-actions"><span id="export-config-count" class="subtle"></span><button class="primary" id="generate-config-code"><i data-lucide="package-open"></i>Generate Code</button></div></section><section class="share-section"><h2>Config Code</h2><textarea id="export-config-code" readonly rows="3" spellcheck="false" aria-label="Exported config code">${esc(exportedConfigCode)}</textarea><div class="share-code-actions"><span id="config-code-size" class="subtle">${exportedConfigCode?exportedConfigCode.length+' characters':''}</span><button id="copy-config-code" ${exportedConfigCode?'':'disabled'}><i data-lucide="copy"></i>Copy Code</button></div><p id="config-export-message" role="status"></p></section></div>`;
+  if(myConfigsTab==='list'){renderMyConfigs();return;}
+  $('#settings').innerHTML = `<div class="config-export-page"><div class="my-config-editor-heading">${myConfigPageHeading()}${myConfigsTabs()}<label class="my-config-name">Config Name (Required)<input id="my-config-name" required maxlength="80" placeholder="My Dungeon Setup" value="${esc(myConfigName)}"></label>${myEditingCode?`<p class="subtle">Publishing Updates The Same Code: ${esc(myEditingCode)}</p><button id="cancel-my-edit">Cancel Editing</button>`:''}</div><section class="share-section"><div class="export-list-heading"><h2>Choose Configs</h2><button id="refresh-export-configs" title="Refresh Configs"><i data-lucide="refresh-cw"></i>Refresh</button></div><div class="export-list-tools"><select id="export-config-mode" aria-label="Config Mode"></select><input id="export-config-search" type="search" aria-label="Search Configs" placeholder="Search Configs" value="${esc(exportConfigQuery)}"><div class="setting-check"><input type="checkbox" id="select-all-export-configs" aria-label="Select All Configs" title="Select all configs across every mode"><span>Select All</span></div></div><div id="export-config-list"></div><div class="share-options"><div class="check-row setting-check"><input type="checkbox" id="export-mode-list" checked aria-label="Add Mode List"><span>Add Mode List</span>${help('modes','export')}</div><div class="check-row setting-check"><input type="checkbox" id="export-safe-settings" checked aria-label="Add Settings"><span>Add Settings</span>${help('settings','export')}</div></div><div class="share-code-actions"><span id="export-config-count" class="subtle"></span><button class="primary" id="generate-config-code"><i data-lucide="package-open"></i>${myEditingCode?'Publish Update':'Generate Code'}</button></div></section><section class="share-section"><h2>Config Code</h2><textarea id="export-config-code" readonly rows="3" spellcheck="false" aria-label="Exported config code">${esc(exportedConfigCode)}</textarea><div class="share-code-actions"><span id="config-code-size" class="subtle">${exportedConfigCode?exportedConfigCode.length+' characters':''}</span><button id="copy-config-code" ${exportedConfigCode?'':'disabled'}><i data-lucide="copy"></i>Copy Code</button></div><p id="config-export-message" role="status"></p></section></div>`;
   renderExportList();
   $('#export-config-code').before($('#config-export-message'));
-  $('#export-mode-list').checked=false;
-  $('#export-safe-settings').checked=false;
+  $('#export-mode-list').checked=!!myEditingOptions?.modes;
+  $('#export-safe-settings').checked=!!myEditingOptions?.settings;
   const codeSection=$('#export-config-code').closest('.share-section');
   const codeHeading=codeSection.querySelector('h2');
   const exportActions=$('#generate-config-code').closest('.share-code-actions');
@@ -726,8 +730,8 @@ function renderExportList(rebuild = true) {
     toggle.disabled=!names.length||configShareBusy;
   });
   const total=selectedExportConfigs.size+selectedExportRecordings.size+selectedExportThemes.size;
-  $('#export-config-count').textContent=`${total} selected`;
-  $('#generate-config-code').disabled=!total||configShareBusy;
+  $('#export-config-count').textContent=`${total} Selected`;
+  $('#generate-config-code').disabled=!total||!myConfigName.trim()||configShareBusy;
   const all=$('#select-all-export-configs');
   const lists=exportConfigMode==='*'?[[selectedExportConfigs,(exportCatalog||[]).map(config=>config.path)],[selectedExportRecordings,exportRecordings],[selectedExportThemes,exportThemes]]:[[selection,recordingView||themeView?names:(exportCatalog||[]).map(config=>config.path)]];
   const available=lists.reduce((sum,[,names])=>sum+names.length,0);
@@ -873,7 +877,7 @@ function renderSettings() {
       <div class="general-group"><h3><i data-lucide="bot"></i>Discord Integration</h3><div class="fields integration-fields">${f('Your Discord User ID','DiscordUserId','text')}${f('Discord Channel ID','DiscordChannel','text')}${f('Discord Bot Token','DiscordToken','password').replace('<label>','<label class="wide">')}</div><div class="checks general-toggles">${c('Enable Discord Integration','DiscordBotEnabled')}</div><div class="discord-connection-row"><span id="discord-connection-state" role="status"></span><button id="discord-test"><i data-lucide="plug-zap"></i>Test Connection</button></div><p id="discord-connection-message" class="discord-connection-message"></p><p id="discord-test-message" class="discord-connection-message" role="status"></p>${discordSetupGuide()}</div></section>` :
       settingsTab === 'Webhooks' ? `<section class="settings-section webhook-settings"><h2>Webhooks</h2><div class="webhook-group"><div class="webhook-heading"><h3><i data-lucide="send"></i>Connection</h3></div><div class="fields webhook-fields">${f('Webhook URL','Webhook','url')}</div><div class="checks webhook-enable">${c('Enable Webhooks','WebhookEnabled')}</div></div><div class="webhook-group"><div class="webhook-heading"><h3><i data-lucide="at-sign"></i>Pings</h3></div><div class="fields webhook-fields">${f('Discord User ID','WebhookDiscordId','text')}</div><div class="checks webhook-enable">${c('Enable Pings','WebhookPingEnabled')}</div></div><div class="webhook-group"><h3><i data-lucide="list-checks"></i>Webhook Content</h3><div class="webhook-content-groups">${[
         ['Match Details',[['Map Name','WebhookShowMap'],['Mode','WebhookShowMode'],['Act / Difficulty','WebhookShowAct'],['Completion Time','WebhookShowCompletion']]],
-        ['Session & Challenges',[['Wins / Losses','WebhookShowRecord'],['Session Time','WebhookShowSessionTime'],['Mode Runs','WebhookShowModeRuns'],['Challenge Runs','WebhookShowChallengeRuns'],['Challenge Timers','WebhookShowNext']]]
+        ['Session & Challenges',[['Wins / Losses','WebhookShowRecord'],['Session Time','WebhookShowSessionTime'],['Mode W/L','WebhookShowModeRecord'],['Challenge W/L','WebhookShowChallengeRecord'],['Challenge Timers','WebhookShowNext']]]
       ].map(([title,items])=>`<div><h4>${title}</h4><div class="checks">${items.map(([label,key])=>c(label,key)).join('')}</div></div>`).join('')}</div></div></section>` :
       settingsTab === 'Delays' ? `<section class="settings-section delay-settings"><div class="keybind-heading"><h2>Delays <span class="delay-unit">Milliseconds</span></h2><button id="restore-default-delays"><i data-lucide="rotate-ccw"></i>Restore Default Delays</button></div><div class="delay-groups">${[
         ['Game Actions','mouse-pointer',[['Placement','PlacementRetryDelay'],['Stage Click','StageClickDelay'],['Pathing','PathingDelay']]],
@@ -951,7 +955,7 @@ function render() {
   $('.copy-tool').hidden = view !== 'indexes';
   $('#actions-title').textContent = view === 'indexes' ? 'Index Tools' : 'Action Tools';
   $('#reset-config').hidden = view !== 'indexes';
-  $('#copy-category').hidden = view !== 'indexes' || state.preferences.Mode === 'Events';
+  $('#copy-settings-control').hidden = view !== 'indexes' || state.preferences.Mode === 'Events';
   document.querySelectorAll('[data-view]').forEach(b => { b.classList.toggle('active',b.dataset.view === view); b.setAttribute('aria-current',b.dataset.view === view ? 'page' : 'false'); });
   if (view === 'guides') renderGuides(); else if (view === 'export') renderExport(); else if (view === 'themes') renderThemes(); else if (settings) renderSettings(); else if (view === 'recorder') renderRecorder(); else if (view === 'detection') renderDetection(); else if (view === 'indexes') renderIndexes(); else if (view === 'gamemodes') renderModes(); else renderMain();
   updateSurface();
@@ -1315,6 +1319,7 @@ document.addEventListener('click', async e => {
     return;
   }
   try {
+    if(await handleMyConfigsButton(b))return;
     if(b.id==='cancel-share-import'){$('#import-confirm-dialog').close();return;}
     if(b.id==='confirm-share-import'){
       if(configShareBusy)return;
@@ -1341,14 +1346,16 @@ document.addEventListener('click', async e => {
       try {
         await window.flushEdits();
         if(b.id==='generate-config-code') {
-          const reply=await request('share.export',{configs:[...selectedExportConfigs],recordings:[...selectedExportRecordings],customThemes:[...selectedExportThemes],modes:$('#export-mode-list').checked,settings:$('#export-safe-settings').checked,themes:false});
-          exportedConfigCode=reply.result.code;
+          const reply=await request('share.export',{name:myConfigName.trim(),code:myEditingCode,configs:[...selectedExportConfigs],recordings:[...selectedExportRecordings],customThemes:[...selectedExportThemes],modes:$('#export-mode-list').checked,settings:$('#export-safe-settings').checked,themes:false});
+          exportedConfigCode=reply.result.code;myEditingCode=reply.result.code;myConfigsLoaded=false;myEditingOptions={modes:$('#export-mode-list').checked,settings:$('#export-safe-settings').checked};
+          $('#generate-config-code').textContent='Publish Update';
           $('#export-config-code').value=exportedConfigCode;$('#copy-config-code').disabled=false;
           $('#config-code-size').textContent=exportedConfigCode.length+' characters';
-          $('#config-export-message').textContent=exportedConfigCode.startsWith('BAYZO-')?'Code ready.':exportedConfigCode.length>1900?'This code may exceed Discord\'s message limit. Send it as a text attachment, or export a smaller bundle.':'Code ready to copy.';
+          $('#config-export-message').textContent=exportedConfigCode.startsWith('BAYZO-')?'Code Ready. Find It In My Configs To Publish Future Updates Using The Same Code.':exportedConfigCode.length>1900?'This code may exceed Discord\'s message limit. Send it as a text attachment, or export a smaller bundle.':'Code ready to copy.';
+          if(reply.result.unchanged)$('#config-export-message').textContent='No Changes To Publish. The Code And Revision Are Unchanged.';
           if(reply.result.warnings?.length)$('#config-export-message').textContent+=' '+reply.result.warnings.join(' ');
         } else if(b.id==='copy-config-code') {
-          await request('share.copy',{code:exportedConfigCode});$('#config-export-message').textContent='Code copied.';
+          await request('share.copy',{code:exportedConfigCode});$('#config-export-message').textContent='Code Copied.';
         }
       } catch(error) {
         const message=$('#config-export-message');
@@ -1358,6 +1365,7 @@ document.addEventListener('click', async e => {
         configShareBusy=false;b.disabled=false;
         document.querySelectorAll('[data-export-group],[data-export-config],[data-export-recording],[data-export-theme],#export-mode-list,#export-safe-settings,#select-all-export-configs,#export-config-mode,#export-config-search,#refresh-export-configs').forEach(el=>el.disabled=false);
         if($('#copy-config-code'))$('#copy-config-code').disabled=!exportedConfigCode;
+        if($('#generate-config-code'))$('#generate-config-code').disabled=!(selectedExportConfigs.size+selectedExportRecordings.size+selectedExportThemes.size)||!myConfigName.trim();
       }
       return;
     }
@@ -1435,13 +1443,23 @@ document.addEventListener('click', async e => {
       themeSaveError=false;
       applyTheme(); renderThemes(); return;
     }
-    if (b.id === 'copy-category') {
+    if (b.id === 'copy-settings') {
+      const open=$('#copy-settings-menu').hidden;
+      $('#copy-settings-menu').hidden=!open;b.setAttribute('aria-expanded',String(open));
+      return;
+    }
+    if (b.id === 'copy-category' || b.id === 'copy-matching') {
+      const copyCoordinates=b.id==='copy-category';
+      $('#copy-settings-menu').hidden=true;$('#copy-settings').setAttribute('aria-expanded','false');
       if(categoryCopyBusy)return;
       categoryCopyBusy=true;b.disabled=true;
       try {
         await window.flushEdits();
-        const reply=await request('config.category.preview',{path:state.configPath});
+        const reply=await request('config.category.preview',{path:state.configPath,matching:false,copyCoordinates});
         categoryCopyPreview=reply.result;
+        $('#copy-category-title').textContent=copyCoordinates?'Copy Everything To This Category?':'Copy Without Coordinates To This Category?';
+        $('#copy-category-description').textContent=copyCoordinates?'All indexes, including coordinates, timings, upgrades, priorities, Auto Ability and recordings, plus the team selection will be copied to other configs in the current category. Each destination keeps its map image and run settings.':'Index settings and team selection will be copied to other configs in the current category. Each destination keeps its coordinates, recorded actions, placement setup, map image and run settings.';
+        $('#confirm-category-copy').textContent=copyCoordinates?'Copy Everything':'Copy Without Coordinates';
         $('#copy-category-summary').textContent=`Category: ${categoryCopyPreview.category}. ${categoryCopyPreview.count} other configs; ${categoryCopyPreview.overwrites} already have configured indexes.`;
         $('#copy-category-targets').innerHTML=categoryCopyPreview.names.map(name=>`<li>${esc(name)}</li>`).join('');
         await request('ui.modal',{visible:true});
@@ -1844,3 +1862,114 @@ request('ready').catch(report);
 
 
 $('#copy-category-dialog').addEventListener('close',()=>{request('ui.modal',{visible:false}).catch(report);});
+
+let myConfigsTab='create', myConfigsData={created:[],imported:[]}, myConfigsLoaded=false;
+let myConfigName='', myEditingCode='', myEditingOptions=null;
+function myConfigPageHeading(){return '<div class="my-config-page-heading"><h1>Config Sharing</h1><p>Create And Manage Your Shared Configs.</p></div>';}
+function myConfigsTabs(){return `<div class="my-config-tabs" aria-label="Config sharing"><button data-my-tab="create" aria-pressed="${myConfigsTab==='create'}"><i data-lucide="package-plus"></i>Create Config</button><button data-my-tab="list" aria-pressed="${myConfigsTab==='list'}"><i data-lucide="folder-heart"></i>My Configs</button></div>`;}
+async function loadMyConfigs(refresh=false){
+  const reply=await request(refresh?'my.refresh':'my.list');
+  myConfigsData=reply.result;myConfigsLoaded=true;
+  if(view==='export'&&myConfigsTab==='list')renderMyConfigs();
+}
+function renderMyConfigs(){
+  const cards=(rows,created)=>rows.map(row=>`<article class="my-config-card"><div class="my-config-card-icon"><i data-lucide="${created?'package':'download'}"></i></div><div class="my-config-card-body"><div class="my-config-card-title"><h3>${esc(row.name)}</h3><span class="my-config-revision">Revision ${Number(row.revision)}</span></div><p>${(row.configs||[]).length} Config${(row.configs||[]).length===1?'':'s'} · ${created?'Your Shared Bundle':'Linked To Creator Updates'}</p><code>${esc(row.code)}</code></div><div class="my-config-actions">${created?`<button class="primary" data-my-edit="${esc(row.code)}"><i data-lucide="pencil"></i>Edit / Publish</button>`:`<button class="primary" data-my-update="${esc(row.code)}"><i data-lucide="refresh-cw"></i>Update Configs</button>`}<button class="my-config-copy" data-my-copy="${esc(row.code)}" title="Copy Code" aria-label="Copy Code for ${esc(row.name)}"><i data-lucide="copy"></i></button><button class="my-config-copy my-config-delete" data-my-delete="${esc(row.code)}" data-my-created="${created}" title="${created?'Delete Shared Config':'Remove Imported Config'}" aria-label="${created?'Delete Shared Config':'Remove Imported Config'} ${esc(row.name)}"><i data-lucide="trash-2"></i></button></div></article>`).join('')||`<div class="my-config-empty"><i data-lucide="${created?'package-open':'download'}"></i><strong>${created?'No Shared Configs Yet':'No Linked Imports Yet'}</strong><p>${created?'Create A Named Bundle To Share A Code You Can Keep Updating.':'Import A Named Config Code From Indexes To Find Its Updates Here.'}</p>${created?'<button data-my-tab="create">Create Your First Config</button>':''}</div>`;
+  $('#settings').innerHTML=`<div class="config-export-page my-config-library">${myConfigPageHeading()}${myConfigsTabs()}<div class="my-config-library-tools"><button id="refresh-my-configs"><i data-lucide="refresh-cw"></i>Refresh</button></div><section class="share-section"><div class="my-config-section-heading"><div><h2><i data-lucide="package"></i>My Configs <span>${myConfigsData.created.length}</span></h2><p>Edit Your Indexes, Then Publish The Fixes Using The Same Code.</p></div></div><div class="my-config-cards">${cards(myConfigsData.created,true)}</div></section><section class="share-section"><div class="my-config-section-heading"><div><h2><i data-lucide="download"></i>Imported Configs <span>${myConfigsData.imported.length}</span></h2><p>Review Creator Updates Before Applying Them To Your Local Configs.</p></div></div><div class="my-config-cards">${cards(myConfigsData.imported,false)}</div></section><p class="my-config-footnote"><i data-lucide="info"></i>Older Fixed Codes Still Work. Update Tracking Is Available For Named Bundles Created With This System.</p><p id="my-config-message" role="status"></p></div>`;
+  icons();
+  if(!myConfigsLoaded)loadMyConfigs().catch(report);
+}
+function showMyUpdate(data){
+  let dialog=$('#my-update-dialog');
+  if(!dialog){dialog=document.createElement('dialog');dialog.id='my-update-dialog';document.body.append(dialog);}
+  dialog.setAttribute('aria-labelledby','my-update-title');
+  const list=items=>items.map(path=>{
+    const config=(exportCatalog||[]).find(item=>item.path===path),parts=path.split('/');
+    const name=config?.name||parts.at(-1).replace(/(?:Story|Challenge|Infinite|Mansion|Legend|Raid|Dungeons)\.txt$/,'').replace(/([a-z])([A-Z])/g,'$1 $2');
+    return `<li title="${esc(path)}"><i data-lucide="file-text"></i><span>${esc(name)}</span><small>${esc(config?.mode||(parts[0]==='@recording'?'Recordings':parts[0]))}</small></li>`;
+  }).join('');
+  dialog.innerHTML=`<div class="my-update-heading"><div class="my-update-icon"><i data-lucide="refresh-cw"></i></div><div><h2 id="my-update-title">Update Configs</h2><p>${esc(data.name)}</p></div></div><div class="my-update-body"><div class="my-update-summary"><span>Revision ${Number(data.revision)}</span><span>${data.changed.length} ${data.changed.length===1?'File':'Files'} To Update</span></div><section class="my-update-group"><h3>Changed Files</h3><ul class="my-update-files">${list(data.changed)}</ul></section>${data.conflicts.length?`<section class="my-update-group my-update-conflicts"><h3>Local Edits Found</h3><ul class="my-update-files">${list(data.conflicts)}</ul><label class="my-update-confirm"><input type="checkbox" id="my-replace-local"><span>Replace My Local Edits With The Creator's Version</span></label></section>`:''}${data.removed.length?`<section class="my-update-group"><h3>Removed From Bundle</h3><p>Your Local Copies Will Be Kept.</p><ul class="my-update-files">${list(data.removed)}</ul></section>`:''}<section class="my-update-preserved"><i data-lucide="shield-check"></i><div><h3>Kept Unchanged</h3><p>Your Mode Queue, Settings, Themes And Custom Map Images</p></div></section><p id="my-update-message" role="status"></p></div><footer class="my-update-footer"><button id="cancel-my-update">Cancel</button><button id="apply-my-update" class="primary" ${data.conflicts.length?'disabled':''}><i data-lucide="download"></i>Apply Update</button></footer>`;
+  icons();dialog.showModal();
+}
+async function handleMyConfigsButton(b){
+  const relevant=b.dataset.myTab||b.dataset.myEdit||b.dataset.myCopy||b.dataset.myUpdate||b.dataset.myDelete||['refresh-my-configs','cancel-my-edit','cancel-my-update','apply-my-update','cancel-my-delete','confirm-my-delete'].includes(b.id);
+  if(!relevant)return false;
+  if(configShareBusy)return true;
+  if(b.dataset.myTab){if(b.dataset.myTab==='create'&&myConfigsTab==='list'){myEditingCode='';myConfigName='';myEditingOptions=null;selectedExportConfigs.clear();selectedExportRecordings.clear();selectedExportThemes.clear();invalidateExportCode();}myConfigsTab=b.dataset.myTab;$('#settings').scrollTop=0;renderExport();return true;}
+  if(b.id==='cancel-my-edit'){myEditingCode='';myConfigName='';myEditingOptions=null;invalidateExportCode();renderExport();return true;}
+  if(b.id==='cancel-my-delete'){$('#my-delete-dialog').close();myDeleteTarget=null;return true;}
+  if(b.id==='cancel-my-update'){$('#my-update-dialog').close();return true;}
+  if(b.dataset.myEdit){
+    const row=myConfigsData.created.find(row=>row.code===b.dataset.myEdit);
+    if(!row)throw Error('Refresh My Configs and try again.');
+    myEditingCode=row.code;myConfigName=row.name;myEditingOptions=row.selection||{};
+    selectedExportConfigs.clear();selectedExportRecordings.clear();selectedExportThemes.clear();
+    for(const path of myEditingOptions.configs||[])selectedExportConfigs.add(path);
+    for(const name of myEditingOptions.recordings||[])selectedExportRecordings.add(name);
+    for(const name of myEditingOptions.customThemes||[])selectedExportThemes.add(name);
+    exportConfigMode='*';exportConfigQuery='';myConfigsTab='create';invalidateExportCode();renderExport();return true;
+  }
+  configShareBusy=true;b.disabled=true;
+  try{
+    await window.flushEdits();
+    if(b.dataset.myDelete){
+      const created=b.dataset.myCreated==='true',row=myConfigsData[created?'created':'imported'].find(row=>row.code===b.dataset.myDelete);
+      if(!row)throw Error('Refresh My Configs And Try Again.');
+      const plan=created?undefined:(await request('my.removePreview',{code:row.code})).result;showMyDelete(row,created,plan);
+    }else if(b.id==='confirm-my-delete'){
+      if(!myDeleteTarget)throw Error('Select A Config To Remove.');
+      const target=myDeleteTarget;
+      const reply=await request(target.created?'my.deleteCreated':'my.deleteImported',{code:target.code,deleteFiles:!!$('#my-delete-files')?.checked});
+      $('#my-delete-dialog').close();myDeleteTarget=null;
+      if(myEditingCode===target.code){myEditingCode='';myConfigName='';myEditingOptions=null;invalidateExportCode();}
+      exportCatalog=null;await loadMyConfigs();toast(target.created?'Shared Config Deleted.':`Imported Code Removed. ${reply.result.files||0} Files Deleted.`);
+    }else if(b.dataset.myCopy){await request('share.copy',{code:b.dataset.myCopy});toast('Code Copied.');}
+    else if(b.id==='refresh-my-configs'){await loadMyConfigs(true);toast('My Configs Refreshed.');}
+    else if(b.dataset.myUpdate){
+      const reply=await request('my.check',{code:b.dataset.myUpdate});
+      if(reply.result.current)toast('Already Up To Date.');else showMyUpdate(reply.result);
+    }else if(b.id==='apply-my-update'){
+      const reply=await request('my.apply',{replaceLocal:!!$('#my-replace-local')?.checked});
+      $('#my-update-dialog').close();exportCatalog=null;await loadMyConfigs();toast(`Updated ${reply.result.configs} Configs.`);
+    }
+  }catch(error){const status=$('#my-delete-dialog[open] #my-delete-message')||$('#my-update-dialog[open] #my-update-message')||$('#my-config-message');if(status)status.textContent=error.message;else report(error);}
+  finally{configShareBusy=false;b.disabled=false;}
+  return true;
+}
+document.addEventListener('input',event=>{
+  if(event.target.id==='my-config-name'){
+    myConfigName=event.target.value;
+    const total=selectedExportConfigs.size+selectedExportRecordings.size+selectedExportThemes.size;
+    $('#generate-config-code').disabled=!total||!myConfigName.trim()||configShareBusy;
+  }
+  if(event.target.id==='my-replace-local')$('#apply-my-update').disabled=!event.target.checked;
+});
+
+let myDeleteTarget=null;
+function showMyDelete(row,created,plan={removable:[],kept:[]}){
+  let dialog=$('#my-delete-dialog');if(!dialog){dialog=document.createElement('dialog');dialog.id='my-delete-dialog';document.body.append(dialog);}
+  dialog.setAttribute('aria-labelledby','my-delete-title');myDeleteTarget={code:row.code,created};
+  const canClean=plan.removable.length>0;
+  dialog.innerHTML=`<div class="my-delete-heading"><div class="my-delete-icon"><i data-lucide="${created?'trash-2':'folder-minus'}"></i></div><div class="my-delete-titles"><h2 id="my-delete-title">${created?'Delete Shared Config':'Remove Imported Config'}</h2><p class="my-delete-name">${esc(row.name)}</p></div></div><div class="my-delete-content"><p class="my-delete-description">${created?'Permanently Remove This Code And Its Published Data From The Sharing Service. Your Local Config Files And Existing Imported Copies Are Kept.':'Remove This Code From Your List. Other Imported Codes And Their Update Tracking Stay Unchanged.'}</p>${created?'':`<div class="my-delete-cleanup"><label class="my-delete-option ${canClean?'':'unavailable'}"><input type="checkbox" id="my-delete-files" ${canClean?'':'disabled'}><span><strong>Also Delete Unused Files</strong><small>${canClean?'Only Unmodified Files Not Used By Other Codes Or Your Mode Queue.':'No Unmodified, Unused Files Are Available To Delete.'}</small></span></label><div class="my-delete-counts"><div><strong>${plan.removable.length}</strong><span>Can Be Removed</span></div><div><strong>${plan.kept.length}</strong><span>Shared Or Edited Files Kept</span></div></div></div>`}<div class="my-delete-note"><i data-lucide="${created?'link-2-off':'shield-check'}"></i><span>${created?'This Code Will No Longer Work After Deletion.':'Local Files Are Kept Unless You Select File Cleanup.'}</span></div><p id="my-delete-message" role="status"></p></div><div class="my-delete-actions"><button id="cancel-my-delete">Cancel</button><button id="confirm-my-delete" class="${created?'my-delete-danger':'primary'}">${created?'Delete Shared Config':'Remove Import'}</button></div>`;
+  icons();dialog.showModal();
+}
+
+document.addEventListener('click',event=>{
+  if(!event.target.closest('#copy-settings-control')){
+    $('#copy-settings-menu').hidden=true;$('#copy-settings').setAttribute('aria-expanded','false');
+  }
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&!$('#copy-settings-menu').hidden){
+    $('#copy-settings-menu').hidden=true;$('#copy-settings').setAttribute('aria-expanded','false');$('#copy-settings').focus();
+  }
+});
+
+document.addEventListener('keydown',event=>{
+  const control=event.target.closest('#copy-settings-control');
+  if(!control||!['ArrowDown','ArrowUp'].includes(event.key))return;
+  event.preventDefault();
+  const items=[...$('#copy-settings-menu').querySelectorAll('button')];
+  $('#copy-settings-menu').hidden=false;$('#copy-settings').setAttribute('aria-expanded','true');
+  const current=items.indexOf(document.activeElement);
+  items[current<0?(event.key==='ArrowDown'?0:items.length-1):(current+(event.key==='ArrowDown'?1:-1)+items.length)%items.length].focus();
+});

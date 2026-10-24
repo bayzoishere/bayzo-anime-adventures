@@ -1,0 +1,84 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://assets.macro.example https://media.macro.example; media-src https://video.macro.example; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'">
+  <title>Capy's AA Macro v1.4</title>
+  <link rel="icon" href="https://assets.macro.example/App/AppIcon.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="compact.css">
+  <link rel="stylesheet" href="runtime.css">
+  <link rel="stylesheet" href="guides.css">
+  <link rel="stylesheet" href="updater.css">
+  <link rel="stylesheet" href="aa.css">
+</head>
+<body data-theme="crimson">
+<div class="app">
+  <div id="ui-background" class="ui-background" aria-hidden="true" hidden></div>
+  <header>
+    <div class="brand"><img src="https://assets.macro.example/App/AppIcon.png" alt=""><strong>Capy's AA Macro v1.4</strong></div>
+    <div class="window-actions"><button id="minimize" title="Minimize macro" aria-label="Minimize macro"><i data-lucide="minus"></i></button><button id="close" title="Close macro" aria-label="Close macro"><i data-lucide="x"></i></button></div>
+  </header>
+  <div class="workspace">
+    <nav class="rail" aria-label="Main navigation">
+      <button data-view="main" title="Main"><i data-lucide="layout-dashboard"></i><span>Main</span></button>
+      <button data-view="gamemodes" title="Modes"><i data-lucide="layers"></i><span>Modes</span></button>
+      <button data-view="indexes" title="Indexes"><i data-lucide="list-ordered"></i><span>Indexes</span></button>
+      <button data-view="recorder" title="Recorder"><i data-lucide="circle-dot"></i><span>Recorder</span></button>
+      <button data-view="export" title="Export Configs"><i data-lucide="package-open"></i><span>Export</span></button>
+      <button data-view="detection" title="Detection"><i data-lucide="scan-search"></i><span>Detection</span></button>
+      <button data-view="themes" title="Themes"><i data-lucide="palette"></i><span>Themes</span></button>
+      <button data-view="guides" title="Guide"><i data-lucide="book-open"></i><span>Guide</span></button>
+      <button data-view="settings" title="Settings"><i data-lucide="settings-2"></i><span>Settings</span></button>
+    </nav>
+    <main>
+      <div class="game-area">
+        <div class="section-title"><span><i data-lucide="monitor"></i><span id="game-title">Current Game</span></span><span>800 &times; 600</span></div>
+        <div class="game"><img id="map-image" alt="Current config map" hidden><div class="markers"></div><span class="game-empty" hidden>Roblox Is Not Open</span></div>
+        <div class="game-meta"><span>Run <strong id="run-count">0 / 0</strong></span></div>
+      </div>
+      <aside id="panel" aria-live="off"></aside>
+      <section id="settings" hidden></section>
+    </main>
+  </div>
+  <footer>
+    <section class="log"><div class="section-title"><span>Process Log</span><span class="log-heading-tools"><input id="log-search" type="search" placeholder="Search Log" aria-label="Search Process Log" autocomplete="off"><select id="log-filter" aria-label="Filter Process Log" title="Show all messages or messages mentioning errors and setup problems"><option value="all">All</option><option value="errors">Errors</option></select><button id="clear-log" title="Clear displayed log" aria-label="Clear displayed log"><i data-lucide="eraser"></i>Clear Log</button></span></div><div id="log-lines"></div></section>
+    <section class="config"><div class="section-title">Config Settings</div><div class="config-row"><div class="team-field"><span class="field-caption">Team</span><select id="team" aria-label="Team"><option value="0">None</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div><label><span class="field-caption">Category</span><select id="scope" aria-label="Config category"><option value="Current Mode">Current Mode</option><option value="Challenges">Challenges</option><option value="Infinity Mansion">Infinity Mansion</option></select></label><select id="config-choice" aria-label="Map config"><option>No Mode Selected</option></select></div></section>
+    <section class="actions"><div class="section-title"><span id="actions-title">Actions</span><button id="reset-config" title="Reset Config" aria-label="Reset Config" hidden><i data-lucide="rotate-ccw"></i>Reset Config</button></div><div class="mode-controls" hidden><div class="mode-save-tools"><button id="save-selection"><i data-lucide="save"></i>Save Changes</button><button id="add-mode" class="primary"><i data-lucide="plus"></i>Add Mode</button></div><div class="mode-queue-tools"><button data-mode-move="-1" disabled title="Move mode up"><i data-lucide="arrow-up"></i>Move Up</button><button data-mode-move="1" disabled title="Move mode down"><i data-lucide="arrow-down"></i>Move Down</button><button id="delete-mode" disabled><i data-lucide="trash-2"></i>Delete Mode</button></div></div>
+      <div class="index-controls" hidden><button data-index-move="-1" title="Move index up" aria-label="Move index up"><i data-lucide="arrow-up"></i>Move Up</button><button data-index-move="1" title="Move index down" aria-label="Move index down"><i data-lucide="arrow-down"></i>Move Down</button><button id="reset-index" title="Reset index" aria-label="Reset index"><i data-lucide="rotate-ccw"></i>Reset Index</button><div id="copy-settings-control" hidden><button id="copy-settings" title="Copy config settings" aria-haspopup="menu" aria-expanded="false"><i data-lucide="copy"></i>Copy Settings<i data-lucide="chevron-down"></i></button><div id="copy-settings-menu" role="menu" hidden><button id="copy-category" role="menuitem">Copy Everything</button><button id="copy-matching" role="menuitem">Copy Without Coordinates</button></div></div></div>
+      <div class="copy-tool" hidden><h3>Copy Paste Tool</h3><div class="copy-tool-row"><span>Index</span><input id="copy-source" type="number" min="1" max="90" aria-label="Source index"><span>To</span><input id="copy-target" type="number" min="1" max="90" aria-label="Destination index"><button id="copy-confirm" title="Confirm copy" aria-label="Confirm copy"><i data-lucide="check"></i></button></div></div>
+    </section>
+  </footer>
+</div>
+<div class="toast" role="status"></div>
+<dialog id="import-confirm-dialog" aria-labelledby="import-confirm-title"><h2 id="import-confirm-title">Import Configs</h2><p id="import-summary"></p><div class="fields"><label>Existing Configs<select id="import-conflict-policy"><option value="replace">Replace matching configs</option><option value="skip">Keep existing configs</option></select></label><label>Mode List<select id="import-queue-policy"><option value="append">Add to mode list</option><option value="replace">Replace mode list</option></select></label></div><label class="check-row"><input type="checkbox" id="import-apply-settings">Apply included settings</label><p>Shared default map images are reused. Custom screenshots are kept on this computer and are not included in config codes.</p><div class="dialog-actions"><button id="cancel-share-import">Cancel</button><button id="confirm-share-import" class="primary">Import</button></div></dialog>
+<dialog id="april-start-dialog" aria-labelledby="april-start-title" aria-describedby="april-start-description">
+  <button id="april-start-close" class="april-start-close" aria-label="Cancel start"><i data-lucide="x"></i></button>
+  <div class="april-start-eyebrow"><i data-lucide="sparkles"></i>April Fools</div>
+  <h2 id="april-start-title">Before you start</h2>
+  <p id="april-start-description">Make sure to Equip Elyssia in Unit Slot 1 for this to work!</p>
+  <div class="april-start-slot"><span class="april-slot-key">1</span><div><strong>Elyssia</strong><span>Required in Unit Slot 1</span></div><i data-lucide="check-circle-2"></i></div>
+  <div class="dialog-actions"><button id="april-start-confirm" class="primary"><i data-lucide="play"></i>Confirm</button></div>
+</dialog>
+<dialog id="preflight-dialog" aria-labelledby="preflight-title" aria-describedby="preflight-description"><h2 id="preflight-title">Check Your Setup</h2><p id="preflight-description">Fix these problems, then press Start again.</p><div id="preflight-issues"></div><div class="dialog-actions"><button id="preflight-close">Close</button></div></dialog>
+<dialog id="unsaved-selection" aria-labelledby="unsaved-title" aria-describedby="unsaved-description"><h2 id="unsaved-title">Do you want to finish your unsaved changes?</h2><p id="unsaved-description">Click Yes to keep editing, then click Save Changes to save your changes.</p><div class="dialog-actions"><button id="keep-selection" class="primary">Yes</button><button id="discard-selection">No</button></div></dialog>
+<dialog id="reset-config-dialog" aria-labelledby="reset-config-title" aria-describedby="reset-config-description"><h2 id="reset-config-title">Would you like to reset this whole config?</h2><p id="reset-config-description">All 90 indexes and this config's team will be reset.</p><div class="dialog-actions"><button id="cancel-config-reset">Cancel</button><button id="confirm-config-reset">Reset Config</button></div></dialog>
+<script src="lucide.js"></script>
+<dialog id="update-dialog" aria-labelledby="update-title">
+  <div class="update-brand"><img src="https://assets.macro.example/App/AppIcon.png" alt=""><span>Capy's AA Macro v1.4</span></div>
+  <h2 id="update-title">New Update Available!</h2>
+  <div class="update-versions"><div><span>Current version</span><strong id="update-current"></strong></div><div><span>New version</span><strong id="update-new"></strong></div></div>
+  <h3><i data-lucide="file-text"></i>Update Log</h3>
+  <div id="update-notes" tabindex="0" aria-label="Update log"></div>
+  <div class="update-footer"><p id="update-question"></p><div><button id="update-no">No</button><button id="update-yes"><i data-lucide="download"></i>Yes</button></div></div>
+</dialog>
+<script src="sortable.js"></script>
+<dialog id="setup-required-dialog" aria-labelledby="setup-required-title"><h2 id="setup-required-title">STOP! Check Your Settings First</h2><p><strong>The correct settings are REQUIRED. Do not skip this step!</strong></p><p>If you haven't properly configured your settings yet, please follow the <strong>Settings Guide</strong> and adjust them <strong>BEFORE starting the macro.</strong> Incorrect settings can cause missed clicks, failed detection, and broken runs.</p><p>Already matched every applicable setting? Choose <strong>They're Already Correct</strong> to never show this startup reminder again.</p><div class="setup-prompt-actions"><button id="setup-open-guides" class="primary"><i data-lucide="book-open"></i>Open Guide</button><button id="setup-already-correct"><i data-lucide="check"></i>They're Already Correct</button></div></dialog>
+<dialog id="guide-image-dialog" aria-labelledby="guide-image-title"><div class="guide-image-dialog-header"><h2 id="guide-image-title"></h2><button id="guide-image-close" title="Close image" aria-label="Close image"><i data-lucide="x"></i></button></div><div class="guide-image-scroll"><img id="guide-large-image" alt="" draggable="false"></div></dialog>
+<script src="guides.js"></script>
+<dialog id="copy-category-dialog" aria-labelledby="copy-category-title"><h2 id="copy-category-title">Copy Settings To This Category?</h2><p id="copy-category-summary"></p><p id="copy-category-description">All indexes, including coordinates, timings, upgrades, priorities, Auto Ability and recordings, plus the team selection will be copied. Each destination keeps its own map, image and run settings. Existing indexes and team selections will be replaced.</p><details><summary>Show destination configs</summary><ul id="copy-category-targets"></ul></details><div class="dialog-actions"><button id="cancel-category-copy">Cancel</button><button id="confirm-category-copy" class="primary">Copy to All</button></div></dialog>
+<script src="runtime.js"></script>
+<script src="updater.js"></script>
+</body>
+</html>
