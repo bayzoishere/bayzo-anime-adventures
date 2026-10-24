@@ -1,0 +1,152 @@
+[
+  {
+    "key": "ArchmageHat",
+    "name": "Archmage's Hat",
+    "effect": "+250% magic damage"
+  },
+  {
+    "key": "AureusMaul",
+    "name": "Aureus Maul",
+    "effect": "+200% physical damage"
+  },
+  {
+    "key": "Axe",
+    "name": "Axe",
+    "effect": "+50% physical critical chance"
+  },
+  {
+    "key": "Bow",
+    "name": "Bow",
+    "effect": "+20% range"
+  },
+  {
+    "key": "CelestialBlade",
+    "name": "Celestial Blade",
+    "effect": "+777% true damage"
+  },
+  {
+    "key": "Dagger",
+    "name": "Dagger",
+    "effect": "+15% attack"
+  },
+  {
+    "key": "ElfBow",
+    "name": "Elf Bow",
+    "effect": "+50% range"
+  },
+  {
+    "key": "Fishhook",
+    "name": "Fishhook",
+    "effect": "+20% chest luck"
+  },
+  {
+    "key": "GenieLamp",
+    "name": "Genie Lamp",
+    "effect": "+100% chest luck"
+  },
+  {
+    "key": "GlacialAxe",
+    "name": "Glacial Axe",
+    "effect": "-30% enemy speed"
+  },
+  {
+    "key": "GoldenBranch",
+    "name": "Golden Branch",
+    "effect": "-15% placement/upgrade cost"
+  },
+  {
+    "key": "GoldenFishhook",
+    "name": "Golden Fishhook",
+    "effect": "+40% chest luck"
+  },
+  {
+    "key": "GoldenMushroom",
+    "name": "Golden Mushroom",
+    "effect": "-30% placement/upgrade cost"
+  },
+  {
+    "key": "Headsplitter",
+    "name": "Headsplitter",
+    "effect": "+75% physical damage"
+  },
+  {
+    "key": "IceDagger",
+    "name": "Ice Dagger",
+    "effect": "-20% enemy speed"
+  },
+  {
+    "key": "Longbow",
+    "name": "Longbow",
+    "effect": "+30% range"
+  },
+  {
+    "key": "MageCoat",
+    "name": "Mage Coat",
+    "effect": "+50% magic damage"
+  },
+  {
+    "key": "MagicTome",
+    "name": "Magic Tome",
+    "effect": "+100% magic damage"
+  },
+  {
+    "key": "MaskOfRiches",
+    "name": "Mask of Riches",
+    "effect": "-50% placement/upgrade cost"
+  },
+  {
+    "key": "NimbleCloak",
+    "name": "Nimble Cloak",
+    "effect": "-7% attack cooldown"
+  },
+  {
+    "key": "NinjaBelt",
+    "name": "Ninja Belt",
+    "effect": "-12% attack cooldown"
+  },
+  {
+    "key": "PhilosopherStone",
+    "name": "Philosopher's Stone",
+    "effect": "Converts current chests to rare chests"
+  },
+  {
+    "key": "ReaperScythe",
+    "name": "Reaper Scythe",
+    "effect": "+75% boss damage"
+  },
+  {
+    "key": "Scimitar",
+    "name": "Scimitar",
+    "effect": "+75% attack"
+  },
+  {
+    "key": "ShimmeringMoonFragment",
+    "name": "Shimmering Moon Fragment",
+    "effect": "+1 Star Remnant to each chest opened"
+  },
+  {
+    "key": "SolarCleaver",
+    "name": "Solar Cleaver",
+    "effect": "+100% physical critical chance"
+  },
+  {
+    "key": "SpeedyBoots",
+    "name": "Speedy Boots",
+    "effect": "-20% attack cooldown"
+  },
+  {
+    "key": "Stormbringer",
+    "name": "Stormbringer",
+    "effect": "-50% attack cooldown"
+  },
+  {
+    "key": "Sword",
+    "name": "Sword",
+    "effect": "+30% attack"
+  },
+  {
+    "key": "Sylvanthorn",
+    "name": "Sylvanthorn",
+    "effect": "+150% range"
+  }
+]

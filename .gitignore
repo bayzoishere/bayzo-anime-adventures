@@ -1,0 +1,9 @@
+# State files
+Logs/
+Other/State/
+*.log
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
