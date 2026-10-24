@@ -47,8 +47,8 @@ class CrusadersConfigCodes {
     static Import(*) => 0              ; disabled - no cloud import
     static Decode(*) => ""             ; disabled
     static Work(*) => ""               ; disabled
-    static Stage(*) {}                 ; disabled
-    static Clean(*) {}                 ; disabled
+    static Stage(*) => 0               ; disabled
+    static Clean(*) => 0               ; disabled
     static ClipboardCode(*) => ""      ; disabled - no clipboard sharing
     static IsHosted(*) => false        ; disabled - always local
     static List(*) => []               ; disabled
