@@ -12579,11 +12579,12 @@ return this.Fingerprint(installer) = manifest.Get("installer", "") && installer 
 return false
 }
 }
-static Seal(directory, identity, installer) {
+static Seal(directory, identity, installer := "") {
 files := Map()
 for name in this.Files
 files[name] := this.Fingerprint(directory "\" name)
-json := Jxon_Dump(Map("identity", identity, "files", files, "installer", this.Fingerprint(installer)))
+installerFingerprint := (installer != "") ? this.Fingerprint(installer) : ""
+json := Jxon_Dump(Map("identity", identity, "files", files, "installer", installerFingerprint))
 marker := directory "\assets.json", temporary := CrusadersStorage.Temporary(marker)
 previous := FileExist(marker) ? FileRead(marker) : ""
 try {
@@ -12804,7 +12805,7 @@ FileInstall("UI\lucide.js", directory "\lucide.js", true)
 FileInstall("UI\LICENSE-LUCIDE.txt", directory "\LICENSE-LUCIDE.txt", true)
 FileInstall("UI\sortable.js", directory "\sortable.js", true)
 FileInstall("UI\LICENSE-SORTABLE.txt", directory "\LICENSE-SORTABLE.txt", true)
-CrusadersInterfaceAssets.Seal(directory, identity, installer)
+CrusadersInterfaceAssets.Seal(directory, identity, "")
 return directory
 }
 Navigate(page, force := false) {
