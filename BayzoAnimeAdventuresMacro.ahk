@@ -62,8 +62,8 @@ class CrusadersUpdater {
     static Version := "1.1-clean"
     static Repo := ""
     static AssetRoot := EnvGet("LOCALAPPDATA") "\BayzoAnimeAdventuresMacro"
-    static Check(window) {}        ; disabled - no auto-update
-    static Respond(accepted, window) {}  ; disabled
+    static Check(window) => 0       ; disabled - no auto-update
+    static Respond(accepted, window) => 0  ; disabled
     static checked := true
     static pending := 0
     static installing := false
