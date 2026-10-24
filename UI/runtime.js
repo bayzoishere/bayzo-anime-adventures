@@ -789,7 +789,7 @@ function renderThemes() {
       section.append(...colorRows.slice(start,start+5));
       $('.custom-theme-colors').append(section);
     }
-    $('#custom-theme-preview').innerHTML='<div id="custom-preview-background" class="ui-background" aria-hidden="true" hidden></div><div class="custom-preview-heading"><strong>Preview</strong><span>Capy&#39;s AA Macro</span></div><div class="custom-preview-body"></div>';
+    $('#custom-theme-preview').innerHTML='<div id="custom-preview-background" class="ui-background" aria-hidden="true" hidden></div><div class="custom-preview-heading"><strong>Preview</strong><span>Bayzo&#39;s AA Macro</span></div><div class="custom-preview-body"></div>';
     renderCustomPreviewPage();
     $('.custom-theme-colors').hidden=backgroundEditorOpen;
     $('.themes-page').classList.toggle('background-editor-open',backgroundEditorOpen);
@@ -1345,7 +1345,7 @@ document.addEventListener('click', async e => {
           exportedConfigCode=reply.result.code;
           $('#export-config-code').value=exportedConfigCode;$('#copy-config-code').disabled=false;
           $('#config-code-size').textContent=exportedConfigCode.length+' characters';
-          $('#config-export-message').textContent=exportedConfigCode.startsWith('CAPY-')?'Code ready.':exportedConfigCode.length>1900?'This code may exceed Discord\'s message limit. Send it as a text attachment, or export a smaller bundle.':'Code ready to copy.';
+          $('#config-export-message').textContent=exportedConfigCode.startsWith('BAYZO-')?'Code ready.':exportedConfigCode.length>1900?'This code may exceed Discord\'s message limit. Send it as a text attachment, or export a smaller bundle.':'Code ready to copy.';
           if(reply.result.warnings?.length)$('#config-export-message').textContent+=' '+reply.result.warnings.join(' ');
         } else if(b.id==='copy-config-code') {
           await request('share.copy',{code:exportedConfigCode});$('#config-export-message').textContent='Code copied.';

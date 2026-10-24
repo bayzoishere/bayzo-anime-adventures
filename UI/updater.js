@@ -1,6 +1,6 @@
 'use strict';
 function setMacroVersion(version){
- const title="Capy's AA Macro v"+String(version).replace(/^v/i,'');
+ const title="Bayzo's AA Macro v"+String(version).replace(/^v/i,'');
  document.title=title;document.querySelector('.brand strong').textContent=title;
 }
 let updateAnswerTimer;
