@@ -40,7 +40,6 @@ class CrusadersConfigCodes {
                 DllCall("advapi32\CryptReleaseContext","Ptr",provider,"UInt",0)
         }
     }
-    static MaxCode := 1048576
     static ExportSelected(*) => ""
     static Upload(*) => ""
     static Import(*) => 0
