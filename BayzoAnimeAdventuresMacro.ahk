@@ -2,7 +2,7 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Off
 
-; === STRIPPED STUBS (network/cloud/update removed - safe rebuild v1.4) ===
+; === STRIPPED STUBS (network/cloud/update removed - safe rebuild v2.2) ===
 SafeTarget(path) {
     SplitPath(path,,&directory)
     loop {
@@ -40,6 +40,7 @@ class CrusadersConfigCodes {
                 DllCall("advapi32\CryptReleaseContext","Ptr",provider,"UInt",0)
         }
     }
+    static MaxCode := 1048576
     static ExportSelected(*) => ""
     static Upload(*) => ""
     static Import(*) => 0
@@ -56,7 +57,7 @@ class CrusadersConfigCodes {
 }
 
 class CrusadersUpdater {
-    static Version := "1.4-clean"
+    static Version := "2.2-clean"
     static Repo := ""
     static AssetRoot := EnvGet("LOCALAPPDATA") "\BayzoAnimeAdventuresMacro"
     static Check(window) => 0
@@ -68,6 +69,7 @@ class CrusadersUpdater {
 ; === END STUBS ===
 
 
+#NoTrayIcon
 class AAInstance {
 static handle := 0
 static Acquire(name := "Local\BayzoAAMacroInteractive") {
@@ -79,11 +81,28 @@ if !handle
 throw Error("Could not check whether the macro is already open. Windows error " status ".")
 if status = 183 {
 DllCall("kernel32\CloseHandle","Ptr",handle)
+this.ActivateExisting()
 return false
 }
 this.handle := handle
 OnExit(ObjBindMethod(this,"Release"))
 return true
+}
+static ActivateExisting() {
+previous := A_DetectHiddenWindows
+DetectHiddenWindows(true)
+try {
+for hwnd in WinGetList() {
+if !DllCall("GetPropW","Ptr",hwnd,"Str","BayzosAAInteractive","Ptr")
+continue
+try {
+WinShow("ahk_id " hwnd)
+WinRestore("ahk_id " hwnd)
+WinActivate("ahk_id " hwnd)
+}
+return
+}
+} finally DetectHiddenWindows(previous)
 }
 static Release(*) {
 if this.handle {
@@ -94,6 +113,23 @@ DllCall("kernel32\CloseHandle","Ptr",handle)
 }
 #Requires AutoHotkey v2.0
 #SingleInstance Off
+static FitBounds(left,top,right,bottom,width,height,x := unset,y := unset) {
+width := Min(width,Max(1,right-left-8)), height := Min(height,Max(1,bottom-top-8))
+x := IsSet(x) ? Max(left,Min(x,right-width)) : left+(right-left-width)//2
+y := IsSet(y) ? Max(top,Min(y,bottom-height)) : top+(bottom-top-height)//2
+return [x,y,width,height]
+}
+static Dpi(hwnd) {
+this.UsePhysicalPixels()
+try return DllCall("GetDpiForWindow","Ptr",hwnd,"UInt") || 96
+catch
+return 96
+}
+}
+if A_Args.Length = 1 && A_Args[1] = "--update-version" {
+FileAppend(CrusadersUpdater.Version, "*")
+ExitApp()
+}
 class CrusadersTheme {
 static Path(root, name) {
 if IsObject(name) || !RegExMatch(name, "^[A-Za-z0-9][A-Za-z0-9 _-]{0,47}$") || RegExMatch(name, "i)^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])(?: |$)") || SubStr(name, -1) = " "
@@ -683,6 +719,89 @@ return 0
 }
 Gdip_BitmapFromScreen(Screen:=0, Raster:="")
 {
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
 hhdc := 0
 if (Screen = 0) {
 _x := DllCall( "GetSystemMetrics", "Int", 76 )
@@ -2173,6 +2292,80 @@ Gdip_SetPixelOffsetMode(pGraphics, PixelOffsetMode) {
 return DllCall("gdiplus\GdipSetPixelOffsetMode", "ptr", pGraphics, "int", PixelOffsetMode)
 }
 class AAMyConfigs {
+static libraryOverride := ""
+static SharedPath(root) {
+if this.libraryOverride != ""
+return this.libraryOverride
+if StrLower(this.Root(root)) != StrLower(A_ScriptDir "\Settings")
+return ""
+base := EnvGet("LOCALAPPDATA")
+if base = ""
+throw Error("Windows Local AppData is unavailable. Creator records were kept in the macro folder.")
+return base "\BayzosAA\MyConfigs.json"
+}
+static ReadFile(path,library := false) {
+if !FileExist(path)
+return library ? Map("version",1,"created",Map(),"removed",Map()) : Map("created",Map(),"imported",Map())
+if FileGetSize(path)>10000000
+throw Error("My Configs library is too large.")
+text := FileRead(path,"UTF-8"), data := Jxon_Load(&text)
+if !(data is Map) || !(data.Get("created",0) is Map) || !(data.Get(library ? "removed" : "imported",0) is Map)
+throw Error("My Configs storage is invalid: " path)
+if library && data.Get("version",0) != 1
+throw Error("This creator library needs a newer macro version. Your records were kept.")
+return data
+}
+static Lock(path) {
+mutex := DllCall("CreateMutexW","Ptr",0,"Int",false,"Str","Local\BayzosAA-Creators-" CrusadersConfigCodes.Hash(path),"Ptr")
+if !mutex
+throw Error("Could not lock the creator library. Your records were kept.")
+wait := DllCall("WaitForSingleObject","Ptr",mutex,"UInt",5000,"UInt")
+if wait != 0 && wait != 0x80 {
+DllCall("CloseHandle","Ptr",mutex)
+throw Error("Another macro is saving My Configs. Try again shortly.")
+}
+return mutex
+}
+static Unlock(mutex) {
+DllCall("ReleaseMutex","Ptr",mutex), DllCall("CloseHandle","Ptr",mutex)
+}
+static ValidateCreator(code,row) {
+if !CrusadersConfigCodes.IsHosted(code) || !(row is Map) || row.Get("code","") != code || !IsInteger(row.Get("revision",0)) || row["revision"]<1
+throw Error("Invalid creator record in My Configs.")
+this.Name(row.Get("name",""))
+try key := CrusadersCredentials.Decode(row.Get("ownerKey",""))
+catch Error
+throw Error("Windows could not unlock this creator library. Use the same Windows account that created it.")
+if !RegExMatch(key,"^[a-f0-9]{64}$")
+throw Error("The saved publishing key is invalid. No creator records were changed.")
+}
+static MergeCreators(library,rows,updatedCode := "") {
+for code,row in rows {
+if library["removed"].Has(code)
+continue
+if !library["created"].Has(code) || row.Get("revision",0)>library["created"][code].Get("revision",0) || (code=updatedCode && row.Get("revision",0)=library["created"][code].Get("revision",0)) {
+this.ValidateCreator(code,row)
+if library["created"].Has(code) && CrusadersCredentials.Decode(library["created"][code]["ownerKey"]) != CrusadersCredentials.Decode(row["ownerKey"])
+throw Error("Conflicting creator ownership for " code ". Your existing library was kept.")
+library["created"][code] := row.Clone()
+}
+}
+}
+static WriteLibrary(path,data) {
+SplitPath(path,,&directory)
+DirCreate(directory)
+StoryFiles.Write(path,Jxon_Dump(data))
+}
+static EnsureLibraryWritable(root) {
+shared := this.SharedPath(root)
+if shared = ""
+return
+mutex := this.Lock(shared)
+try this.WriteLibrary(shared,this.ReadFile(shared,true))
+catch Error
+throw Error("Cannot save the creator library in Local AppData. Publishing was cancelled before sending a bundle. Check folder access and try again.")
+finally this.Unlock(mutex)
+}
 static Name(value) {
 value := Trim(value)
 if StrLen(value)<1 || StrLen(value)>80 || RegExMatch(value,"[\x00-\x1f\x7f]")
@@ -2185,14 +2378,93 @@ return settings
 }
 static Read(root) {
 path := this.Root(root) "\MyConfigs.json"
-if !FileExist(path)
-return Map("created",Map(),"imported",Map())
-text := FileRead(path,"UTF-8"), data := Jxon_Load(&text)
-if !(data is Map) || !(data.Get("created",0) is Map) || !(data.Get("imported",0) is Map)
-throw Error("My Configs storage is invalid.")
+data := this.ReadFile(path), shared := this.SharedPath(root)
+if shared = ""
+return data
+mutex := this.Lock(shared)
+try {
+library := this.ReadFile(shared,true), before := Jxon_Dump(library)
+this.MergeCreators(library,data["created"])
+if Jxon_Dump(library) != before
+this.WriteLibrary(shared,library)
+data["created"] := library["created"].Clone()
+} finally this.Unlock(mutex)
 return data
 }
-static Save(root,data) => StoryFiles.Write(this.Root(root) "\MyConfigs.json",Jxon_Dump(data))
+static Save(root,data,removedCode := "",updatedCode := "") {
+shared := this.SharedPath(root)
+if shared != "" {
+mutex := this.Lock(shared)
+try {
+library := this.ReadFile(shared,true)
+this.MergeCreators(library,data["created"],updatedCode)
+if removedCode != "" {
+library["removed"][removedCode] := true
+if library["created"].Has(removedCode)
+library["created"].Delete(removedCode)
+}
+this.WriteLibrary(shared,library)
+data["created"] := library["created"].Clone()
+} finally this.Unlock(mutex)
+}
+DirCreate(this.Root(root))
+StoryFiles.Write(this.Root(root) "\MyConfigs.json",Jxon_Dump(data))
+}
+static MigrateFile(root,path) {
+if StrLower(path) = StrLower(this.SharedPath(root)) {
+this.Read(root)
+return this.Public(root)
+}
+legacy := this.ReadFile(path)
+if !legacy["created"].Count
+throw Error("This file contains no bundles you created. Imported bundles are not migrated.")
+for code,row in legacy["created"]
+this.ValidateCreator(code,row)
+data := this.Read(root), merged := Map("created",data["created"].Clone(),"removed",Map())
+this.MergeCreators(merged,legacy["created"])
+data["created"] := merged["created"], this.Save(root,data)
+return this.Public(root)
+}
+static RestoreSnapshot(root) {
+snapshot := Map()
+SplitPath(root,,&settings)
+for directory in [root,settings "\Recordings"]
+loop files directory "\*", "FR"
+snapshot[A_LoopFileFullPath] := CrusadersConfigCodes.HashBytes(FileRead(A_LoopFileFullPath,"RAW"))
+return snapshot
+}
+static RestorePreview(root,code) {
+if !this.Read(root)["created"].Has(code)
+throw Error("Restore is available only for bundles you created.")
+remote := this.Remote(code), payload := this.UpdatePayload(remote["payload"])
+summary := CrusadersConfigCodes.Preview(payload,root)
+if !summary["configs"].Length && !summary["recordings"].Length
+throw Error("This bundle contains no configs or recordings to restore.")
+return Map("root",root,"code",code,"name",remote["name"],"revision",remote["revision"],"sha256",remote["sha256"],"payload",payload,"summary",summary,"snapshot",this.RestoreSnapshot(root))
+}
+static Restore(root,settingsFile,plan,replaceExisting := false,log := 0) {
+if plan["root"] != root || !this.Read(root)["created"].Has(plan["code"])
+throw Error("Creator ownership or config folder changed. Preview restore again.")
+for group in ["configs","recordings"]
+for item in plan["summary"][group]
+if item.Get("exists",false) && !replaceExisting
+throw Error("Confirm replacing the existing files before restoring.")
+remote := this.Remote(plan["code"])
+if remote["revision"] != plan["revision"] || remote["sha256"] != plan["sha256"]
+throw Error("The bundle changed. Preview restore again.")
+current := this.RestoreSnapshot(root), previous := plan["snapshot"]
+if current.Count != previous.Count
+throw Error("Local files changed. Preview restore again.")
+for path,hash in previous
+if !current.Has(path) || current[path] != hash
+throw Error("Local files changed. Preview restore again.")
+result := CrusadersConfigCodes.Import(plan["payload"],root,settingsFile,"append","replace",false,log)
+data := this.Read(root)
+for key in ["name","revision","sha256"]
+data["created"][plan["code"]][key] := remote[key]
+this.Save(root,data)
+return result
+}
 static Public(root) {
 result := Map("created",[],"imported",[])
 for group in ["created","imported"]
@@ -2231,6 +2503,7 @@ this.Name(row.Get("name","")), CrusadersConfigCodes.Decode(payload)
 }
 static Publish(root,model,tasks,options) {
 title := this.Name(options.Get("name","")), data := this.Read(root), code := options.Get("code","")
+this.EnsureLibraryWritable(root)
 old := code!="" && data["created"].Has(code) ? data["created"][code] : 0
 if code!="" && !old
 throw Error("Only bundles created on this computer can be published.")
@@ -2264,7 +2537,7 @@ row["configs"].Push(config["path"])
 row["recordings"] := []
 for recording in CrusadersConfigCodes.Decode(payload).Get("recordings",[])
 row["recordings"].Push(recording["name"])
-data["created"][row["code"]] := row, this.Save(root,data)
+data["created"][row["code"]] := row, this.Save(root,data,"",row["code"])
 A_Clipboard := row["code"]
 return result
 }
@@ -2400,7 +2673,7 @@ text := response["body"], deleted := Jxon_Load(&text)
 if !deleted.Get("deleted",false) || deleted.Get("code","") != code
 throw Error("The sharing service did not confirm deletion.")
 }
-data["created"].Delete(code), this.Save(root,data)
+data["created"].Delete(code), this.Save(root,data,code)
 return Map("deleted",true,"code",code)
 }
 static Removal(root,code) {
@@ -2835,6 +3108,7 @@ if IsSet(testRunning) && testRunning
 throw Error("Stop the macro before recording or testing playback.")
 }
 Target() {
+AADisplay.UsePhysicalPixels()
 if !WinActive("Roblox ahk_exe RobloxPlayerBeta.exe")
 return 0
 return WinActive("Roblox ahk_exe RobloxPlayerBeta.exe")
@@ -2944,6 +3218,7 @@ return true
 return false
 }
 CaptureMouse(code, message, info) {
+AADisplay.UsePhysicalPixels()
 if code = 0 && this.recording && !(NumGet(info, 12, "UInt") & 1) && this.Target() = this.targetHwnd {
 WinGetClientPos(&left, &top, &w, &h, "ahk_id " this.targetHwnd)
 if w != this.width || h != this.height {
@@ -3108,6 +3383,7 @@ this.window.Log("Recorder: " err.Message)
 }
 }
 Play(data, shouldStop := 0, activeCheck := 0) {
+AADisplay.UsePhysicalPixels()
 CrusadersRecording.Validate(data)
 if this.recording || this.playing
 throw Error("Recorder is already busy.")
@@ -3209,6 +3485,7 @@ this.playing := false, this.message := completed ? "Playback finished" : "Playba
 }
 }
 SendPlaybackEvent(event, left := 0, top := 0) {
+AADisplay.UsePhysicalPixels()
 action := event["action"]
 if action = "keyDown" || action = "keyUp" {
 SendEvent("{Blind}{" event["key"] (action = "keyDown" ? " down}" : " up}"))
@@ -3364,6 +3641,7 @@ return RegExMatch(ocr.Read(bitmap, 394, 211, 290, 47), "i)\bRaid\s*:")
 return RegExMatch(Trim(heading), "i)^Story\s*Stages$") && RegExMatch(Trim(button), "i)^Select$")
 }
 MenuVisible() {
+AADisplay.UsePhysicalPixels()
 WinGetClientPos(&x, &y, &w, &h, "ahk_exe RobloxPlayerBeta.exe")
 bitmap := Gdip_BitmapFromScreen(x "|" y "|" w "|" h)
 if !bitmap
@@ -3873,6 +4151,7 @@ return total > 50 && hits / total >= 0.85
 } finally Gdip_DisposeImage(reference)
 }
 static Action(action, data) {
+AADisplay.UsePhysicalPixels()
 id := data["id"]
 d := this.Get(id)
 override := this.overrideRoot "\" id ".png"
@@ -4082,6 +4361,7 @@ this.bitmap := 0
 this.token := 0
 }
 Start(target := "ahk_exe RobloxPlayerBeta.exe") {
+AADisplay.UsePhysicalPixels()
 if !WinExist(target) || WinGetMinMax(target) = -1
 throw Error("Open and restore Roblox before capturing")
 WinGetClientPos(&left, &top, &width, &height, target)
@@ -4122,6 +4402,7 @@ y1 := Max(0, Min(600, y1)), y2 := Max(0, Min(600, y2))
 return {x:Min(x1,x2), y:Min(y1,y2), w:Abs(x2-x1), h:Abs(y2-y1)}
 }
 Poll(*) {
+AADisplay.UsePhysicalPixels()
 if this.closed
 return
 if CrusadersRuntime.Tick() >= this.deadline || !WinExist(this.target) {
@@ -4317,15 +4598,29 @@ normalized .= (normalized = "" ? "" : "|") name
 return normalized
 }
 static StoryMaps := ["Planet Greenie", "Walled City", "Snowy Town", "Sand Village", "Navy Bay", "Fiend City", "Spirit World", "Ant Kingdom", "Magic Town", "Haunted Academy", "Magic Hills", "Space Center", "Alien Spaceship", "Fabled Kingdom", "Ruined City", "Puppet Island", "Virtual Dungeon", "Snowy Kingdom", "Dungeon Throne", "Mountain Temple", "Rain Village", "Shibuya District"]
+static RaidMaps := ["Ant Kingdom [Midnight]", "Sacred Planet", "Strange Town", "Ruined City [The Menace]", "Cursed Festival", "Future City [Tyrant's Invasion]", "Storm Hideout", "Future City", "Nightmare Train", "Sand Village"]
+static ChallengeMaps := this.ChallengeMapList()
+static ChallengeMapList() {
+names := this.StoryMaps.Clone()
+seen := Map()
+for name in names
+seen[name] := true
+for raid in this.RaidMaps {
+canonical := AADefaultPaths.CanonicalName(raid)
+if !seen.Has(canonical)
+names.Push(canonical),seen[canonical]:=true
+}
+return names
+}
 static MansionMaps := ["Planet Greenie", "Walled City", "Snowy Town", "Sand Village", "Navy Bay", "Fiend City", "Spirit World", "Ant Kingdom", "Magic Town", "Haunted Academy", "Magic Hills", "Space Center", "Alien Spaceship", "Fabled Kingdom", "Ruined City", "Puppet Island", "Virtual Dungeon", "Snowy Kingdom", "Dungeon Throne", "Mountain Temple", "Rain Village", "Shibuya District", "Sacred Planet", "Strange Town", "Cursed Festival", "Future City", "Storm Hideout", "Nightmare Train", "Assassin Park", "Spirit Town"]
-static Maps := Map("Events",["April Fools"],"Portals",["Portals"],"Challenges",this.StoryMaps,"Infinity Mansion", this.MansionMaps, "Story", this.StoryMaps, "Infinite", this.StoryMaps,
-"Legend Stages", ["Magic Hills [Elf Invasion]", "Spirit Invasion", "Space Center", "Fabled Kingdom [Generals]", "Ruined City [Midnight]", "Virtual Dungeon [Bosses]", "Dungeon Throne", "Rain Village"], "Raids", ["Ant Kingdom [Midnight]", "Sacred Planet", "Strange Town", "Ruined City [The Menace]", "Cursed Festival", "Future City [Tyrant's Invasion]", "Storm Hideout", "Future City", "Nightmare Train", "Sand Village"],
+static Maps := Map("Events",["April Fools"],"Portals",["Portals"],"Challenges",this.ChallengeMaps,"Infinity Mansion", this.MansionMaps, "Story", this.StoryMaps, "Infinite", this.StoryMaps,
+"Legend Stages", ["Magic Hills [Elf Invasion]", "Spirit Invasion", "Space Center", "Fabled Kingdom [Generals]", "Ruined City [Midnight]", "Virtual Dungeon [Bosses]", "Dungeon Throne", "Rain Village"], "Raids", this.RaidMaps,
 "Boss Rush", [], "Event", [], "Infinity Castle", [], "InfinityCastle", [])
 static StageCounts := Map("Magic Hills [Elf Invasion]", 3, "Spirit Invasion", 3, "Space Center", 3, "Fabled Kingdom [Generals]", 3, "Ruined City [Midnight]", 6, "Virtual Dungeon [Bosses]", 3, "Dungeon Throne", 3, "Rain Village", 3, "Ant Kingdom [Midnight]", 1, "Sacred Planet", 5, "Strange Town", 5, "Ruined City [The Menace]", 1, "Cursed Festival", 5, "Future City [Tyrant's Invasion]", 5, "Storm Hideout", 5, "Future City", 1, "Nightmare Train", 1, "Sand Village", 1)
 static Folder(mode) {
 return mode = "Legend" ? "Legend Stages" : mode = "Raid" ? "Raids" : mode = "Infinity Castle" ? "InfinityCastle" : mode
 }
-static ConfigMaps(mode) => mode = "Challenges" ? this.Maps["Story"] : this.Maps[mode]
+static ConfigMaps(mode) => this.Maps[mode]
 static ConfigRelative(relative) {
 if relative = "Legend Stages/SpiritTownLegend.txt"
 return "Legend Stages/SpiritInvasionLegend.txt"
@@ -4395,7 +4690,7 @@ FileMove(old,saved)
 }
 }
 static MigrateChallenges(root, settingsFile := "") {
-for name in this.Maps["Story"] {
+for name in this.Maps["Challenges"] {
 old := root "\Challenges\" StrReplace(name," ","") "C.txt"
 target := this.Resolve(root,"Challenges",name,1)
 if FileExist(old) {
@@ -4406,7 +4701,7 @@ FileMove(old,target)
 }
 if settingsFile != "" && FileExist(settingsFile) {
 saved := IniRead(settingsFile,"Config","Path","")
-for name in this.Maps["Story"]
+for name in this.Maps["Challenges"]
 if saved = "Challenges\" StrReplace(name," ","") "C.txt"
 IniWrite("Challenges\" this.Filename("Challenges",name,1),settingsFile,"Config","Path")
 }
@@ -4422,7 +4717,7 @@ if this.Folder(mode)="Challenges" && !FileExist(path) {
 for name in this.Maps["Story"] {
 stem := StrReplace(name," ","")
 if imageName=stem "Challenge.png" && FileExist(directory "\" stem "C.png")
-return directory "\" stem "C.png"
+path := directory "\" stem "C.png"
 }
 }
 sharedByMap := mapName != "" ? A_ScriptDir "\Images\Defaults\" RegExReplace(AADefaultPaths.CanonicalName(mapName),"[^A-Za-z0-9]","") ".png" : ""
@@ -4679,6 +4974,9 @@ FileDelete(temporary)
 }
 }
 class AACategoryCopy {
+static Allowed(running,paused,coordinates,recording := false,playing := false) {
+return !recording && !playing && (!running || (paused && !coordinates))
+}
 static CloneIndexes(indexes) {
 result := []
 for item in indexes
@@ -5829,6 +6127,7 @@ else
 macroWindow.BeginCoordinates()
 }
 PickLive(*) {
+AADisplay.UsePhysicalPixels()
 if !this.pickMode
 return
 previous := A_CoordModeMouse
@@ -5853,6 +6152,7 @@ this.dirty := true
 return this.Apply()
 }
 Capture(*) {
+AADisplay.UsePhysicalPixels()
 global testRunning, macroWindow
 if !this.Apply()
 return
@@ -5876,6 +6176,7 @@ SplitPath(this.imagePath, , &directory)
 DirCreate(directory)
 if Gdip_SaveBitmapToFile(bitmap, this.imagePath) != 0
 throw Error("Could not save map image")
+AAInstalledAssets.ImageVersion(this.imagePath,true)
 this.mapWidth := width
 this.mapHeight := height
 this.Save()
@@ -6662,7 +6963,7 @@ aliases := Map("westcityruined", "West City", "shibuyacity", "Shibuya",
 "marinesford", "Marine Ford")
 if aliases.Has(normalized)
 return aliases[normalized]
-for name in CrusadersCatalog.Maps["Story"]
+for name in CrusadersCatalog.Maps["Challenges"]
 if normalized = RegExReplace(StrLower(name), "[^a-z0-9]", "")
 return name
 return ""
@@ -6827,7 +7128,7 @@ this.dailyPending := false
 }
 static EnsureConfigs(configRoot, settingsFile, imageRoot) {
 CrusadersCatalog.MigrateChallenges(configRoot,settingsFile)
-for name in CrusadersCatalog.Maps["Story"] {
+for name in CrusadersCatalog.Maps["Challenges"] {
 path := CrusadersCatalog.Resolve(configRoot, "Challenges", name, 1)
 if FileExist(path)
 continue
@@ -6836,7 +7137,12 @@ model.preferences["Mode"] := "Challenges"
 model.preferences["Team"] := "0"
 model.preferences["Map"] := name
 model.preferences["DisplayName"] := name
-story := CrusadersCatalog.Resolve(configRoot, "Story", name, 1)
+story := ""
+for storyName in CrusadersCatalog.StoryMaps
+if storyName=name {
+story := CrusadersCatalog.Resolve(configRoot,"Story",name,1)
+break
+}
 if FileExist(story) {
 image := IniRead(story, "Map", "Image", "")
 storyImage := CrusadersCatalog.ImageDirectory(imageRoot, "Story") "\" image
@@ -6863,6 +7169,7 @@ model.Save()
 }
 class CrusadersWindow {
 __New(webShell := false) {
+AADisplay.UsePhysicalPixels()
 global selector
 this.webShell := webShell
 selector.webShell := webShell
@@ -6960,7 +7267,90 @@ this.originalRegion := region
 else
 DllCall("DeleteObject", "Ptr", region)
 }
-this.gui := Gui("-DPIScale -Caption " (webShell ? "-Border" : "+Border") " +MinimizeBox -MaximizeBox", "Bayzo's AA Macro v1.4")
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+AADisplay.UsePhysicalPixels()
+this.gui := Gui("-DPIScale -Caption " (webShell ? "-Border" : "+Border") " +MinimizeBox -MaximizeBox", "Bayzo's AA Macro v2.2")
 CrusadersTheme.ApplyAppIcon(this.gui)
 this.gui.BackColor := webShell ? "18191C" : CrusadersTheme.Background
 this.gui.SetFont("s10 c" CrusadersTheme.Ink, "Segoe UI")
@@ -6968,7 +7358,7 @@ this.backgroundPainter := ObjBindMethod(this, "PaintBackground")
 OnMessage(0x14, this.backgroundPainter)
 if FileExist(CrusadersTheme.Mascot)
 this.gui.AddPicture("x12 y10 w28 h28", CrusadersTheme.Mascot)
-title := this.gui.AddText("x52 y14 w360 h24 BackgroundTrans", "Bayzo's AA Macro v1.4")
+title := this.gui.AddText("x52 y14 w360 h24 BackgroundTrans", "Bayzo's AA Macro v2.2")
 title.SetFont("s11 bold")
 title.OnEvent("Click", (*) => PostMessage(0xA1, 2, 0, this.gui))
 this.status := this.gui.AddText("x890 y15 w290 h22 Right BackgroundTrans c" CrusadersTheme.Muted, "Ready")
@@ -7470,12 +7860,14 @@ return false
 }
 ScopeChanged(*) {
 global selector, testRunning
-if testRunning || !selector.Apply() {
+if (testRunning && !CrusadersRuntime.paused) || !selector.Apply() {
 this.scopeField.Choose(this.configScope)
 return false
 }
 requested := this.scopeField.Text
 try {
+if HasMethod(this,"BeginPausedBrowse")
+this.BeginPausedBrowse()
 if requested = "Challenges" || requested = "Infinity Castle" || requested = "Infinity Mansion" || requested = "Dungeons" {
 if this.configScope = "Current Mode"
 this.modeConfigPath := selector.path
@@ -7508,11 +7900,13 @@ this.configScope := selector.preferences["Mode"]
 if this.configScope != "Challenges" && this.configScope != "Infinity Castle" && this.configScope != "Infinity Mansion" && this.configScope != "Dungeons"
 return
 previous := selector.preferences["Map"]
-if testRunning || !selector.Apply() {
+if (testRunning && !CrusadersRuntime.paused) || !selector.Apply() {
 this.scopeConfigField.Choose(previous)
 return false
 }
 try {
+if HasMethod(this,"BeginPausedBrowse")
+this.BeginPausedBrowse()
 path := CrusadersCatalog.Resolve(selector.configRoot, this.configScope, this.scopeConfigField.Text, 1)
 this.LoadEditor(CrusadersSelector(path, "", selector.settingsFile, selector.imageRoot))
 this.LoadFields()
@@ -8116,6 +8510,7 @@ if kind != 1 {
 target := "ahk_id " hwnd
 WinGetPos(&outerX, &outerY, , , target)
 WinGetClientPos(&x, &y, &w, &h, target)
+w := Min(w,800), h := Min(h,600)
 if !kind || NumGet(box, 0, "Int") != x - outerX || NumGet(box, 4, "Int") != y - outerY
 || NumGet(box, 8, "Int") != x - outerX + w || NumGet(box, 12, "Int") != y - outerY + h {
 DllCall("SetRectRgn", "Ptr", region, "Int", x - outerX, "Int", y - outerY,
@@ -8235,6 +8630,7 @@ this.Log("Roblox stays windowed while docked in the macro")
 KeyWait("F11")
 }
 AttachGame(hwnd, activate := true) {
+AADisplay.UsePhysicalPixels()
 if !this.EnsureWindowed(hwnd)
 return false
 this.game := hwnd
@@ -8303,6 +8699,7 @@ this.original := 0
 } finally this.attachingGame := false
 }
 EnsureGameSize(activate := false) {
+AADisplay.UsePhysicalPixels()
 if this.HasOwnProp("aprilDetached") && this.aprilDetached
 return !!this.game
 global selector
@@ -8339,21 +8736,37 @@ WinActivate("ahk_id " this.game)
 return true
 }
 UpdateGameMetrics(hwnd) {
-target := "ahk_id " hwnd
-WinGetPos(&x, &y, &w, &h, target)
-WinGetClientPos(&cx, &cy, &cw, &ch, target)
-this.outerWidth := w, this.outerHeight := h
-this.offsetX := cx - x, this.offsetY := cy - y
-this.gameWidth := cw, this.gameHeight := ch
+AADisplay.UsePhysicalPixels()
+outer := Buffer(16), client := Buffer(16), origin := Buffer(8,0)
+if !DllCall("GetWindowRect","Ptr",hwnd,"Ptr",outer)
+|| !DllCall("GetClientRect","Ptr",hwnd,"Ptr",client)
+|| !DllCall("ClientToScreen","Ptr",hwnd,"Ptr",origin)
+throw Error("Roblox window dimensions could not be measured.")
+this.outerWidth := NumGet(outer,8,"Int")-NumGet(outer,0,"Int")
+this.outerHeight := NumGet(outer,12,"Int")-NumGet(outer,4,"Int")
+this.offsetX := NumGet(origin,0,"Int")-NumGet(outer,0,"Int")
+this.offsetY := NumGet(origin,4,"Int")-NumGet(outer,4,"Int")
+this.gameWidth := NumGet(client,8,"Int"), this.gameHeight := NumGet(client,12,"Int")
 }
 ResizeGameClient(hwnd) {
-target := "ahk_id " hwnd
-if !WinExist(target)
+if !WinExist("ahk_id " hwnd)
 return false
-WinGetPos(, , &w, &h, target)
-WinGetClientPos(, , &cw, &ch, target)
-if cw != 800 || ch != 600
-WinMove(, , Max(100,w+800-cw), Max(100,h+600-ch), target)
+loop 6 {
+this.UpdateGameMetrics(hwnd)
+if this.gameWidth = 800 && this.gameHeight = 600 {
+Sleep(25)
+this.UpdateGameMetrics(hwnd)
+if this.gameWidth = 800 && this.gameHeight = 600
+return true
+}
+width := Max(100,this.outerWidth+800-this.gameWidth)
+height := Max(100,this.outerHeight+600-this.gameHeight)
+flags := A_Index >= 3 ? 0x616 : 0x216
+if !DllCall("SetWindowPos","Ptr",hwnd,"Ptr",0,"Int",0,"Int",0,
+"Int",width,"Int",height,"UInt",flags)
+return false
+Sleep(50)
+}
 this.UpdateGameMetrics(hwnd)
 return this.gameWidth = 800 && this.gameHeight = 600
 }
@@ -8830,6 +9243,12 @@ ToolTip()
 this.lastTooltip := 0
 }
 Log(message) {
+saved := CrusadersLogFile.Append(FormatTime(, "HH:mm:ss") "  " message "`n")
+if !saved && !this.HasOwnProp("logWriteFailed") {
+this.logWriteFailed := true
+this.entries.Push(FormatTime(, "HH:mm:ss") "  Could not write Logs\LogFile.txt; check folder permissions.")
+} else if saved && this.HasOwnProp("logWriteFailed")
+this.DeleteProp("logWriteFailed")
 message := CrusadersProcessLog.Display(message)
 if message = "" || (this.HasOwnProp("lastProcessMessage") && this.lastProcessMessage = message && !RegExMatch(message, "i)^Map image (?:replaced:|updated$)"))
 return
@@ -8877,6 +9296,7 @@ return PaintCrusadersBackground(hwnd, dc, this.page = "settings" ? 60 : 882,
 this.page = "settings" ? CrusadersTheme.Sage : CrusadersTheme.Rose)
 }
 UpdateGameCutout() {
+AADisplay.UsePhysicalPixels()
 global selector
 if this.restoring || WinGetMinMax(this.gui) = -1
 return
@@ -8894,6 +9314,253 @@ if !DllCall("SetWindowRgn", "Ptr", this.gui.Hwnd, "Ptr", region, "Int", true)
 DllCall("DeleteObject", "Ptr", region)
 }
 Arrange() {
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
+if this.HasOwnProp("aprilDetached") && this.aprilDetached
+return
+AADisplay.UsePhysicalPixels()
 if this.HasOwnProp("aprilDetached") && this.aprilDetached
 return
 global selector
@@ -8946,6 +9613,7 @@ this.Sized(1, 0, 0x0005, this.gui.Hwnd)
 WinMinimize(this.gui)
 }
 Sized(wParam, lParam, msg, hwnd) {
+AADisplay.UsePhysicalPixels()
 if this.restoring || hwnd != this.gui.Hwnd
 return
 if wParam = 1 {
@@ -9053,7 +9721,7 @@ recoveryNotice := accessPaused || result = "Recovery"
 privateAccess := accessPaused && CrusadersServer.PrivateLink(preferences) != ""
 title := accessPaused ? (privateAccess ? "Macro Paused: Private Server Access Denied" : "Macro Paused: Public Server Access Denied")
 : result = "Recovery" ? (match = "AFK Chamber" ? "AFK Chamber Detected" : "Join Error Detected")
-: test ? "Webhook Test" : result = "Victory" ? "You Won :D" : "You Lost D:"
+: result = "Dungeon Reward" ? "Dungeon Chest Reward" : test ? "Webhook Test" : result = "Victory" ? "You Won :D" : "You Lost D:"
 fields := []
 if preferences.Get("WebhookShowMap", "1") = "1"
 fields.Push({name:"Map", value:preferences["Map"], inline:ComValue(11, -1)})
@@ -9069,6 +9737,10 @@ if preferences.Get("WebhookShowChallengeRecord",preferences.Get("WebhookShowChal
 fields.Push({name:"Challenge W/L", value:(window.HasOwnProp("challengeWins") ? window.challengeWins : 0) " / " (window.HasOwnProp("challengeLosses") ? window.challengeLosses : 0), inline:ComValue(11,-1)})
 if preferences.Get("WebhookShowAct", "1") = "1" && (mode = "Story" || mode = "Legend Stages" || mode = "Raids")
 fields.Push({name:"Act / Difficulty", value:preferences["Act"] " / " preferences["Difficulty"], inline:ComValue(11, -1)})
+if mode="Dungeons" || result="Dungeon Reward" {
+fields.Push({name:"Normal Chests",value:"" (window.HasOwnProp("normalChestsCollected") ? window.normalChestsCollected : 0),inline:ComValue(11,-1)})
+fields.Push({name:"Rare Chests",value:"" (window.HasOwnProp("rareChestsCollected") ? window.rareChestsCollected : 0),inline:ComValue(11,-1)})
+}
 for field in fields
 field.name := StrReplace(field.name, " ", Chr(0xA0))
 timing := ""
@@ -9085,7 +9757,7 @@ timing .= (timing != "" ? "`n`n" : "") "**" StrReplace("Total Time", " ", Chr(0x
 if timing != ""
 fields.Push({name:Chr(0x200B), inline:ComValue(11, 0), value:timing})
 embed := {title:title, color:(test || recoveryNotice) ? 0xE4BB66 : result = "Victory" ? 0x70B68C : 0xE47F85,
-fields:fields, footer:{text:"Bayzo's AA Macro v1.4 | Bayzo Session Report"},
+fields:fields, footer:{text:"Bayzo's AA Macro v2.2 | Bayzo Session Report"},
 timestamp:FormatTime(A_NowUTC, "yyyy-MM-dd") "T" FormatTime(A_NowUTC, "HH:mm:ss") "Z"}
 if accessPaused
 embed.description := privateAccess
@@ -9099,7 +9771,7 @@ if !test && (result = "Victory" || result = "Defeat")
 embed.thumbnail := {url:result = "Victory" ? this.VictoryThumbnailUrl : this.LossThumbnailUrl}
 if !fields.Length
 embed.DeleteProp("fields")
-payload := {username:"Bayzo's AA Macro v1.4", allowed_mentions:{parse:[]}, embeds:[embed]}
+payload := {username:"Bayzo's AA Macro v2.2", allowed_mentions:{parse:[]}, embeds:[embed]}
 if preferences.Get("WebhookPingEnabled", "0") = "1" {
 id := this.PingId(preferences.Get("WebhookDiscordId", ""))
 if id != "" {
@@ -9125,6 +9797,7 @@ previous := match[1]
 return previous
 }
 static Capture(window, test, readCompletion := true) {
+AADisplay.UsePhysicalPixels()
 target := CrusadersServer.FindGameWindow()
 if !target {
 if test
@@ -9231,7 +9904,7 @@ url := this.Url(selector.preferences["Webhook"])
 if selector.preferences.Get("WebhookPingEnabled", "0") = "1" && !this.PingId(selector.preferences.Get("WebhookDiscordId", ""))
 CrusadersLog("Webhook ping skipped: enter a valid Discord User ID in Webhooks settings")
 files := []
-if !test && !recoveryNotice {
+if !test && !recoveryNotice && result!="Dungeon Reward" {
 delay := Integer(selector.preferences.Get("WebhookScreenshotDelay", "1500"))
 CrusadersLog("Webhook screenshot delay: " delay " ms")
 if !CrusadersRuntime.Wait(delay, (*) => testCancelled)
@@ -9242,7 +9915,7 @@ if recoveryNotice {
 try screenshot := this.Capture(window, true, false)
 catch Error
 CrusadersLog("Recovery screenshot unavailable; sending notification without it")
-} else screenshot := this.Capture(window, test)
+} else screenshot := this.Capture(window, test,result!="Dungeon Reward")
 payload := this.Payload(window, selector.preferences, result, test, match, screenshot ? screenshot.completionTime : "Not available")
 if screenshot {
 files.Push({name:"result.png", bytes:screenshot.bytes})
@@ -12948,6 +13621,8 @@ static Path(root, name) {
 if name != "ChallengeState.ini" && name != "AAChallenges.ini" && name != "Guides.ini"
 throw Error("Unknown internal state file")
 directory := root "\Other\State", path := directory "\" name
+CrusadersConfigCodes.SafeTarget(directory)
+DirCreate(directory)
 previous := root "\Settings\" name
 if FileExist(previous) && !FileExist(path) {
 CrusadersConfigCodes.SafeTarget(directory)
@@ -13020,7 +13695,7 @@ this.ValidateInterfaceDirectory(interfaceDirectory)
 } catch Error as err {
 super.Restore()
 MsgBox("The interface files could not be loaded. Extract the complete release folder and try again.`n`n" err.Message,
-"Bayzo's AA Macro v1.4", "Iconx")
+"Bayzo's AA Macro v2.2", "Iconx")
 ExitApp(1)
 }
 this.HideNativeControls()
@@ -13031,13 +13706,13 @@ A_ScriptDir "\Other\WebView2\" (A_PtrSize * 8) "bit\WebView2Loader.dll"))
 catch Error as err {
 super.Restore()
 MsgBox("The interface could not start. Check that Microsoft Edge WebView2 Runtime is installed.`n`n" err.Message,
-"Bayzo's AA Macro v1.4", "Iconx")
+"Bayzo's AA Macro v2.2", "Iconx")
 ExitApp(1)
 }
-this.controller.as(WebView2.Controller, WebView2.Controller.IID_2)
+this.controller.as(WebView2.Controller, WebView2.Controller.IID_3)
 this.core := this.controller.CoreWebView2.as(WebView2.Core, WebView2.Core.IID_4)
 this.controller.DefaultBackgroundColor := 0x1C1918FF
-this.controller.ZoomFactor := 1
+this.ConfigurePixelLayout()
 this.core.SetVirtualHostNameToFolderMapping("macro.example", interfaceDirectory, 1)
 this.core.SetVirtualHostNameToFolderMapping("assets.macro.example", A_ScriptDir "\Images", 1)
 SplitPath(selector.configRoot,,&mediaSettingsDirectory)
@@ -13055,14 +13730,62 @@ this.navigationEvent := this.core.NavigationStarting((sender, args) => args.Canc
 this.newWindowEvent := this.core.NewWindowRequested((sender, args) => args.Handled := true)
 this.downloadEvent := this.core.DownloadStarting((sender, args) => args.Cancel := true)
 this.controller.Fill()
-height := Min(882, A_ScreenHeight - 48)
-this.gui.Show("Hide w1266 h" height)
+this.FitInterfaceToWorkArea(true)
 this.controller.Fill()
 this.controller.IsVisible := true
 this.core.Navigate("https://macro.example/index.html")
 this.webTick := ObjBindMethod(this, "PushState")
 SetTimer(this.webTick, 500)
 this.discord := 0
+}
+FitInterfaceToWorkArea(center := false) {
+AADisplay.UsePhysicalPixels()
+monitor := DllCall("MonitorFromWindow","Ptr",this.gui.Hwnd,"UInt",2,"Ptr")
+info := Buffer(40,0), NumPut("UInt",40,info)
+if !DllCall("GetMonitorInfoW","Ptr",monitor,"Ptr",info)
+return false
+WinGetPos(&x,&y,,,this.gui)
+args := [NumGet(info,20,"Int"),NumGet(info,24,"Int"),NumGet(info,28,"Int"),NumGet(info,32,"Int"),1266,882]
+if !center
+args.Push(x,y)
+bounds := AADisplay.FitBounds(args*)
+return !!DllCall("SetWindowPos","Ptr",this.gui.Hwnd,"Ptr",0,
+"Int",bounds[1],"Int",bounds[2],"Int",bounds[3],"Int",bounds[4],"UInt",0x214)
+}
+ConfigurePixelLayout() {
+AADisplay.UsePhysicalPixels()
+this.controller.ShouldDetectMonitorScaleChanges := false
+this.controller.BoundsMode := 0
+this.controller.RasterizationScale := 1.0
+this.controller.ZoomFactor := 1.0
+if !this.HasOwnProp("dpiHandler") {
+this.dpiHandler := ObjBindMethod(this,"DisplayChanged")
+OnMessage(0x2E0,this.dpiHandler)
+}
+this.ObserveDisplayScale()
+}
+ObserveDisplayScale() {
+dpi := AADisplay.Dpi(this.gui.Hwnd)
+if !this.HasOwnProp("displayDpi") || this.displayDpi != dpi {
+this.displayDpi := dpi
+this.Log("Windows display scale: " Round(dpi*100/96) "%; using 800 x 600 physical game pixels")
+}
+}
+DisplayChanged(wParam,lParam,msg,hwnd) {
+if hwnd != this.gui.Hwnd
+return
+AADisplay.UsePhysicalPixels()
+if lParam
+DllCall("SetWindowPos","Ptr",hwnd,"Ptr",0,
+"Int",NumGet(lParam,0,"Int"),"Int",NumGet(lParam,4,"Int"),
+"Int",0,"Int",0,"UInt",0x215)
+this.FitInterfaceToWorkArea()
+this.ObserveDisplayScale()
+this.controller.Fill()
+this.cutoutSignature := ""
+this.EnsureGameSize(false)
+this.Arrange()
+return 0
 }
 ServeBackgroundVideo(sender,args) {
 request := args.Request
@@ -13146,13 +13869,14 @@ if showGame {
 WinSetExStyle((this.original.exStyle | 0x40000) & ~0x80, "ahk_id " this.game)
 this.SetGameFrame(this.game, true)
 }
+this.FitInterfaceToWorkArea()
 this.interfaceVisible := true
 this.Arrange()
 this.gui.Show()
 if showGame
 this.ShowGame(false)
 this.FocusInterface()
-if !this.uiTest {
+{
 this.ConfigureDiscord()
 SetTimer((*) => CrusadersUpdater.Check(this), -100)
 }
@@ -13316,8 +14040,8 @@ stats["Daily challenge in"] := Integer(selector.preferences["DailyChallengeEnabl
 image := StrReplace(SubStr(selector.imagePath, StrLen(A_ScriptDir "\Images\") + 1), "\", "/")
 return Map("uiModalVisible",Integer(this.HasOwnProp("webModalVisible") && this.webModalVisible),"stateRevision", revision, "version", CrusadersUpdater.Version, "page", this.page, "guidesRequired", selector.preferences["SkipGuideTutorial"] != "1", "overviewRequired", selector.preferences["SkipMacroOverview"] != "1", "pageGeneration", this.pageGeneration, "selected", selector.selected, "indexes", indexes,
 "preferences", selector.preferences, "mapName", CrusadersMapName(selector.path, selector.preferences["Mode"]),
-"configPath", selector.path, "dungeonMaps", CrusadersCatalog.Maps["Dungeons"], "scope", this.configScope = "Current Mode" && (selector.preferences["Mode"] = "Infinity Mansion" || selector.preferences["Mode"] = "Dungeons") ? selector.preferences["Mode"] : this.configScope, "challengeMaps", CrusadersCatalog.Maps["Story"], "castleMaps", CrusadersCatalog.CastleMaps, "mansionMaps", CrusadersCatalog.MansionMaps,
-"mapImage", image, "imageVersion", FileExist(selector.imagePath) ? FileGetTime(selector.imagePath, "M") : "0",
+"configPath", selector.path, "dungeonMaps", CrusadersCatalog.Maps["Dungeons"], "scope", this.configScope = "Current Mode" && (selector.preferences["Mode"] = "Infinity Mansion" || selector.preferences["Mode"] = "Dungeons") ? selector.preferences["Mode"] : this.configScope, "challengeMaps", CrusadersCatalog.Maps["Challenges"], "castleMaps", CrusadersCatalog.CastleMaps, "mansionMaps", CrusadersCatalog.MansionMaps,
+"mapImage", image, "imageVersion", AAInstalledAssets.ImageVersion(selector.imagePath),
 "mapWidth", selector.mapWidth, "mapHeight", selector.mapHeight, "picking", Integer(selector.pickMode),
 "connected", Integer(!!this.game && !!WinExist("ahk_id " this.game)), "wins", this.wins,
 "losses", this.losses, "stats", stats, "batchRuns", this.tasks.run, "taskIndex", this.editingTask,
@@ -13568,7 +14292,7 @@ if !selector.ApplyLiveCoordinate(data["x"], data["y"], selector.mapWidth, select
 throw Error(selector.status.Text)
 this.ShowGame(false)
 case "config.category.preview":
-if testRunning || this.inputRecorder.recording || this.inputRecorder.playing
+if !AACategoryCopy.Allowed(testRunning,CrusadersRuntime.paused,data.Get("copyCoordinates",false),this.inputRecorder.recording,this.inputRecorder.playing)
 throw Error("Stop the macro and recorder before copying configs.")
 if !data.Has("path") || data["path"] != selector.path
 throw Error("Current config changed. Open Copy Settings again.")
@@ -13578,11 +14302,11 @@ for row in plan.rows
 names.Push(row.name)
 resultData := Map("id",plan.id,"path",plan.path,"category",plan.category,"count",plan.rows.Length,"overwrites",plan.overwrites,"names",names,"matching",plan.matching,"copyCoordinates",plan.copyCoordinates)
 case "config.category.copy":
-if testRunning || this.inputRecorder.recording || this.inputRecorder.playing
-throw Error("Stop the macro and recorder before copying configs.")
 if !this.HasOwnProp("pendingCategoryCopy") || !data.Has("id") || data["id"] != this.pendingCategoryCopy.id
 throw Error("Copy preview expired. Open Copy Settings again.")
 plan := this.pendingCategoryCopy
+if !AACategoryCopy.Allowed(testRunning,CrusadersRuntime.paused,plan.copyCoordinates,this.inputRecorder.recording,this.inputRecorder.playing)
+throw Error("Pause the macro for Copy Without Coordinates, or stop it for Copy Everything. Stop the recorder first.")
 this.DeleteProp("pendingCategoryCopy")
 count := AACategoryCopy.Apply(selector,plan)
 this.Log("Copied " (plan.copyCoordinates ? "all indexes, coordinates and team" : "index settings and team; destination coordinates and recordings preserved") " to " count " other " plan.category " configs")
@@ -13648,14 +14372,36 @@ this.Log(resultData.Get("unchanged",false) ? "No config changes to publish; same
 } finally CrusadersConfigCodes.SharingBusy := false
 case "my.list":
 resultData := AAMyConfigs.Public(this.tasks.root)
-case "my.refresh", "my.check", "my.apply", "my.deleteCreated", "my.removePreview", "my.deleteImported":
+case "my.refresh", "my.check", "my.apply", "my.deleteCreated", "my.removePreview", "my.deleteImported", "my.migrate", "my.restorePreview", "my.restoreApply":
 if testRunning || this.inputRecorder.recording || this.inputRecorder.playing
 throw Error("Stop the macro and recording before updating configs.")
 if CrusadersConfigCodes.SharingBusy
 throw Error("A config transfer is already in progress.")
 CrusadersConfigCodes.SharingBusy := true
 try {
-if action = "my.refresh"
+if action = "my.migrate" {
+if this.uiTest
+throw Error("File selection is disabled in UI tests.")
+creatorLibraryPath := AAMyConfigs.SharedPath(this.tasks.root)
+if creatorLibraryPath = ""
+throw Error("The shared creator-library folder is unavailable.")
+AAMyConfigs.EnsureLibraryWritable(this.tasks.root)
+selectedLibrary := FileSelect(1,creatorLibraryPath,"Load saved MyConfigs.json from Local AppData","My Configs (*.json)")
+resultData := selectedLibrary = "" ? AAMyConfigs.Public(this.tasks.root) : AAMyConfigs.MigrateFile(this.tasks.root,selectedLibrary)
+resultData["cancelled"] := selectedLibrary = ""
+} else if action = "my.restorePreview" {
+this.pendingCreatorRestore := 0
+plan := AAMyConfigs.RestorePreview(this.tasks.root,data["code"])
+this.pendingCreatorRestore := plan, this.pendingCreatorRestoreAt := CrusadersRuntime.Tick()
+resultData := plan.Clone(), resultData.Delete("payload"), resultData.Delete("snapshot"), resultData.Delete("root")
+} else if action = "my.restoreApply" {
+if !this.HasOwnProp("pendingCreatorRestore") || !this.pendingCreatorRestore || CrusadersRuntime.Tick()-this.pendingCreatorRestoreAt>600000
+throw Error("Restore preview expired. Preview restore again.")
+resultData := AAMyConfigs.Restore(this.tasks.root,selector.settingsFile,this.pendingCreatorRestore,data.Get("replaceExisting",false),ObjBindMethod(this,"Log"))
+this.pendingCreatorRestore := 0
+selector.Load(), this.LoadFields()
+this.Log("Restored creator bundle: " resultData["configs"] " configs and " resultData["recordings"] " recordings")
+} else if action = "my.refresh"
 resultData := AAMyConfigs.Refresh(this.tasks.root)
 else if action = "my.check" {
 this.pendingMyUpdate := 0
@@ -14023,8 +14769,8 @@ showGame := (!this.HasOwnProp("pageRendered") || this.pageRendered)
 && this.page != "settings" && this.page != "themes" && this.page != "export" && this.page != "guides" && !selector.pickMode
 && !(this.HasOwnProp("webModalVisible") && this.webModalVisible)
 region := DllCall("CreateRectRgn", "Int", this.offsetX, "Int", this.offsetY,
-"Int", this.offsetX + (showGame ? this.gameWidth : 0),
-"Int", this.offsetY + (showGame ? this.gameHeight : 0), "Ptr")
+"Int", this.offsetX + (showGame ? Min(this.gameWidth,800) : 0),
+"Int", this.offsetY + (showGame ? Min(this.gameHeight,600) : 0), "Ptr")
 current := DllCall("CreateRectRgn", "Int", 0, "Int", 0, "Int", 0, "Int", 0, "Ptr")
 try {
 if DllCall("GetWindowRgn", "Ptr", this.game, "Ptr", current)
@@ -14039,6 +14785,7 @@ DllCall("DeleteObject", "Ptr", region)
 }
 }
 UpdateGameCutout() {
+AADisplay.UsePhysicalPixels()
 global selector
 if this.restoring || WinGetMinMax(this.gui) = -1
 return
@@ -14063,6 +14810,7 @@ else
 this.cutoutSignature := signature
 }
 Arrange() {
+AADisplay.UsePhysicalPixels()
 if this.HasOwnProp("aprilDetached") && this.aprilDetached
 return
 global selector
@@ -14080,13 +14828,15 @@ return
 WinGetClientPos(&left, &top, , , this.gui)
 previousDelay := A_WinDelay
 SetWinDelay(-1)
-try WinMove(left + this.webGameLeft - this.offsetX, top + this.webGameTop - this.offsetY,
-this.outerWidth, this.outerHeight, "ahk_id " this.game)
+try DllCall("SetWindowPos","Ptr",this.game,"Ptr",0,
+"Int",left+this.webGameLeft-this.offsetX,"Int",top+this.webGameTop-this.offsetY,
+"Int",0,"Int",0,"UInt",0x215)
 finally SetWinDelay(previousDelay)
 this.SyncPageGameClip()
 this.RaiseGame()
 }
 Sized(wParam, lParam, msg, hwnd) {
+AADisplay.UsePhysicalPixels()
 if this.restoring
 return
 super.Sized(wParam, lParam, msg, hwnd)
@@ -14743,6 +15493,8 @@ global testRunning
 if this.pendingRestart
 throw Error("Restart is in progress. Wait for the run to start.")
 this.window.StopIdleCleanup()
+if !paused && HasMethod(this.window,"RestorePausedBrowse")
+this.window.RestorePausedBrowse()
 CrusadersRuntime.SetPaused(paused)
 this.window.runStatus := paused ? "Paused" : testRunning ? "Running" : "Idle"
 this.window.Log(paused ? "Paused from Discord" : "Resumed from Discord")
@@ -15265,6 +16017,7 @@ FileDelete(temporary)
 }
 class AdventuresApp {
 CheckClient() {
+AADisplay.UsePhysicalPixels()
 if !this.hwnd || !WinExist(this.hwnd)
 throw Error("Roblox closed. Stop and start again after reopening it.")
 if !WinActive(this.hwnd) || WinGetMinMax(this.hwnd)=-1
@@ -15587,7 +16340,12 @@ return Integer(match[1])
 return -1
 }
 static UpgradeLevel(text) {
-if RegExMatch(text,"i)\bUpgrade\s*[\[({]?\s*(\d{1,2})\s*[\])}]?",&match)
+if RegExMatch(text,"i)\bUpgrade\s*[\[({]\s*([0-9OIl]{1,2})\s*[\])}]",&match) {
+digits := StrReplace(StrReplace(StrReplace(match[1],"O","0"),"o","0"),"I","1")
+digits := StrReplace(StrReplace(digits,"l","1"),"i","1")
+return Integer(digits)
+}
+if RegExMatch(text,"i)\bUpgrade\s+(\d{1,2})(?![A-Za-z0-9\]])",&match)
 return Integer(match[1])
 return -1
 }
@@ -15636,8 +16394,11 @@ else if CrusadersDetection.FindBitmap(bitmap,"april-auto-off",&x,&y)
 result["auto"] := "off", result["autoX"] := x+25, result["autoY"] := y+8
 return result
 }
-static ReadUpgrade(reader,bitmap,autoAbility := true) {
-result := this.ReadUpgradeLevel(reader,bitmap)
+static ReadUpgrade(reader,bitmap,autoAbility := true,panel := 0) {
+if IsObject(panel) && (panel.Get("level",-1)>=0 || panel.Get("max",false)) {
+level := panel.Get("level",-1)
+result := Map("kind","upgrade","text",panel["text"],"level",level,"max",panel.Get("max",false) || this.MaxUpgrade(reader,bitmap,panel["text"]),"ownerWait",0)
+} else result := this.ReadUpgradeLevel(reader,bitmap)
 if autoAbility && (result["level"] >= 0 || result["max"])
 this.ReadAutoAbility(bitmap,result)
 return result
@@ -15650,9 +16411,6 @@ header := reader.Read(bitmap,165,190,115,40,2)
 level := this.UpgradeLevel(header)
 if level >= 0 || RegExMatch(header,"i)\bMAX\b")
 return Map("kind","upgrade","text",header,"level",level,"max",this.MaxUpgrade(reader,bitmap,header),"ownerWait",0)
-for level in [0,1,2,3,4]
-if CrusadersDetection.FindBitmap(bitmap,"upgrade-" level)
-return Map("kind","upgrade","text","Upgrade [" level "]","level",level,"max",this.MaxUpgrade(reader,bitmap),"ownerWait",0)
 text := ""
 for scale in [2,3,4] {
 text := reader.Read(bitmap,160,180,145,65,scale)
@@ -15665,7 +16423,7 @@ return Map("kind","upgrade","text",text,"level",-1,"max",this.MaxUpgrade(reader,
 static FastPlacement(reader,bitmap) {
 for id in ["upgrade-0","upgrade-1","upgrade-2","upgrade-3","upgrade-4","upgrade-max-button"]
 if CrusadersDetection.FindBitmap(bitmap,id)
-return Map("kind","unit-panel","text","Calibrated upgrade control","ownerWait",0)
+return Map("kind","unit-panel","text","Calibrated upgrade control","level",id = "upgrade-max-button" ? -1 : Integer(SubStr(id,9)),"max",id = "upgrade-max-button","ownerWait",0)
 red1 := Gdip_GetPixel(bitmap,317,188), red2 := Gdip_GetPixel(bitmap,329,176)
 cross := Gdip_GetPixel(bitmap,329,188)
 sell := Gdip_GetPixel(bitmap,104,363)
@@ -15739,25 +16497,89 @@ return true
 panel := this.Parse("placement",reader.Read(bitmap,5,180,335,225,2))
 return panel["kind"] = "unit-panel"
 }
+static SettingsSpawn(reader,bitmap) {
+none := Map("kind","none","ownerWait",0)
+if Gdip_GetImageWidth(bitmap)!=800 || Gdip_GetImageHeight(bitmap)!=600
+return none
+text := StrLower(RegExReplace(reader.Read(bitmap,210,120,405,365,2),"[^A-Za-z]",""))
+if !InStr(text,"teleport") || !InStr(text,"spawn") || !InStr(text,"returntolobby")
+return none
+left := 800, right := 0, top := 600, bottom := 0, count := 0
+loop 61 {
+y := 110+(A_Index-1)*2
+loop 46 {
+x := 540+(A_Index-1)*2, rgb := Gdip_GetPixel(bitmap,x,y)
+if ((rgb>>16)&255)>170 && ((rgb>>8)&255)<90 && (rgb&255)<90
+left := Min(left,x), right := Max(right,x), top := Min(top,y), bottom := Max(bottom,y), count++
+}
+}
+if count<100 || right-left<30 || right-left>70 || bottom-top<30 || bottom-top>70
+return none
+loop 10 {
+y := 220+(A_Index-1)*24
+label := StrLower(RegExReplace(reader.Read(bitmap,230,y,295,36,3),"[^A-Za-z]",""))
+if !InStr(label,"teleport") || !InStr(label,"spawn")
+continue
+best := 0, distance := 999
+loop 19 {
+cy := y+2+(A_Index-1)*2
+for cx in [520,516,524,512,528] {
+for radius in [12,13,14,15] {
+upper := Gdip_GetPixel(bitmap,cx,cy-radius), lower := Gdip_GetPixel(bitmap,cx,cy+radius)
+if !this.SettingsEdge(upper) || !this.SettingsEdge(lower)
+continue
+inner1 := Gdip_GetPixel(bitmap,cx,cy-radius+4), inner2 := Gdip_GetPixel(bitmap,cx,cy+radius-4)
+if Max((inner1>>16)&255,(inner1>>8)&255,inner1&255)>35
+|| Max((inner2>>16)&255,(inner2>>8)&255,inner2&255)>35
+continue
+delta := Abs(cy-(y+22))+Abs(cx-520)/8
+if delta<distance
+distance := delta, best := [cx,cy]
+}
+}
+}
+if best
+return Map("kind","settings-spawn","x",best[1],"y",best[2],"closeX",(left+right)//2,"closeY",(top+bottom)//2,"ownerWait",0)
+}
+return none
+}
+static SettingsEdge(rgb) {
+r := (rgb>>16)&255, g := (rgb>>8)&255, b := rgb&255
+return Min(r,g,b)>=40 && Max(r,g,b)<=110 && Max(r,g,b)-Min(r,g,b)<=15
+}
 static Read(reader,bitmap,stage,autoAbility := true) {
 connection := AAConnection.Poll(reader,bitmap)
 if connection["kind"] != "none"
 return connection
+if stage = "settings-spawn"
+return this.SettingsSpawn(reader,bitmap)
+if stage = "april-exit"
+return AAAprilFools.ReadExit(reader,bitmap)
+if stage = "dungeon-death-exit" {
+if (exit := AADungeons.ReadReturnLobby(reader,bitmap))
+return exit
+if (death := AADungeons.ReadDeath(reader,bitmap))
+return death
+return AALobbyVision.Read(reader,bitmap)
+}
 if stage = "dungeon-board" {
-board := AADungeons.Read(reader,bitmap,false,true)
-if board["kind"] = "dungeon-board" && board["cards"].Length
+board := AADungeons.Read(reader,bitmap,false,true,0,false)
+if board["kind"] = "dungeon-died" || (board["kind"] = "dungeon-board" && board["cards"].Length)
 return board
 stage := "dungeon"
 }
 if stage = "dungeon-chest-reward" {
+if menu := AADungeons.FastMenu(reader,bitmap)
+if menu["kind"]="dungeon-chests"
+return AADungeons.Read(reader,bitmap,false,false,menu,false)
 reward := this.ReadReward(reader,bitmap)
 if reward["kind"] = "reward"
 return reward
-return AADungeons.Read(reader,bitmap)
+return AADungeons.Read(reader,bitmap,false,false,0,false)
 }
 if stage = "dungeon" || stage = "dungeon-transition" || stage = "dungeon-result" {
 if stage != "dungeon-transition" && (menu := AADungeons.FastMenu(reader,bitmap))
-return AADungeons.Read(reader,bitmap,false,false,menu)
+return AADungeons.Read(reader,bitmap,false,false,menu,false)
 if stage != "dungeon-transition" {
 if this.CoveredResult(reader,bitmap)
 return Map("kind","result-covered","text","Unit panel covers dungeon results","ownerWait",0)
@@ -15768,7 +16590,7 @@ reward := this.ReadReward(reader,bitmap)
 if reward["kind"] = "reward"
 return reward
 }
-result := AADungeons.Read(reader,bitmap,stage = "dungeon-transition")
+result := AADungeons.Read(reader,bitmap,stage = "dungeon-transition",false,0,false)
 if result["kind"] != "none" || stage = "dungeon-transition"
 return result
 stage := "result"
@@ -15879,11 +16701,6 @@ reward := this.ReadReward(reader,bitmap)
 if reward["kind"] = "reward"
 return reward
 }
-if stage = "placement" || stage = "upgrade" {
-ended := this.Parse("result",reader.Read(bitmap,125,150,390,275,2))
-if ended["kind"] != "none"
-return ended
-}
 if (stage = "placement" || stage = "upgrade") && (panel := this.FastPlacement(reader,bitmap)) {
 for resultId in ["victory","defeat"]
 if CrusadersDetection.FindBitmap(bitmap,resultId)
@@ -15892,11 +16709,16 @@ choice := this.ChoiceFallback(bitmap)
 if choice["kind"] = "choice"
 return choice
 if stage = "upgrade"
-return this.ReadUpgrade(reader,bitmap,autoAbility)
+return this.ReadUpgrade(reader,bitmap,autoAbility,panel)
 panel["auto"] := ""
 if autoAbility
 this.ReadAutoAbility(bitmap,panel)
 return panel
+}
+if stage = "placement" || stage = "upgrade" {
+ended := this.Parse("result",reader.Read(bitmap,125,150,390,275,2))
+if ended["kind"] != "none"
+return ended
 }
 if stage != "choice" {
 choice := this.Parse("choice",reader.Read(bitmap,130,80,545,110,2))
@@ -16175,6 +16997,20 @@ SendEvent("{RButton up}")
 this.cameraHeld := false
 }
 }
+static SpawnPlan(scale) {
+if scale>=138
+return Map("scrolls",4,"x",520,"y",350,"closeX",574,"closeY",174)
+if scale>=113
+return Map("scrolls",6,"x",522,"y",328,"closeX",584,"closeY",151)
+return Map("scrolls",6,"x",522,"y",327,"closeX",584,"closeY",151)
+}
+SpawnScale() {
+scale := 100
+monitor := DllCall("MonitorFromWindow","Ptr",this.app.hwnd,"UInt",2,"Ptr")
+if DllCall("Shcore\GetScaleFactorForMonitor","Ptr",monitor,"Int*",&scale,"Int")!=0
+scale := Round(AADisplay.Dpi(this.app.hwnd)*100/96)
+return scale
+}
 ScrollSettings() {
 this.app.CheckClient()
 WinGetClientPos(&left,&top,,,this.app.hwnd)
@@ -16182,12 +17018,12 @@ previousMode := A_CoordModeMouse, previousSend := A_SendMode
 CoordMode("Mouse","Screen"), SendMode("Event")
 try {
 MouseMove(left+460,top+350,2)
-Sleep(120)
+Sleep(50)
 this.app.CheckClient()
-Loop 6 {
+Loop 1 {
 this.app.CheckClient()
 SendEvent("{WheelDown}")
-Sleep(250)
+Sleep(50)
 }
 } finally {
 SendMode(previousSend)
@@ -16202,6 +17038,8 @@ previous := Critical(1)
 try {
 this.app.CheckClient()
 if this.cameraStep=0 {
+if this.HasOwnProp("dungeon")
+this.app.Log("Dungeon camera: starting top-down zoom and right-button tilt")
 WinGetClientPos(&left,&top,,,this.app.hwnd)
 CoordMode("Mouse","Screen")
 MouseMove(left+400,top+330,5)
@@ -16248,12 +17086,14 @@ this.cameraStep++, this.due := Adventures.Tick()+this.Delay(this.cameraStep <= 2
 } finally Critical(previous)
 }
 Tick() {
+if this.app.HasOwnProp("owner") && this.app.owner.HasOwnProp("shopTestBusy") && this.app.owner.shopTestBusy
+return
 if this.busy || this.app.status!="Running"
 return
 this.busy := true, epoch := this.epoch
 try {
 now := Adventures.Tick()
-if (this.stage = "AwaitMansionMap" || this.stage = "AwaitTransition" || this.stage = "AwaitVote") && HasMethod(this.app,"RefreshAfterTeleport") {
+if (this.stage = "AwaitMansionMap" || this.stage = "AwaitTransition" || this.stage = "AwaitVote" || this.stage = "AprilExitLobby" || (this.stage = "Dungeon" && this.HasOwnProp("dungeon") && this.dungeon.phase = "death-returning")) && HasMethod(this.app,"RefreshAfterTeleport") {
 if !this.app.RefreshAfterTeleport() {
 if now > this.deadline
 throw Error("Roblox did not return after loading the match.")
@@ -16264,6 +17104,22 @@ if (this.app is AASession || this.app is AACameraSession) && AAInput.WaitingForF
 return
 this.app.CheckClient()
 now := Adventures.Tick()
+if SubStr(this.stage,1,9) = "AprilExit" {
+if now>this.deadline
+throw Error("April Fools could not confirm Next / Return to lobby. Check the screen, then resume.")
+if now<this.due
+return
+scan := this.worker.Poll()
+if scan {
+if scan["kind"] = "rejoin" || scan["kind"] = "access-denied"
+this.Handle(scan)
+else AAAprilFools.HandleExit(this,scan)
+}
+if now-this.scanned>=150 {
+this.worker.Request("april-exit"), this.scanned := now
+}
+return
+}
 if this.stage = "AprilResultRejoin"
 return
 if this.stage = "AprilResultSend" {
@@ -16277,10 +17133,18 @@ this.app.wins++
 else this.app.losses++
 this.app.ReportResult(result)
 if this.app.model.preferences.Get("WebhookEnabled","0") != "1" || this.app.model.preferences.Get("Webhook","") = ""
-this.app.Log("April Fools | Webhook needs an enabled URL; continuing to rejoin")
+this.app.Log("April Fools | Webhook needs an enabled URL; continuing result flow")
 this.app.Continuation()
+if this.app.model.preferences.Get("PublicRejoin","1") = "1" {
 this.Change("AprilResultRejoin",30000)
 this.app.RejoinNextMode(true)
+} else {
+this.Change("AprilExitNext",30000)
+this.aprilExitFrames := 0, this.aprilExitSignature := ""
+this.aprilNextAttempts := 0, this.aprilReturnAttempts := 0
+this.scanned := 0, this.due := 0
+this.app.Log("April Fools | Public rejoin off: using Next and Return to lobby")
+}
 }
 return
 }
@@ -16318,15 +17182,30 @@ if pending && (pending["kind"] = "access-denied" || pending["kind"] = "rejoin") 
 this.Handle(pending)
 return
 }
+if this.HasOwnProp("dungeon") {
+detail := this.HasOwnProp("lastDungeonObservation") ? this.lastDungeonObservation : "No completed scan received"
+reason := "Dungeon recovery: " this.stage " timed out; expected " (this.stage = "AwaitVote" ? "Vote Start or a readable Wave counter" : this.stage = "AwaitStart" ? "Vote Start to disappear or combat to start" : "a recognized loading-screen map") "; " detail "; rejoining server"
+this.app.Log(reason)
+if HasMethod(this.app,"SaveDungeonErrorReport")
+this.app.SaveDungeonErrorReport(reason)
+}
 this.app.Log("Match loading timed out; recovering server connection")
 this.app.Recover(true)
 return
 }
+if this.stage="Dungeon" && this.HasOwnProp("dungeon") {
+this.dungeon.RejoinDiagnostic("Dungeon encounter timed out; expected a recognized actionable menu or encounter transition")
+return
+}
 throw Error("Timed out in " this.stage ". Check the game, then stop and restart the loop.")
 }
+if this.stage="ChallengeReturning"
+return
 if !this.worker.Ready()
 return
 if this.stage = "Dungeon" {
+if this.dungeon.CheckDeathExit()
+return
 if now < this.due
 return
 if this.dungeon.phase = "shop-purchased" {
@@ -16343,7 +17222,7 @@ this.dungeon.Handle(scan)
 else this.DismissReward()
 } else this.dungeon.Handle(scan)
 }
-if this.app.status = "Running" && this.stage = "Dungeon" && now-this.scanned >= 125 {
+if this.app.status = "Running" && this.stage = "Dungeon" && now-this.scanned >= 100 {
 this.worker.Request(this.dungeon.RequestStage())
 this.scanned := now
 }
@@ -16361,7 +17240,8 @@ if this.stage = "SettingsOpen" {
 if now < this.due
 return
 this.ClickAt(27,574)
-this.Change("SettingsScroll",15000)
+this.spawnPoint := StoryLoop.SpawnPlan(this.SpawnScale()), this.spawnScrolls := 0
+this.Change("SettingsScroll",60000)
 this.due := Adventures.Tick()+Max(1000,this.Delay("StageClickDelay",1000))
 this.app.Log("Opening game settings")
 return
@@ -16369,15 +17249,19 @@ return
 if this.stage = "SettingsScroll" {
 if now < this.due
 return
-this.ScrollSettings()
+if this.spawnScrolls<this.spawnPoint["scrolls"] {
+this.ScrollSettings(), this.spawnScrolls++
+this.due := now+350
+} else {
 this.Change("SettingsTeleport",15000)
-this.due := Adventures.Tick()+Max(1000,this.Delay("StageClickDelay",1000))
+this.due := Adventures.Tick()+350
+}
 return
 }
 if this.stage = "SettingsTeleport" {
 if now < this.due
 return
-this.ClickAt(522,327)
+this.ClickAt(this.spawnPoint["x"],this.spawnPoint["y"])
 this.Change("SettingsClose",15000)
 this.due := Adventures.Tick()+Max(1500,this.Delay("StageClickDelay",1000))
 this.app.Log("Returning to spawn")
@@ -16386,7 +17270,7 @@ return
 if this.stage = "SettingsClose" {
 if now < this.due
 return
-this.ClickAt(584,151)
+this.ClickAt(this.spawnPoint["closeX"],this.spawnPoint["closeY"])
 if HasMethod(this.app,"NeedsMapPath") && this.app.NeedsMapPath()
 this.Change("MapPath",20000)
 else this.ReadyForVote()
@@ -16485,10 +17369,17 @@ this.worker.Request(region,wantsAuto)
 this.scanned := now
 }
 } catch Error as err {
+if err is AAFocusChanged {
+AAInput.WaitingForFocus(this,this.app.hwnd)
+return
+}
 if (this.app is AASession || this.app is AACameraSession) && AAInput.WaitingForFocus(this,this.app.hwnd)
 return
-if this.app.status = "Running"
+if this.app.status = "Running" {
+if this.HasOwnProp("dungeon") && HasMethod(this.app,"SaveDungeonErrorReport")
+this.app.SaveDungeonErrorReport("Dungeon paused with error: " err.Message "; stage=" this.stage "; " (this.HasOwnProp("lastDungeonObservation") ? this.lastDungeonObservation : "No completed scan received"))
 this.Pause(err.Message)
+}
 } finally {
 this.busy := false
 if this.HasOwnProp("disposing") && this.disposing
@@ -16496,6 +17387,8 @@ this.FinishDispose()
 }
 }
 Handle(scan) {
+if this.HasOwnProp("dungeon")
+this.lastDungeonObservation := AADungeons.Diagnostic(scan)
 kind := scan["kind"]
 if kind = "april-map" && HasMethod(this.app,"IsAprilFools") && this.app.IsAprilFools() {
 this.app.owner.aprilMap := scan["map"]
@@ -16545,7 +17438,7 @@ return
 }
 if HasMethod(this.app,"IsAprilFools") && this.app.IsAprilFools()
 && (kind = "victory" || kind = "defeat" || kind = "april-result-covered") {
-if this.stage = "AprilResultSend" || this.stage = "AprilResultRejoin"
+if this.stage = "AprilResultSend" || this.stage = "AprilResultRejoin" || SubStr(this.stage,1,9) = "AprilExit"
 return
 if this.HasOwnProp("april")
 this.april.phase := "result"
@@ -16556,7 +17449,7 @@ if scan.Get("overview",false)
 this.ClickAt(660,543)
 this.Change("AprilResultSend",30000)
 this.due := Adventures.Tick()+500
-this.app.Log("April Fools | Panels closed; sending result screenshot before rejoining")
+this.app.Log("April Fools | Panels closed; sending result screenshot before leaving")
 return
 }
 if kind = "result-covered" {
@@ -16633,8 +17526,10 @@ this.priorityChosen := true, this.due := Adventures.Tick()+75
 this.scanned := 0
 }
 case "Upgrade":
-if kind != "upgrade"
+if kind != "upgrade" {
+this.upgradeFrames := 0
 return
+}
 if this.HandleAutoAbility(scan)
 return
 target := this.placement.Get("upgrade","0")
@@ -16647,6 +17542,8 @@ this.FinishPlacement()
 } else {
 this.upgradeFrames := 0
 level := scan.Get("level",-1)
+if level>=0
+this.upgradeMissing := 0
 if level >= 0 && (!this.HasOwnProp("lastUpgradeLevel") || level != this.lastUpgradeLevel) {
 this.lastUpgradeLevel := level
 this.deadline := now+180000
@@ -16660,7 +17557,7 @@ this.MoveTopLeft()
 }
 if scan.Get("level",-1) >= 0 {
 this.UpgradeKey()
-this.due := Adventures.Tick()+Max(500,this.Delay("PlacementRetryDelay",500))
+this.due := Adventures.Tick()+200
 }
 }
 case "PlaceClear":
@@ -16909,7 +17806,7 @@ this.ClickAt(this.placement["x"],this.placement["y"])
 this.stage := "PlaceVerify", this.panelFrames := 0, this.scanned := 0
 this.deadline := this.placementStarted+60000
 this.placementSerial := this.worker && this.worker.HasOwnProp("serial") ? this.worker.serial+1 : 0
-this.due := Adventures.Tick()+180
+this.due := Adventures.Tick()+100
 }
 PlaceAttempt() {
 if this.HasOwnProp("reusePlaced") && this.reusePlaced {
@@ -17161,7 +18058,7 @@ for field in ["rewardSerial","placementSerial","prioritySerial"]
 if this.HasOwnProp(field)
 this.%field% := 0
 if this.HasOwnProp("dungeon")
-this.dungeon.Resume()
+this.dungeon.Resume(elapsed)
 this.scanned := 0, this.app.status := "Running"
 if this.HasOwnProp("april") && this.april.phase = "ability"
 this.april.awaitSerial := 0
@@ -17248,6 +18145,15 @@ this.startQueued := false, this.startRequested := false
 if testRunning || this.uiTest
 return
 try {
+missing := AAPreflight.MissingConfigs(this,selector)
+if missing.Length {
+names := ""
+for name in missing
+names .= (names="" ? "" : ", ") name
+this.Log("Cannot start: no indexes in " names)
+this.startConsumed := false
+return
+}
 this.preflightIssues := AAPreflight.Check(this,selector)
 this.preflightQueueSignature := Jxon_Dump(CrusadersJsonValue(this.tasks.items))
 if this.preflightIssues.Length {
@@ -17268,6 +18174,501 @@ this.aprilStartConfirmed := false
 this.Log("Start blocked: " err.Message)
 }
 }
+TestDungeonBossCycle(*) {
+global selector,testCancelled
+if (this.HasOwnProp("shopTestBusy") && this.shopTestBusy) || (this.HasOwnProp("dungeonCycleDebug") && this.dungeonCycleDebug)
+return
+this.shopTestBusy := true,this.shopTestCancelled := false
+bitmap := 0,token := 0
+try {
+this.CheckShopTestClient()
+if selector.preferences.Get("WebhookEnabled","0")!="1"
+throw Error("Enable Webhooks for the L boss-to-new-run test")
+CrusadersWebhook.Url(selector.preferences["Webhook"])
+token := Gdip_Startup(),reader := AdventuresOcr(),previous := ""
+loop 2 {
+this.CheckShopTestClient()
+if bitmap
+Gdip_DisposeImage(bitmap),bitmap := 0
+WinGetClientPos(&left,&top,,,this.game)
+bitmap := Gdip_BitmapFromScreen(left "|" top "|800|600")
+if !bitmap
+throw Error("Boss start capture failed")
+scan := AADungeons.Read(reader,bitmap,false,false,0,false),card := AADungeons.DebugBossCard(scan)
+if !card
+throw Error("Expected available boss room at depth20; " AADungeons.Diagnostic(scan))
+identity := card["x"] "," card["y"]
+if A_Index=2 && identity!=previous
+throw Error("Boss card changed between confirmation frames")
+previous := identity
+Sleep(200)
+}
+path := CrusadersCatalog.Resolve(selector.configRoot,"Dungeons","Planet Greenie",1)
+candidate := CrusadersSelector(path,"",selector.settingsFile,selector.imageRoot)
+AAExecution.Stop(),testCancelled := false
+this.dungeonCycleDebug := true,this.dungeonBossDebug := true,this.dungeonBossChestQueued := false
+this.dungeonCycleStarted := Adventures.Tick(),this.dungeonCycleStage := "",this.dungeonCycleStageAt := Adventures.Tick()
+this.LoadEditor(candidate)
+AAExecution.StartMatch(this,candidate)
+this.dungeonCycleTimer := ObjBindMethod(this,"WatchDungeonCycle")
+SetTimer(this.dungeonCycleTimer,500)
+this.Log("L full test started: boss -> detected map config/fight -> chests -> Finish -> rejoin -> new room Enter -> stop")
+} catch Error as err {
+this.Log("L boss start failed: " err.Message)
+context := {hwnd:this.game,model:selector,Log:(self,message)=>this.Log(message)}
+AADungeons.SaveErrorReport(context,"L boss start failed: " err.Message)
+if this.HasOwnProp("dungeonBossDebug") && this.dungeonBossDebug {
+this.dungeonBossDebug := false,this.dungeonCycleDebug := false
+AAExecution.Stop()
+}
+} finally {
+if bitmap
+Gdip_DisposeImage(bitmap)
+if token
+Gdip_Shutdown(token)
+this.shopTestBusy := false
+}
+}
+BeginBossChestTest(*) {
+if !this.dungeonBossDebug
+return
+this.dungeonBossDebug := false,this.dungeonCycleDebug := false
+if this.HasOwnProp("dungeonCycleTimer")
+SetTimer(this.dungeonCycleTimer,0)
+this.TestDungeonChests(true)
+}
+TestDungeonChests(fullCycle := false,*) {
+global selector,testCancelled
+if this.HasOwnProp("shopTestBusy") && this.shopTestBusy
+return
+this.shopTestBusy := true,this.shopTestCancelled := false
+token := 0,bitmap := 0,controller := 0,started := Adventures.Tick(),label := fullCycle ? "L full Dungeon test" : "P chest debug"
+try {
+this.CheckShopTestClient()
+if selector.preferences.Get("WebhookEnabled","0")!="1"
+throw Error("Enable Webhooks before running the chest test")
+CrusadersWebhook.Url(selector.preferences["Webhook"])
+context := {hwnd:this.game,model:AAExecution.session ? AAExecution.session.model : selector,Log:(self,message)=>this.Log(message)}
+io := {Click:(self,x,y)=>AAInput.Click(this.game,x,y,ObjBindMethod(this,"CheckShopTestClient")),Log:(self,message)=>this.Log(message),Reward:(self)=>this.DebugChestReward()}
+io.DefineProp("ObserveChests",{Call:(self,scan)=>AAExecution.ObserveChests(this,scan)})
+io.DefineProp("ChestOpened",{Call:(self,kind)=>AAExecution.ChestOpened(this,kind)})
+controller := AAChestDebug(io),reader := AdventuresOcr(),token := Gdip_Startup()
+this.Log(label " started: common -> rare -> Continue -> Finish" (fullCycle ? " -> rejoin -> Dungeon -> room Enter" : "") "; reward webhooks enabled")
+loop {
+this.CheckShopTestClient()
+if Adventures.Tick()-started>1800000
+throw Error("Chest debug reached its 30-minute safety limit")
+if bitmap
+Gdip_DisposeImage(bitmap),bitmap := 0
+WinGetClientPos(&left,&top,,,this.game)
+bitmap := Gdip_BitmapFromScreen(left "|" top "|800|600")
+if !bitmap
+throw Error("Chest debug capture failed")
+scan := StoryVision.Read(reader,bitmap,(controller.phase="reward" || controller.phase="reward-chain") ? "dungeon-chest-reward" : "dungeon")
+this.CheckShopTestClient()
+controller.Handle(scan,Adventures.Tick())
+if controller.phase="done" {
+AADungeons.SaveErrorReport(context,"P chest debug complete: common/rare empty confirmed; Continue and Finish clicked; " AADungeons.Diagnostic(scan),"",(path)=>Gdip_SaveBitmapToFile(bitmap,path))
+if fullCycle {
+this.Log("L full Dungeon test: Finish clicked; waiting for in-match Enter Dungeon menu")
+entryDeadline := Adventures.Tick()+30000,entryFrames := 0
+loop {
+this.CheckShopTestClient()
+if Adventures.Tick()>entryDeadline
+throw Error("After Finish: expected in-match Enter Dungeon menu; " AADungeons.Diagnostic(scan))
+Gdip_DisposeImage(bitmap),bitmap := 0
+WinGetClientPos(&left,&top,,,this.game)
+bitmap := Gdip_BitmapFromScreen(left "|" top "|800|600")
+if !bitmap
+throw Error("Post-Finish capture failed")
+scan := AADungeons.Read(reader,bitmap,false,false,0,false)
+entryFrames := scan["kind"]="dungeon-entry-menu" && scan.Get("inMatch",false) ? entryFrames+1 : 0
+if entryFrames>=2
+break
+Sleep(200)
+}
+this.CheckShopTestClient()
+AAInput.Click(this.game,670,150,ObjBindMethod(this,"CheckShopTestClient"))
+path := CrusadersCatalog.Resolve(selector.configRoot,"Dungeons","Planet Greenie",1)
+candidate := CrusadersSelector(path,"",selector.settingsFile,selector.imageRoot)
+AAExecution.Stop(),testCancelled := false
+this.dungeonCycleDebug := true,this.dungeonCycleStarted := Adventures.Tick(),this.dungeonCycleStage := "",this.dungeonCycleStageAt := Adventures.Tick()
+this.LoadEditor(candidate)
+AAExecution.lobby := AALobbyFlow(this,candidate)
+AAExecution.lobby.Start(true,true)
+this.dungeonCycleTimer := ObjBindMethod(this,"WatchDungeonCycle")
+SetTimer(this.dungeonCycleTimer,500)
+this.Log("L full Dungeon test: X closed; rejoining lobby -> Dungeons -> available room -> Enter")
+} else if AAExecution.session && AAExecution.session.loop.HasOwnProp("dungeon")
+AAExecution.session.loop.Pause("P chest debug finished; stop/restart the macro to begin another run")
+break
+}
+Sleep(200)
+}
+} catch Error as err {
+this.Log(label " stopped: " err.Message)
+if IsSet(context) && bitmap
+AADungeons.SaveErrorReport(context,label " stopped: " err.Message,"",(path)=>Gdip_SaveBitmapToFile(bitmap,path))
+if fullCycle && this.HasOwnProp("dungeonCycleDebug") && this.dungeonCycleDebug {
+this.dungeonCycleDebug := false
+AAExecution.Stop()
+}
+if controller && AAExecution.session && AAExecution.session.loop.HasOwnProp("dungeon") && AAExecution.session.status="Running"
+AAExecution.session.loop.Pause("P chest debug stopped; inspect the report before resuming")
+} finally {
+if bitmap
+Gdip_DisposeImage(bitmap)
+if token
+Gdip_Shutdown(token)
+this.shopTestBusy := false
+}
+}
+DebugChestReward() {
+this.CheckShopTestClient()
+return CrusadersWebhook.Send(this,"Dungeon Reward")
+}
+TestDungeonCycle(*) {
+global selector,testCancelled
+if this.HasOwnProp("shopTestBusy") && this.shopTestBusy
+return
+this.shopTestBusy := true,this.shopTestCancelled := false
+token := 0,bitmap := 0
+try {
+this.CheckShopTestClient()
+token := Gdip_Startup(),reader := AdventuresOcr(),previous := ""
+loop 2 {
+this.CheckShopTestClient()
+if bitmap
+Gdip_DisposeImage(bitmap),bitmap := 0
+WinGetClientPos(&left,&top,,,this.game)
+bitmap := Gdip_BitmapFromScreen(left "|" top "|800|600")
+if !bitmap
+throw Error("Entry-menu test capture failed")
+scan := AADungeons.Read(reader,bitmap,false,false,0,false)
+if scan["kind"]!="dungeon-entry-menu"
+throw Error("Expected Enter Dungeon menu; " AADungeons.Diagnostic(scan))
+identity := scan.Get("inMatch",false) "|" scan.Get("inLobby",false) "|" scan.Get("enterX",0)
+if A_Index=2 && identity!=previous
+throw Error("Enter Dungeon context changed between readings")
+previous := identity
+Sleep(200)
+}
+inMatch := scan.Get("inMatch",false),inLobby := scan.Get("inLobby",false)
+if inMatch || !inLobby
+throw Error("L needs the lobby Enter Dungeon menu; no rejoin or X click performed; " AADungeons.Diagnostic(scan))
+path := CrusadersCatalog.Resolve(selector.configRoot,"Dungeons","Planet Greenie",1)
+candidate := CrusadersSelector(path,"",selector.settingsFile,selector.imageRoot)
+AAExecution.Stop()
+testCancelled := false
+this.dungeonCycleDebug := true,this.dungeonCycleStarted := Adventures.Tick(),this.dungeonCycleStage := "",this.dungeonCycleStageAt := Adventures.Tick()
+this.LoadEditor(candidate)
+AAExecution.StartMatch(this,candidate)
+this.dungeonCycleTimer := ObjBindMethod(this,"WatchDungeonCycle")
+SetTimer(this.dungeonCycleTimer,500)
+this.Log("L Dungeon test: lobby entry -> room selection -> Enter; stop before indexes")
+} catch Error as err {
+this.Log("L Dungeon test failed: " err.Message)
+context := {hwnd:this.game,model:selector,Log:(self,message)=>this.Log(message)}
+AADungeons.SaveErrorReport(context,"L Dungeon test failed: " err.Message)
+if this.HasOwnProp("dungeonCycleDebug") && this.dungeonCycleDebug {
+this.dungeonCycleDebug := false
+AAExecution.Stop()
+}
+} finally {
+if bitmap
+Gdip_DisposeImage(bitmap)
+if token
+Gdip_Shutdown(token)
+this.shopTestBusy := false
+}
+}
+WatchDungeonCycle(*) {
+if !this.dungeonCycleDebug {
+SetTimer(this.dungeonCycleTimer,0)
+return
+}
+flow := AAExecution.session ? AAExecution.session.loop : AAExecution.lobby && !AAExecution.lobby.closed ? AAExecution.lobby : 0
+if !flow
+reason := "No active lobby or dungeon flow"
+else {
+stage := flow.stage (flow.HasOwnProp("dungeon") ? "/" flow.dungeon.phase : "")
+bossTest := this.HasOwnProp("dungeonBossDebug") && this.dungeonBossDebug
+if stage!=this.dungeonCycleStage
+this.dungeonCycleStage := stage,this.dungeonCycleStageAt := Adventures.Tick()
+status := flow.HasOwnProp("status") ? flow.status : flow.app.status
+reason := status="Paused" ? "Flow paused before room entry" : Adventures.Tick()-this.dungeonCycleStageAt>(bossTest ? (flow.stage="Actions" || flow.stage="AwaitResult" || flow.stage="Upgrade" ? 3600000 : 180000) : flow.HasOwnProp("dungeon") ? 45000 : 180000) ? "Stage did not progress within its deadline" : Adventures.Tick()-this.dungeonCycleStarted>(bossTest ? 7200000 : 900000) ? "Test exceeded its total time limit" : ""
+}
+if reason!="" {
+context := flow && flow.HasOwnProp("app") ? flow.app : flow ? flow : {hwnd:this.game,Log:(self,message)=>this.Log(message)}
+AADungeons.SaveErrorReport(context,"L Dungeon test stalled: " reason "; stage=" this.dungeonCycleStage)
+this.dungeonCycleDebug := false,this.dungeonBossDebug := false
+SetTimer(this.dungeonCycleTimer,0)
+AAExecution.Stop()
+this.Log("L Dungeon test stopped; Error Report saved")
+}
+}
+TestDungeonBoss(clickCard := false,*) {
+global selector
+if this.HasOwnProp("shopTestBusy") && this.shopTestBusy
+return
+this.shopTestBusy := true,this.shopTestCancelled := false
+token := 0,bitmap := 0
+try {
+this.CheckShopTestClient()
+context := {hwnd:this.game,model:AAExecution.session ? AAExecution.session.model : selector,Log:(self,message)=>this.Log(message)}
+reader := AdventuresOcr(),token := Gdip_Startup(),previous := "",confirmed := false
+loop 2 {
+this.CheckShopTestClient()
+if bitmap
+Gdip_DisposeImage(bitmap),bitmap := 0
+WinGetClientPos(&left,&top,,,this.game)
+bitmap := Gdip_BitmapFromScreen(left "|" top "|800|600")
+if !bitmap
+throw Error("Boss debug capture failed")
+scan := AADungeons.Read(reader,bitmap,false,false,0,false)
+card := AADungeons.DebugBossCard(scan)
+identity := card ? card["x"] "," card["y"] : ""
+confirmed := identity!="" && identity=previous
+previous := identity
+if A_Index=1
+Sleep(200)
+}
+AADungeons.SaveErrorReport(context,"Boss room test: confirmed=" confirmed "; clickRequested=" clickCard "; " AADungeons.Diagnostic(scan),"",(path)=>Gdip_SaveBitmapToFile(bitmap,path))
+if !confirmed {
+this.Log("Boss debug: no matching boss card confirmed at depth 20; no click")
+return
+}
+if clickCard {
+this.CheckShopTestClient()
+AAInput.Click(this.game,card["x"],card["y"],ObjBindMethod(this,"CheckShopTestClient"))
+this.Log("Boss debug: boss card clicked once; Enter was not clicked")
+if AAExecution.session && AAExecution.session.loop.HasOwnProp("dungeon") {
+active := AAExecution.session.loop.dungeon
+active.phase := "details",active.pendingRoomMap := "",active.lastAction := Adventures.Tick()
+active.frames := 0,active.candidate := "",active.minSerial := AAExecution.session.loop.worker.serial+1
+AAExecution.session.loop.Pause("Boss debug opened room details; resume when ready")
+}
+} else this.Log("Boss debug: boss card confirmed; read-only report saved")
+} catch Error as err {
+this.Log("Boss debug stopped: " err.Message)
+if IsSet(context) && bitmap
+AADungeons.SaveErrorReport(context,"Boss debug stopped: " err.Message,"",(path)=>Gdip_SaveBitmapToFile(bitmap,path))
+} finally {
+if bitmap
+Gdip_DisposeImage(bitmap)
+if token
+Gdip_Shutdown(token)
+this.shopTestBusy := false
+}
+}
+TestDungeonCurse(clickCard := false,*) {
+global selector
+if this.HasOwnProp("shopTestBusy") && this.shopTestBusy
+return
+this.shopTestBusy := true,this.shopTestCancelled := false
+token := 0,bitmap := 0
+try {
+this.CheckShopTestClient()
+context := {hwnd:this.game,model:AAExecution.session ? AAExecution.session.model : selector,Log:(self,message)=>this.Log(message)}
+reader := AdventuresOcr(),token := Gdip_Startup(),previous := "",confirmed := false
+loop 2 {
+this.CheckShopTestClient()
+if bitmap
+Gdip_DisposeImage(bitmap),bitmap := 0
+WinGetClientPos(&left,&top,,,this.game)
+bitmap := Gdip_BitmapFromScreen(left "|" top "|800|600")
+if !bitmap
+throw Error("Curse debug capture failed")
+scan := AADungeons.Read(reader,bitmap,false,false,0,false)
+card := AADungeons.DebugCurseCard(scan)
+identity := card ? card["x"] "," card["y"] : ""
+confirmed := identity!="" && identity=previous
+previous := identity
+if A_Index=1
+Sleep(200)
+}
+AADungeons.SaveErrorReport(context,"Curse room test: confirmed=" confirmed "; clickRequested=" clickCard "; " AADungeons.Diagnostic(scan),"",(path)=>Gdip_SaveBitmapToFile(bitmap,path))
+if !confirmed {
+this.Log("Curse debug: no matching curse card confirmed; no click")
+return
+}
+if clickCard {
+this.CheckShopTestClient()
+AAInput.Click(this.game,card["x"],card["y"],ObjBindMethod(this,"CheckShopTestClient"))
+enteredTest := true,controller:=AACurseEntryDebug(),phaseStarted:=Adventures.Tick()
+this.Log("Curse debug: card confirmed and clicked; waiting for room details")
+loop {
+this.CheckShopTestClient()
+if Adventures.Tick()-phaseStarted>(controller.phase="details" ? 30000 : 90000)
+throw Error("Curse test timed out waiting for " controller.phase "; " AADungeons.Diagnostic(scan))
+Sleep(200)
+Gdip_DisposeImage(bitmap),bitmap:=0
+WinGetClientPos(&left,&top,,,this.game)
+bitmap:=Gdip_BitmapFromScreen(left "|" top "|800|600")
+if !bitmap
+throw Error("Curse debug capture failed")
+scan:=AADungeons.Read(reader,bitmap,controller.phase="map",false,0,false)
+this.CheckShopTestClient()
+action:=controller.Handle(scan)
+if action="enter" {
+AAInput.Click(this.game,scan["enterX"],scan["enterY"],ObjBindMethod(this,"CheckShopTestClient"))
+phaseStarted:=Adventures.Tick()
+this.Log("Curse debug: Enter confirmed/clicked; waiting for transition map")
+} else if action="done" {
+this.Log("Curse debug complete: map detected - " controller.map "; no camera/path/unit actions")
+AADungeons.SaveErrorReport(context,"Curse entry test complete: map=" controller.map "; " AADungeons.Diagnostic(scan))
+break
+}
+}
+} else this.Log("Curse debug: curse card confirmed; read-only report saved")
+} catch Error as err {
+this.Log("Curse debug stopped: " err.Message)
+if IsSet(context) && bitmap
+AADungeons.SaveErrorReport(context,"Curse debug stopped: " err.Message,"",(path)=>Gdip_SaveBitmapToFile(bitmap,path))
+} finally {
+if IsSet(enteredTest) && AAExecution.session && AAExecution.session.status!="Paused"
+AAExecution.session.loop.Pause("Curse entry debug stopped before camera/path/unit actions")
+if bitmap
+Gdip_DisposeImage(bitmap)
+if token
+Gdip_Shutdown(token)
+this.shopTestBusy := false
+}
+}
+CanUseDungeonDebugKeys(*) => this.game && WinActive(this.game) && this.CanUseBoundKeys()
+TestDungeonMenu(kind := "shop",buyItems := false,*) {
+global selector,testRunning
+if this.HasOwnProp("shopTestBusy") && this.shopTestBusy
+return
+this.shopTestBusy := true, this.shopTestCancelled := false
+token := 0,bitmap := 0,label := kind="entry" ? "Enter Dungeon read test" : kind="chests" ? "Chest read test" : kind="curse" ? "Curse room read test" : "Shop test"
+try {
+AADisplay.UsePhysicalPixels()
+if !this.game || !WinActive(this.game)
+throw Error("Keep the Roblox shop window active.")
+WinGetClientPos(&left,&top,&width,&height,this.game)
+if width!=800 || height!=600
+throw Error("Roblox client must be 800x600; measured " width "x" height)
+token := Gdip_Startup()
+bitmap := Gdip_BitmapFromScreen(left "|" top "|800|600")
+if !bitmap || !WinActive(this.game)
+throw Error("Roblox lost focus during capture.")
+this.Log(buyItems ? "Shop test: reading item names before priority purchase test." : label ": reading captured frame; no purchases will be made.")
+scan := AADungeons.Read(AdventuresOcr(),bitmap,false,false,0,false)
+summary := label ": expected=" kind "; " AADungeons.Diagnostic(scan)
+if scan["kind"]="dungeon-shop" {
+this.Log("Shop test: " scan["offers"].Length "/" scan["visibleOffers"] " item names read")
+for row in scan.Get("shopRows",[])
+this.Log("Shop test row " row["row"] ": " (row["item"]!="" ? row["item"] : "ITEM UNREADABLE"))
+} else if kind="entry" {
+this.Log("Enter Dungeon read test: " (scan["kind"]="dungeon-entry-menu" ? "DETECTED" : "NOT DETECTED") "; inMatch=" scan.Get("inMatch",false) "; inLobby=" scan.Get("inLobby",false) "; Enter button=" scan.Has("enterX"))
+} else if kind="chests" && scan["kind"]="dungeon-chests" {
+this.Log("Chest read test: normal=" scan.Get("normalCount",-1) "; rare=" scan.Get("rareCount",-1) "; Continue=" scan.Get("continue",false))
+} else this.Log(label ": expected=" kind "; observed=" scan["kind"])
+context := {hwnd:this.game,model:AAExecution.session ? AAExecution.session.model : selector,Log:(self,message)=>this.Log(message)}
+AADungeons.SaveErrorReport(context,summary,"",(path)=>Gdip_SaveBitmapToFile(bitmap,path))
+if !buyItems || kind!="shop" {
+this.Log(label " complete: report saved; no purchase inputs sent.")
+return
+}
+if scan["kind"]!="dungeon-shop" || scan["offers"].Length!=3 || scan["visibleOffers"]!=3 {
+this.Log("Shop test: buying skipped; all 3 item names must be readable.")
+return
+}
+preferences := context.model.preferences.Clone()
+preferences["DungeonShopLimit"] := "3"
+runner := {worker:{serial:0},due:0,app:{model:{preferences:preferences},Log:(self,message)=>this.Log("Shop test: " message)}}
+runner.DefineProp("ClickAt",{Call:(self,x,y)=>this.ShopTestClick(x,y)})
+runner.app.DefineProp("SaveDungeonErrorReport",{Call:(self,message)=>AADungeons.SaveErrorReport(context,message,"",(path)=>Gdip_SaveBitmapToFile(bitmap,path))})
+run := AADungeonRun(runner), reader := AdventuresOcr(), started := Adventures.Tick()
+this.Log("Shop test: buying highest priority first; rereading shifted rows after each attempt.")
+loop {
+this.CheckShopTestClient()
+if Adventures.Tick()-started>30000
+throw Error("Purchase test timed out.")
+run.ContinueShop()
+if Adventures.Tick()<runner.due {
+Sleep(50)
+continue
+}
+Gdip_DisposeImage(bitmap),bitmap := 0
+WinGetClientPos(&left,&top,,,this.game)
+bitmap := Gdip_BitmapFromScreen(left "|" top "|800|600")
+if !bitmap
+throw Error("Shop capture failed.")
+scan := AADungeons.Read(reader,bitmap,false,false,0,false)
+this.CheckShopTestClient()
+if scan["kind"]!="dungeon-shop"
+throw Error("Shop menu is no longer visible.")
+scan["id"] := ++runner.worker.serial
+if (!run.HasOwnProp("shopAttempted") || !run.shopAttempted.Count) && (scan["offers"].Length!=3 || scan["visibleOffers"]!=3)
+throw Error("All 3 item names must remain readable before buying.")
+run.Handle(scan)
+if run.phase="await-shop-return"
+break
+Sleep(180)
+}
+this.Log("Shop test complete: " run.shopPurchases " purchases confirmed; shop left open.")
+AADungeons.SaveErrorReport(context,"Shop purchase test: confirmed=" run.shopPurchases "; " AADungeons.Diagnostic(scan),"",(path)=>Gdip_SaveBitmapToFile(bitmap,path))
+} catch Error as err {
+this.Log(label " failed: " err.Message)
+if IsSet(context) && bitmap
+AADungeons.SaveErrorReport(context,label " failed: " err.Message (IsSet(scan) ? "; " AADungeons.Diagnostic(scan) : ""),"",(path)=>Gdip_SaveBitmapToFile(bitmap,path))
+} finally {
+if IsSet(run) && run.HasOwnProp("shopAttempted") && AAExecution.session && AAExecution.session.HasOwnProp("loop") && AAExecution.session.loop.HasOwnProp("dungeon") {
+active := AAExecution.session.loop.dungeon
+active.phase := run.phase="await-shop-return" ? "shop-ready" : run.phase
+active.shopPurchases := run.shopPurchases,active.shopAttempted := run.shopAttempted
+if run.HasOwnProp("shopPending")
+active.shopPending := run.shopPending
+AAExecution.session.loop.due := runner.due
+active.shopUnreadableSince := 0,active.emptySince := 0,active.lastShopIssue := "",active.shopContinueFrames := 0
+active.frames := 0,active.candidate := "",active.minSerial := AAExecution.session.loop.worker.serial+1
+}
+if bitmap
+Gdip_DisposeImage(bitmap)
+if token
+Gdip_Shutdown(token)
+this.shopTestBusy := false
+}
+}
+CheckShopTestClient() {
+if this.shopTestCancelled || !this.game || !WinActive(this.game)
+throw Error("Purchase test cancelled or Roblox lost focus.")
+WinGetClientPos(,,&width,&height,this.game)
+if width!=800 || height!=600
+throw Error("Roblox client size changed during purchase test.")
+return true
+}
+ShopTestClick(x,y) {
+this.CheckShopTestClient()
+if x=495 && y=407
+return
+AAInput.Click(this.game,x,y,ObjBindMethod(this,"CheckShopTestClient"))
+}
+BeginPausedBrowse() {
+global selector,testRunning
+if !testRunning || !CrusadersRuntime.paused || this.HasOwnProp("pausedBrowse")
+return
+this.pausedBrowse := {model:selector,scope:this.configScope,path:this.modeConfigPath}
+selector := selector.Clone()
+}
+RestorePausedBrowse() {
+global selector
+if !this.HasOwnProp("pausedBrowse")
+return
+saved := this.pausedBrowse
+this.DeleteProp("pausedBrowse")
+selector := saved.model
+this.configScope := saved.scope,this.modeConfigPath := saved.path
+this.scopeField.Choose(this.configScope)
+this.scopeConfigField.Delete()
+choices := this.configScope="Current Mode" ? ["Use Modes Tab"] : CrusadersCatalog.ConfigMaps(this.configScope)
+this.scopeConfigField.Add(choices)
+this.scopeConfigField.Choose(this.configScope="Current Mode" ? 1 : selector.preferences["Map"])
+this.scopeConfigField.Enabled := this.configScope!="Current Mode"
+this.LoadFields(),this.UpdateStats()
+}
 BeginCoordinates() {
 global selector, testRunning
 if testRunning && !CrusadersRuntime.paused
@@ -17287,11 +18688,16 @@ selector.imagePath := selector.mapImageDirectory "\" stem ".png"
 selector.Capture()
 }
 Stop(*) {
+this.dungeonBossDebug := false
+this.dungeonCycleDebug := false
+this.shopTestCancelled := true
+this.RestorePausedBrowse()
 AAExecution.Stop()
 super.Stop()
 this.startConsumed := false
 }
 PauseRun(*) {
+this.shopTestCancelled := true
 AAExecution.Pause()
 }
 ReloadProcess() {
@@ -17346,7 +18752,7 @@ if current.mode = next.mode && current.config = next.config && current.act = nex
 return "Replay"
 return "Lobby"
 }
-static NextLobby(session,forcePublic := false) {
+static NextLobby(session,forcePublic := false,rejoin := true) {
 global selector
 owner := session.owner, task := session.nextTask.Clone()
 this.Stop(true)
@@ -17354,12 +18760,12 @@ if AAChallenges.Launch(owner,task)
 return
 try {
 owner.LoadRunningMode(task)
-if task.mode != "Infinity Mansion"
+if task.mode != "Infinity Mansion" && task.mode != "Dungeons"
 this.CheckIndexes(selector)
-if !forcePublic && AAServer.Url(selector.preferences) = ""
+if rejoin && !forcePublic && AAServer.Url(selector.preferences) = ""
 throw Error("Enable Public Rejoin or set a private server link to change queued modes.")
 this.lobby := AALobbyFlow(owner,selector)
-this.lobby.Start(true,forcePublic)
+this.lobby.Start(rejoin,forcePublic)
 } catch Error as err {
 this.Stop()
 owner.Log("Next mode stopped: " err.Message)
@@ -17421,7 +18827,38 @@ return
 this.StartMatch(macroWindow,selector)
 }
 static ResetRecords(owner) {
+owner.normalChestsCollected := 0,owner.rareChestsCollected := 0,owner.chestInventory := Map()
 owner.modeWins := 0, owner.modeLosses := 0, owner.challengeWins := 0, owner.challengeLosses := 0
+}
+static ObserveChests(owner,scan) {
+if scan.Get("kind","")!="dungeon-chests"
+return
+if !owner.HasOwnProp("chestInventory")
+owner.chestInventory := Map()
+for kind in ["normal","rare"] {
+value := scan.Get(kind "Count",-1)
+if value<0 {
+if owner.chestInventory.Has(kind)
+owner.chestInventory[kind].frames := 0
+continue
+}
+if !owner.chestInventory.Has(kind)
+owner.chestInventory[kind] := {last:-1,candidate:-1,frames:0}
+state := owner.chestInventory[kind]
+state.frames := state.candidate=value ? state.frames+1 : 1,state.candidate := value
+if state.frames<2
+continue
+key := kind="normal" ? "normalChestsCollected" : "rareChestsCollected"
+increase := state.last<0 ? value : Max(0,value-state.last)
+owner.%key% := (owner.HasOwnProp(key) ? owner.%key% : 0)+increase
+state.last := value
+}
+}
+static ChestOpened(owner,kind) {
+if owner.HasOwnProp("chestInventory") && owner.chestInventory.Has(kind) {
+state := owner.chestInventory[kind]
+state.last := Max(0,state.last-1),state.frames := 0,state.candidate := -1
+}
 }
 static RecordResult(owner,challenge,result) {
 if result != "Victory" && result != "Defeat"
@@ -17454,12 +18891,17 @@ this.session.Publish()
 }
 static Pause() {
 if this.lobby && !this.lobby.closed {
+if this.lobby.status="Paused" && HasMethod(this.lobby.owner,"RestorePausedBrowse")
+this.lobby.owner.RestorePausedBrowse()
 this.lobby.Pause()
 return
 }
 if this.session {
-if this.session.status = "Paused"
+if this.session.status = "Paused" {
+if HasMethod(this.session.owner,"RestorePausedBrowse")
+this.session.owner.RestorePausedBrowse()
 this.session.owner.ShowGame()
+}
 this.session.loop.Pause()
 CrusadersRuntime.SetPaused(this.session.status = "Paused")
 }
@@ -17494,7 +18936,15 @@ this.limit := 0, this.rewardDelay := 2500
 this.beforeDone := false
 this.model := model
 this.loadedTeam := AADungeons.Team(model)
-this.currentTask := owner.tasks.Current().Clone()
+if owner.HasOwnProp("dungeonCycleDebug") && owner.dungeonCycleDebug {
+SplitPath(model.path,&debugConfig)
+this.currentTask := {mode:"Dungeons",config:debugConfig,act:1,difficulty:"Normal",runs:1}
+} else {
+task := owner.tasks.Current()
+if !IsObject(task)
+throw Error("No enabled mode is queued. Add a mode before starting the macro.")
+this.currentTask := task.Clone()
+}
 if model.preferences["Mode"] = "Challenges" {
 SplitPath(model.path,&challengeConfig)
 this.currentTask := {mode:"Challenges",config:challengeConfig,act:Integer(model.preferences["Act"]),difficulty:"Normal",runs:1}
@@ -17553,7 +19003,17 @@ ChallengeFinished(defeated) {
 if this.HasOwnProp("challengeReturning") && this.challengeReturning
 return
 this.challengeReturning := true
-SetTimer((*)=>AAChallenges.Finished(this,defeated),-1)
+this.loop.Change("ChallengeReturning",120000)
+SetTimer((*)=>this.CompleteChallengeReturn(defeated),-1)
+}
+CompleteChallengeReturn(defeated) {
+try AAChallenges.Finished(this,defeated)
+catch Error as err {
+message := "Challenge return failed: " err.Message
+this.owner.Log(message)
+if this.loop && this.status="Running"
+this.loop.Pause(message)
+}
 }
 IsAprilFools() => this.currentTask.mode = "Events"
 NeedsSpawnReset() => true
@@ -17592,11 +19052,35 @@ return true
 PrepareMatchActions() {
 this.profile["actions"] := this.Actions(false)
 }
+DetectedMapPath(mode,name) {
+known := false
+for allowed in CrusadersCatalog.Maps[mode]
+if name = allowed
+known := true
+if !known
+throw Error(mode " map could not be identified; no config was selected. Retry the transition.")
+path := CrusadersCatalog.Resolve(this.model.configRoot,mode,name,1)
+if !FileExist(path)
+throw Error(mode " map recognized: " name ". Its config is missing: " mode "\" CrusadersCatalog.Filename(mode,name,1))
+return path
+}
+CheckDetectedMapIndexes(candidate,mode,name) {
+active := false
+for item in candidate.indexes
+if item.enabled && AAExecution.IndexConfigured(item)
+active := true
+if !active
+throw Error(mode " map recognized: " name ". No enabled, configured indexes in " mode "\" CrusadersCatalog.Filename(mode,name,1) ". Configure this map in Indexes, then resume.")
+AAExecution.CheckIndexes(candidate)
+}
 LoadDungeonMap(name) {
-path := CrusadersCatalog.Resolve(this.model.configRoot,"Dungeons",name,1)
+path := this.DetectedMapPath("Dungeons",name)
 candidate := CrusadersSelector(path,"",this.model.settingsFile,this.model.imageRoot)
 candidate.preferences["Runs"] := this.currentTask.runs
-AAExecution.CheckIndexes(candidate)
+SplitPath(candidate.imagePath,&imageName)
+source := InStr(candidate.imagePath,"\Images\Defaults\") ? "bundled default" : "preserved map capture"
+this.Log("Dungeon config selected: map=" name "; config=" CrusadersCatalog.Filename("Dungeons",name,1) "; image=" imageName "; source=" source "; imageHash=" AAInstalledAssets.ImageVersion(candidate.imagePath) "; route=" (AADefaultPaths.Has(name) ? "embedded " AADefaultPaths.Get(name)["duration"] "ms" : "none"))
+this.CheckDetectedMapIndexes(candidate,"Dungeons",name)
 this.owner.LoadEditor(candidate)
 this.model := candidate
 SplitPath(path,&filename)
@@ -17608,11 +19092,11 @@ this.owner.UpdateStats()
 this.Log("Dungeon Map Detected: Loading " filename)
 }
 LoadMansionMap(name) {
-path := CrusadersCatalog.Resolve(this.model.configRoot,"Infinity Mansion",name,1)
+path := this.DetectedMapPath("Infinity Mansion",name)
 candidate := CrusadersSelector(path,"",this.model.settingsFile,this.model.imageRoot)
 candidate.preferences["Runs"] := this.HasOwnProp("nextTask") ? this.nextTask.runs : this.model.preferences["Runs"]
 candidate.preferences["Difficulty"] := this.HasOwnProp("nextTask") ? this.nextTask.difficulty : this.currentTask.difficulty
-AAExecution.CheckIndexes(candidate)
+this.CheckDetectedMapIndexes(candidate,"Infinity Mansion",name)
 this.owner.LoadEditor(candidate)
 this.model := candidate
 SplitPath(path,&filename)
@@ -17674,6 +19158,22 @@ this.continuationPlanned := true
 }
 return this.continueAction
 }
+ResumeAfterAprilReturn() {
+if !this.HasOwnProp("nextTask")
+this.nextTask := this.currentTask.Clone()
+SetTimer((*)=>AAExecution.NextLobby(this,false,false),-1)
+}
+ResumeDungeonLobby() {
+this.nextTask := this.currentTask.Clone()
+SetTimer((*)=>AAExecution.NextLobby(this,false,false),-1)
+}
+SaveDungeonErrorReport(message) => AADungeons.SaveErrorReport(this,message)
+ObserveDungeonChests(scan) => AAExecution.ObserveChests(this.owner,scan)
+CountDungeonChest(kind) => AAExecution.ChestOpened(this.owner,kind)
+SendDungeonReward() {
+this.CheckClient()
+return CrusadersWebhook.Send(this.owner,"Dungeon Reward")
+}
 RejoinNextMode(forcePublic := false) {
 if !this.HasOwnProp("nextTask")
 this.nextTask := this.currentTask.Clone()
@@ -17725,6 +19225,34 @@ this.owner.PushState()
 }
 }
 class AAPreflight extends CrusadersPreflight {
+static MissingConfigs(window,model) {
+modes := Map(), missing := []
+for task in window.tasks.items
+if task.enabled && (task.mode="Dungeons" || task.mode="Infinity Mansion" || task.mode="Challenges")
+modes[task.mode] := true
+if Integer(model.preferences.Get("ChallengeEnabled","0")) || Integer(model.preferences.Get("DailyChallengeEnabled","0"))
+modes["Challenges"] := true
+for mode in modes {
+for name in CrusadersCatalog.ConfigMaps(mode) {
+filename := CrusadersCatalog.Filename(mode,name,1)
+path := window.tasks.root "\" CrusadersCatalog.Folder(mode) "\" filename
+ready := false
+try {
+if FileExist(path) {
+candidate := StrLower(path)=StrLower(model.path) ? model : CrusadersSelector(path,"",model.settingsFile,model.imageRoot)
+for item in candidate.indexes
+if item.enabled && AAExecution.IndexConfigured(item) {
+ready := true
+break
+}
+}
+}
+if !ready
+missing.Push(filename)
+}
+}
+return missing
+}
 static Config(model,modeNumber := 0) {
 if model.preferences["Mode"] = "Events"
 return []
@@ -17853,8 +19381,10 @@ break
 return underline && this.Keycap(bitmap,94,505) && this.Keycap(bitmap,625,505)
 }
 static Allowed(owner) {
-if owner.status != "Running" || CrusadersRuntime.paused || !WinExist(owner.hwnd) || !WinActive(owner.hwnd)
-throw Error("Pause-menu recovery cancelled: macro stopped, paused or Roblox lost focus.")
+if owner.status != "Running" || CrusadersRuntime.paused
+throw Error("Pause-menu recovery cancelled: macro stopped or paused.")
+if !WinExist(owner.hwnd) || !WinActive(owner.hwnd)
+throw AAFocusChanged("Waiting for Roblox focus before checking the pause menu.")
 WinGetClientPos(,,&w,&h,owner.hwnd)
 if w != 800 || h != 600
 throw Error("Pause-menu recovery requires the 800 x 600 Roblox client.")
@@ -17949,6 +19479,8 @@ Critical(previous)
 }
 }
 }
+class AAFocusChanged extends Error {
+}
 class AAInput {
 static WaitingForFocus(flow,hwnd) {
 if !hwnd || !WinExist(hwnd)
@@ -17980,6 +19512,7 @@ flow.%field% += elapsed
 return false
 }
 static Check(check) {
+AADisplay.UsePhysicalPixels()
 global testCancelled
 check.Call()
 if testCancelled || CrusadersRuntime.paused
@@ -18258,6 +19791,22 @@ return preferences.Get("PublicRejoin","0") = "1" ? CrusadersServer.JoinUrl("") :
 }
 }
 class AATransitionVision {
+static FestivalScenery := [[360,140,0x7F7751],[440,140,0x6D2E09],[520,140,0x794411],[360,180,0x6F481A],[440,180,0x8D641E],[520,180,0x91661F],[680,180,0x975711],[760,180,0xEDC253],[680,260,0x47191D],[280,300,0x521D0E],[200,340,0x431E10],[280,340,0x4B190F],[600,340,0x5E1D07],[600,380,0x5D1B0A],[680,380,0x701F08],[760,380,0x6D1D07]]
+static FestivalBackground(bitmap) {
+return this.FestivalMatches(bitmap)>=13
+}
+static FestivalMatches(bitmap) {
+if Gdip_GetImageWidth(bitmap) != 800 || Gdip_GetImageHeight(bitmap) != 600
+return 0
+matches := 0
+for point in this.FestivalScenery {
+rgb := Gdip_GetPixel(bitmap,point[1],point[2]), expected := point[3]
+if Abs(((rgb>>16)&255)-((expected>>16)&255))<=40
+&& Abs(((rgb>>8)&255)-((expected>>8)&255))<=40 && Abs((rgb&255)-(expected&255))<=40
+matches++
+}
+return matches
+}
 static Read(reader,bitmap,names) {
 title := reader.Read(bitmap,10,65,780,56,2)
 name := AAMansionRoute.MatchMap(title,names)
@@ -18265,11 +19814,17 @@ if name = "" {
 title := reader.Read(bitmap,10,65,780,56,3)
 name := AAMansionRoute.MatchMap(title,names)
 }
+titleMap := name, sceneryMatches := name = "Mountain Temple" ? this.FestivalMatches(bitmap) : -1
+if name = "Mountain Temple" && sceneryMatches>=13
+for allowed in names
+if allowed = "Cursed Festival"
+name := "Cursed Festival"
 detail := reader.Read(bitmap,10,122,780,65,2), text := title "`n" detail
 normalized := StrLower(RegExReplace(detail,"[^A-Za-z0-9]",""))
 context := InStr(normalized,"contract") || InStr(normalized,"infinitymansion") ? "mansion"
 : RegExMatch(detail,"i)Dungeon\s*Room\s*\(?\s*Depth") ? "dungeon"
-: RegExMatch(detail,"i)\bAct\s*([1-6])\b",&act) ? "stage" : ""
+: RegExMatch(detail,"i)\bAct\s*([1-6])\b",&act) ? "stage"
+: InStr(normalized,"dailychallenge") || RegExMatch(detail,"i)\bChallenge\b") ? "challenge" : ""
 if context = "" && name = "Cursed Festival" && InStr(AAMansionRoute.CleanMapText(title),"mountaintemple")
 context := "alternate-loading"
 difficulty := RegExMatch(detail,"i)\b(Hard|Normal)\b",&level) ? level[1] : ""
@@ -18285,6 +19840,7 @@ blue++
 }
 valid := name != "" && context != "" && blue >= 35
 return Map("kind",valid ? "transition-map" : "none","map",valid ? name : "","context",context,
+"titleMap",titleMap,"festivalSceneryMatches",sceneryMatches,"titleBluePixels",blue,
 "act",context = "stage" ? Integer(act[1]) : 0,"difficulty",difficulty,"text",text,"ownerWait",0)
 }
 }
@@ -18318,10 +19874,15 @@ static MatchMap(text,names := unset) {
 if !IsSet(names)
 names := CrusadersCatalog.MansionMaps
 text := this.CleanMapText(text), exact := "", longest := 0
-if InStr(text,"mountaintemple")
-for name in names
-if name = "Cursed Festival"
+if InStr(text,"mountaintemple") {
+hasMountain := false, hasFestival := false
+for name in names {
+hasMountain := hasMountain || name = "Mountain Temple"
+hasFestival := hasFestival || name = "Cursed Festival"
+}
+if hasFestival && !hasMountain
 return "Cursed Festival"
+}
 for name in names
 if name = "Spirit Invasion" && InStr(text,"spirittown")
 return "Spirit Invasion"
@@ -18472,6 +20033,7 @@ try MouseMove(left+3,top+3,0)
 finally CoordMode("Mouse",previousMode)
 }
 CheckClient() {
+AADisplay.UsePhysicalPixels()
 if !this.hwnd || !WinExist(this.hwnd) || !WinActive(this.hwnd) || WinGetMinMax(this.hwnd) = -1
 throw Error("Keep Roblox active while navigating the lobby.")
 WinGetClientPos(,,&w,&h,this.hwnd)
@@ -18481,6 +20043,8 @@ AAPauseMenu.Guard(this)
 }
 ClickAt(x,y) => AAInput.Click(this.hwnd,x,y,ObjBindMethod(this,"CheckClient"))
 Tick() {
+if this.owner.HasOwnProp("shopTestBusy") && this.owner.shopTestBusy
+return
 if this.closed || this.busy || this.status != "Running"
 return
 this.busy := true
@@ -18493,12 +20057,18 @@ this.BeginAprilPopOut()
 return
 }
 if this.stage = "AprilHoldPrepare" {
+if AAInput.WaitingForFocus(this,this.hwnd)
+return
 if now < this.due
 return
 this.BeginAprilMinimizeHold()
 return
 }
 if this.stage = "AprilMinimizeHold" {
+if !WinActive(this.hwnd) {
+this.SuspendAprilHold()
+return
+}
 if IsObject(this.worker) && this.worker.Ready() && this.owner.aprilMap != "Snowy Town" {
 scan := this.worker.Poll()
 if scan && scan["kind"] = "april-map"
@@ -18539,6 +20109,11 @@ this.stage := "PathDelay", this.due := now+1000, this.deadline := now+90000
 return
 }
 if now > this.deadline && (this.stage = "Joining" || this.stage = "AwaitRejoin" || this.stage = "AwaitLobby") {
+if this.model.preferences["Mode"] = "Dungeons" {
+reason := "Dungeon recovery: " this.stage " timed out; expected Roblox lobby HUD and Dungeon navigation; " (this.HasOwnProp("lastDungeonObservation") ? this.lastDungeonObservation : "No completed scan received") "; retrying configured server"
+this.Log(reason)
+this.SaveDungeonErrorReport(reason)
+}
 this.Log("Server/lobby loading timed out; retrying the configured server")
 this.Handle(Map("kind","rejoin","text","Server loading timed out","forcePublic",true))
 return
@@ -18660,7 +20235,15 @@ this.scanned := now
 }
 return
 }
-if this.stage = "DailyPlayHereClick" || this.stage = "LegendButtonClick" || this.stage = "MansionDifficultyClick" || this.stage = "MansionStartClick" || this.stage = "MapClick" || this.stage = "ActClick" || this.stage = "ActConfirmClick" || this.stage = "DifficultyClick" || this.stage = "SelectClick" || this.stage = "PlayHereClick" || this.stage = "StartClick" || this.stage = "EnterMatch" {
+if this.stage = "ChallengeStartClick" {
+if now<this.due
+return
+this.ClickAt(400,465)
+this.stage := "ChallengePod", this.scanned := 0
+this.Log("Challenge lobby: timed Start click; waiting for map transition")
+return
+}
+if this.stage = "DailyPlayHereClick" || this.stage = "LegendButtonClick" || this.stage = "MansionDifficultyClick" || this.stage = "MansionStartClick" || this.stage = "MansionPlayHereClick" || this.stage = "MapClick" || this.stage = "ActClick" || this.stage = "ActConfirmClick" || this.stage = "DifficultyClick" || this.stage = "SelectClick" || this.stage = "PlayHereClick" || this.stage = "StartClick" || this.stage = "EnterMatch" {
 this.TimedSelection()
 return
 }
@@ -18689,6 +20272,13 @@ this.worker.Request(requestStage)
 this.scanned := now
 }
 } catch Error as err {
+if err is AAFocusChanged {
+if this.HasOwnProp("rightHeld") && this.rightHeld
+this.SuspendAprilHold()
+if !this.closed
+AAInput.WaitingForFocus(this,this.hwnd)
+return
+}
 if !this.closed && AAInput.WaitingForFocus(this,this.hwnd)
 return
 if !this.closed {
@@ -18697,6 +20287,8 @@ AAChallenges.Skip(this.owner,"Challenge entry failed: " err.Message)
 this.Finish("Returning to mode queue")
 } else {
 this.Log(err.Message)
+if this.model.preferences["Mode"] = "Dungeons"
+this.SaveDungeonErrorReport("Dungeon lobby error: " err.Message "; stage=" this.stage "; " (this.HasOwnProp("lastDungeonObservation") ? this.lastDungeonObservation : "No completed scan received"))
 this.Finish("Lobby needs attention")
 }
 }
@@ -18706,8 +20298,11 @@ if this.closed
 this.Release()
 }
 }
+SaveDungeonErrorReport(message) => AADungeons.SaveErrorReport(this,message)
 Handle(result) {
 kind := result["kind"]
+if this.model.HasOwnProp("preferences") && this.model.preferences.Get("Mode","") = "Dungeons"
+this.lastDungeonObservation := AADungeons.Diagnostic(result)
 if kind = "daily-login-reward" {
 if this.stage = "TeamSwap"
 this.teamPhase := "units", this.teamLoaded := false
@@ -18784,10 +20379,10 @@ this.challengeMapFrames++
 else this.challengeMap := name, this.challengeMapFrames := 1
 if this.challengeMapFrames >= 2 && (!this.challengeLoaded || this.model.preferences["Map"] != name) {
 try {
-path := CrusadersCatalog.Resolve(this.model.configRoot,"Challenges",name,1)
+path := AASession.Prototype.DetectedMapPath.Call(this,"Challenges",name)
 candidate := CrusadersSelector(path,"",this.model.settingsFile,this.model.imageRoot)
-candidate.preferences["Act"] := result.Get("act",1) ? result.Get("act",1) : 1
-AAExecution.CheckIndexes(candidate)
+candidate.preferences["Act"] := "1"
+AASession.Prototype.CheckDetectedMapIndexes.Call(this,candidate,"Challenges",name)
 this.owner.LoadEditor(candidate)
 this.model := candidate, this.challengeLoaded := true
 SplitPath(path,&filename)
@@ -18798,6 +20393,8 @@ this.Finish("Returning to mode queue")
 }
 }
 } else if kind = "vote" {
+this.challengeStartFrames := 0
+this.challengeMapFrames := 0
 owner := this.owner, model := this.model
 if !this.challengeLoaded {
 if !this.HasOwnProp("challengeWaitingLogged") || !this.challengeWaitingLogged {
@@ -18808,6 +20405,8 @@ return
 }
 this.Finish("Loading challenge")
 AAExecution.StartMatch(owner,model)
+} else {
+this.challengeMapFrames := 0, this.challengeStartFrames := 0
 }
 return
 }
@@ -19018,12 +20617,10 @@ if !this.owner.inputRecorder.Play(route,(*)=>this.closed,(*)=>this.FocusValid())
 throw Error("Challenge lobby path stopped before completion.")
 if this.closed
 return
-if daily {
 this.stage := "DailyPlayHereClick"
 this.WaitForClick()
 this.due += 1000, this.deadline += 1000
-this.Log("Opening daily challenge")
-} else this.BeginChallengePod()
+this.Log(daily ? "Opening daily challenge" : "Opening half-hourly challenge")
 return
 }
 story := this.model.preferences["Mode"] = "Story" || this.model.preferences["Mode"] = "Infinite" || this.model.preferences["Mode"] = "Legend Stages"
@@ -19078,8 +20675,10 @@ SendText(name)
 return !this.closed && this.status = "Running"
 }
 BeginChallengePod() {
-this.stage := "ChallengePod", this.deadline := Adventures.Tick()+150000
+this.stage := "ChallengeStartClick", this.deadline := Adventures.Tick()+150000
+this.due := Adventures.Tick()+1500
 this.scanned := 0, this.challengeLoaded := false, this.challengeMapFrames := 0, this.challengeRead := 0
+this.challengeStartFrames := 0, this.challengeStartAt := 0
 this.Log("Waiting for challenge map")
 }
 WaitForClick() {
@@ -19087,11 +20686,11 @@ this.due := Adventures.Tick()+Max(1000,Integer(this.model.preferences["StageClic
 this.deadline := this.due+30000
 }
 LoadMansionMap(name) {
-path := CrusadersCatalog.Resolve(this.model.configRoot,"Infinity Mansion",name,1)
+path := AASession.Prototype.DetectedMapPath.Call(this,"Infinity Mansion",name)
 candidate := CrusadersSelector(path,"",this.model.settingsFile,this.model.imageRoot)
 candidate.preferences["Runs"] := this.model.preferences["Runs"]
 candidate.preferences["Difficulty"] := this.model.preferences.Get("Difficulty","Normal")
-AAExecution.CheckIndexes(candidate)
+AASession.Prototype.CheckDetectedMapIndexes.Call(this,candidate,"Infinity Mansion",name)
 this.owner.LoadEditor(candidate)
 this.model := candidate
 this.owner.LoadFields()
@@ -19141,8 +20740,17 @@ this.Log("Infinity Mansion difficulty: " (hard ? "Hard" : "Normal"))
 } else if this.stage = "MansionStartClick" {
 point := AAMansionRoute.StartPosition
 this.ClickAt(point[1],point[2])
+this.stage := "MansionPlayHereClick"
+this.due := Adventures.Tick()+2000,this.deadline := this.due+30000
+this.Log("Infinity Mansion: waiting 2 seconds before Play Here")
+return
+} else if this.stage = "MansionPlayHereClick" {
+if Adventures.Tick()<this.due
+return
+point := AALobbyFlow.PlayHerePosition
+this.ClickAt(point[1],point[2])
 this.stage := "EnterMatch"
-this.Log("Joining match")
+this.Log("Infinity Mansion: Play Here clicked; joining match")
 } else if this.stage = "MapClick" {
 name := this.model.preferences["Map"]
 if this.model.preferences.Get("Mode","Raids") = "Legend Stages" {
@@ -19263,6 +20871,7 @@ WinActivate(this.hwnd)
 this.stage := "AprilHoldPrepare", this.due := Adventures.Tick()+350
 }
 static MinimizePoint(hwnd) {
+AADisplay.UsePhysicalPixels()
 info := Buffer(140,0)
 NumPut("UInt",140,info)
 SendMessage(0x33F,0,info.Ptr,,hwnd)
@@ -19281,6 +20890,15 @@ return [x,y]
 }
 }
 throw Error("Roblox minimize button was not found after popping out.")
+}
+SuspendAprilHold() {
+if this.HasOwnProp("rightHeld") && this.rightHeld {
+SendEvent("{RButton up}")
+this.rightHeld := false
+DllCall("PostMessageW","Ptr",this.hwnd,"UInt",0x001F,"Ptr",0,"Ptr",0)
+}
+this.stage := "AprilHoldPrepare", this.due := Adventures.Tick()+350
+this.Log("April Fools | Focus changed; restarting the hold once Roblox is active")
 }
 BeginAprilMinimizeHold() {
 WinActivate(this.hwnd)
@@ -19401,20 +21019,31 @@ class AAChallengeDetection {
 static PodMapRegion := [20,225,200,80]
 static LoadingMapRegion := [10,40,780,180]
 static ParseMap(text) {
-name := AAMansionRoute.MatchMap(text,CrusadersCatalog.StoryMaps)
+name := AAMansionRoute.MatchMap(text,CrusadersCatalog.Maps["Challenges"])
 act := RegExMatch(text,"i)\bAct\s*([1-6])\b",&match) ? Integer(match[1]) : 0
 return Map("kind",name != "" ? "challenge-map" : "none","map",name,
 "config",name != "" ? StrReplace(name," ","") "Challenge.txt" : "","act",act,"text",text,"ownerWait",0)
 }
 static ReadPodMap(reader,bitmap) {
 r := this.PodMapRegion
-return this.ParseMap(reader.Read(bitmap,r[1],r[2],r[3],r[4],3))
+scan := this.ParseMap(reader.Read(bitmap,r[1],r[2],r[3],r[4],3))
+scan["lobbyStart"] := false
+if scan["kind"]="challenge-map" {
+start := StrLower(Trim(reader.Read(bitmap,315,437,170,53,3)))
+cancel := StrLower(Trim(reader.Read(bitmap,340,505,125,40,3)))
+green := Gdip_GetPixel(bitmap,330,450), red := Gdip_GetPixel(bitmap,350,515)
+if RegExMatch(start,"^start[.!]?$" ) && RegExMatch(cancel,"^cancel[.!]?$" )
+&& ((green>>8)&255)>130 && ((green>>16)&255)<100 && (green&255)<100
+&& ((red>>16)&255)>130 && ((red>>8)&255)<100 && (red&255)<100
+scan["lobbyStart"] := true
+}
+return scan
 }
 static ReadLoadingMap(reader,bitmap) {
-scan := AATransitionVision.Read(reader,bitmap,CrusadersCatalog.StoryMaps)
-if scan["kind"] != "none" && scan["context"] = "stage" {
+scan := AATransitionVision.Read(reader,bitmap,CrusadersCatalog.Maps["Challenges"])
+if scan["kind"] != "none" && (scan["context"] = "stage" || scan["context"] = "challenge") {
 scan["kind"] := "challenge-map"
-scan["config"] := CrusadersCatalog.Filename("Challenges",scan["map"],scan["act"])
+scan["config"] := CrusadersCatalog.Filename("Challenges",scan["map"],1)
 return scan
 }
 r := this.LoadingMapRegion
@@ -19519,18 +21148,18 @@ runner.scanned := now
 }
 }
 class AADefaultPaths {
-static Routes := Map("Spirit Town",Map("duration",8445,"events",[Map("action","keyDown","at",792,"key","s"),Map("action","keyUp","at",3265,"key","s"),Map("action","keyDown","at",3496,"key","a"),Map("action","keyUp","at",6760,"key","a")],"height",600,"version",1,"width",800),"Ant Kingdom",Map("duration",10783,"events",[Map("action","keyDown","at",608,"key","a"),Map("action","keyDown","at",872,"key","s"),Map("action","keyUp","at",2672,"key","a"),Map("action","keyDown","at",3016,"key","a"),Map("action","keyUp","at",3376,"key","a"),Map("action","keyDown","at",3848,"key","a"),Map("action","keyUp","at",4824,"key","a"),Map("action","keyDown","at",5824,"key","a"),Map("action","keyUp","at",6600,"key","s"),Map("action","keyDown","at",7600,"key","w"),Map("action","keyUp","at",8928,"key","a"),Map("action","keyUp","at",9072,"key","w")],"height",600,"version",1,"width",800),
-"Fabled Kingdom",Map("duration",11567,"events",[Map("action","keyDown","at",560,"key","s"),Map("action","keyUp","at",1144,"key","s"),Map("action","keyDown","at",1352,"key","a"),Map("action","keyDown","at",2688,"key","s"),Map("action","keyUp","at",2936,"key","s"),Map("action","keyDown","at",3456,"key","s"),Map("action","keyUp","at",3864,"key","a"),Map("action","keyDown","at",6472,"key","d"),Map("action","keyUp","at",7000,"key","s"),Map("action","keyUp","at",8152,"key","d"),Map("action","keyDown","at",8208,"key","s"),Map("action","keyUp","at",9120,"key","s"),Map("action","keyDown","at",9936,"key","s"),Map("action","keyUp","at",10168,"key","s"),Map("action","keyDown","at",10368,"key","d"),Map("action","keyUp","at",10768,"key","d")],"height",600,"version",1,"width",800),
-"Fiend City",Map("duration",10208,"events",[Map("action","keyDown","at",868,"key","s"),Map("action","keyUp","at",1145,"key","s"),Map("action","keyDown","at",1441,"key","a"),Map("action","keyDown","at",3017,"key","s"),Map("action","keyUp","at",3137,"key","s"),Map("action","keyUp","at",5049,"key","a"),Map("action","keyDown","at",5145,"key","s"),Map("action","keyUp","at",5594,"key","s"),Map("action","keyDown","at",5641,"key","a"),Map("action","keyUp","at",5905,"key","a"),Map("action","keyDown","at",5929,"key","s"),Map("action","keyUp","at",8314,"key","s"),Map("action","keyDown","at",8425,"key","d"),Map("action","keyUp","at",9089,"key","d")],"height",600,"version",1,"width",800),
-"Haunted Academy",Map("duration",6884,"events",[Map("action","keyDown","at",845,"key","d"),Map("action","keyUp","at",5701,"key","d")],"height",600,"version",1,"width",800),
-"Mountain Temple",Map("duration",4656,"events",[Map("action","keyDown","at",560,"key","a"),Map("action","keyUp","at",1864,"key","a"),Map("action","keyDown","at",2089,"key","s"),Map("action","keyUp","at",2392,"key","s"),Map("action","keyDown","at",2712,"key","s"),Map("action","keyUp","at",3056,"key","s"),Map("action","keyDown","at",3440,"key","a"),Map("action","keyUp","at",3712,"key","a")],"height",600,"version",1,"width",800),
-"Sand Village",Map("duration",7088,"events",[Map("action","keyDown","at",536,"key","s"),Map("action","keyUp","at",5794,"key","s")],"height",600,"version",1,"width",800),
-"Snowy Kingdom",Map("duration",7496,"events",[Map("action","keyDown","at",552,"key","w"),Map("action","keyDown","at",880,"key","d"),Map("action","keyUp","at",1528,"key","d"),Map("action","keyDown","at",2768,"key","d"),Map("action","keyUp","at",4115,"key","w"),Map("action","keyDown","at",4744,"key","w"),Map("action","keyUp","at",5808,"key","d"),Map("action","keyUp","at",6488,"key","w")],"height",600,"version",1,"width",800),
-"Space Center",Map("duration",8687,"events",[Map("action","keyDown","at",536,"key","w"),Map("action","keyUp","at",1136,"key","w"),Map("action","keyDown","at",1232,"key","a"),Map("action","keyUp","at",4400,"key","a"),Map("action","keyDown","at",4496,"key","s"),Map("action","keyUp","at",7584,"key","s")],"height",600,"version",1,"width",800),
+static Routes := Map("Spirit Town",Map("duration",6743,"events",[Map("action","keyDown","at",888,"key","s"),Map("action","keyUp","at",3488,"key","s"),Map("action","keyDown","at",3672,"key","a"),Map("action","keyUp","at",6001,"key","a")],"height",600,"version",1,"width",800),"Ant Kingdom",Map("duration",14119,"events",[Map("action","keyDown","at",808,"key","s"),Map("action","keyUp","at",1256,"key","s"),Map("action","keyDown","at",1576,"key","a"),Map("action","keyUp","at",2543,"key","a"),Map("action","keyDown","at",2728,"key","s"),Map("action","keyDown","at",3304,"key","a"),Map("action","keyUp","at",4544,"key","a"),Map("action","keyDown","at",4792,"key","a"),Map("action","keyUp","at",5416,"key","a"),Map("action","keyDown","at",5616,"key","a"),Map("action","keyUp","at",5905,"key","a"),Map("action","keyDown","at",6336,"key","a"),Map("action","keyUp","at",7232,"key","s"),Map("action","keyDown","at",9144,"key","w"),Map("action","keyUp","at",9640,"key","a"),Map("action","keyDown","at",10152,"key","a"),Map("action","keyUp","at",10712,"key","w"),Map("action","keyDown","at",11177,"key","w"),Map("action","keyUp","at",11256,"key","a"),Map("action","keyUp","at",12609,"key","w")],"height",600,"version",1,"width",800),
+"Fabled Kingdom",Map("duration",12912,"events",[Map("action","keyDown","at",628,"key","s"),Map("action","keyUp","at",1157,"key","s"),Map("action","keyDown","at",1424,"key","a"),Map("action","keyUp","at",2384,"key","a"),Map("action","keyDown","at",2612,"key","s"),Map("action","keyUp","at",2768,"key","s"),Map("action","keyDown","at",2952,"key","a"),Map("action","keyUp","at",4344,"key","a"),Map("action","keyDown","at",4520,"key","s"),Map("action","keyUp","at",7568,"key","s"),Map("action","keyDown","at",7912,"key","d"),Map("action","keyUp","at",8192,"key","d"),Map("action","keyDown","at",8304,"key","s"),Map("action","keyUp","at",8544,"key","s"),Map("action","keyDown","at",8672,"key","d"),Map("action","keyUp","at",9816,"key","d"),Map("action","keyDown","at",9960,"key","s"),Map("action","keyUp","at",11233,"key","s"),Map("action","keyDown","at",11384,"key","d"),Map("action","keyUp","at",12016,"key","d")],"height",600,"version",1,"width",800),
+"Fiend City",Map("duration",11696,"events",[Map("action","keyDown","at",706,"key","s"),Map("action","keyUp","at",993,"key","s"),Map("action","keyDown","at",1681,"key","a"),Map("action","keyUp","at",5756,"key","a"),Map("action","keyDown","at",5977,"key","s"),Map("action","keyUp","at",8593,"key","s"),Map("action","keyDown","at",9289,"key","d"),Map("action","keyUp","at",10425,"key","d")],"height",600,"version",1,"width",800),
+"Haunted Academy",Map("duration",7742,"events",[Map("action","keyDown","at",1190,"key","d"),Map("action","keyUp","at",6054,"key","d")],"height",600,"version",1,"width",800),
+"Mountain Temple",Map("duration",4528,"events",[Map("action","keyDown","at",952,"key","s"),Map("action","keyUp","at",1736,"key","s"),Map("action","keyDown","at",1960,"key","a"),Map("action","keyUp","at",3536,"key","a")],"height",600,"version",1,"width",800),
+"Sand Village",Map("duration",12200,"events",[Map("action","keyDown","at",1089,"key","s"),Map("action","keyUp","at",1633,"key","s"),Map("action","keyDown","at",2257,"key","d"),Map("action","keyDown","at",4217,"key","s"),Map("action","keyUp","at",5361,"key","d"),Map("action","keyUp","at",6864,"key","s"),Map("action","keyDown","at",7329,"key","a"),Map("action","keyDown","at",7625,"key","s"),Map("action","keyUp","at",8073,"key","s"),Map("action","keyDown","at",8841,"key","s"),Map("action","keyUp","at",9089,"key","s"),Map("action","keyUp","at",9793,"key","a"),Map("action","keyDown","at",10095,"key","s"),Map("action","keyUp","at",10833,"key","s")],"height",600,"version",1,"width",800),
+"Snowy Kingdom",Map("duration",10186,"events",[Map("action","keyDown","at",1259,"key","w"),Map("action","keyDown","at",1763,"key","d"),Map("action","keyUp","at",2403,"key","d"),Map("action","keyDown","at",3443,"key","d"),Map("action","keyUp","at",4803,"key","w"),Map("action","keyDown","at",5907,"key","w"),Map("action","keyUp","at",6819,"key","d"),Map("action","keyUp","at",7859,"key","w"),Map("action","keyDown","at",8203,"key","a"),Map("action","keyUp","at",8555,"key","a")],"height",600,"version",1,"width",800),
+"Space Center",Map("duration",9840,"events",[Map("action","keyDown","at",651,"key","w"),Map("action","keyUp","at",1200,"key","w"),Map("action","keyDown","at",1408,"key","a"),Map("action","keyUp","at",4593,"key","a"),Map("action","keyDown","at",4928,"key","s"),Map("action","keyUp","at",8008,"key","s")],"height",600,"version",1,"width",800),
 "Spirit World",Map("duration",9204,"events",[Map("action","keyDown","at",536,"key","w"),Map("action","keyDown","at",1188,"key","d"),Map("action","keyUp","at",3776,"key","w"),Map("action","keyDown","at",5312,"key","w"),Map("action","keyUp","at",5952,"key","w"),Map("action","keyDown","at",6512,"key","w"),Map("action","keyUp","at",6544,"key","d"),Map("action","keyDown","at",6640,"key","d"),Map("action","keyUp","at",6960,"key","d"),Map("action","keyUp","at",7880,"key","w")],"height",600,"version",1,"width",800),
-"Magic Town",Map("duration",9463,"events",[Map("action","keyDown","at",561,"key","d"),Map("action","keyUp","at",3289,"key","d"),Map("action","keyDown","at",3441,"key","s"),Map("action","keyUp","at",4632,"key","s"),Map("action","keyDown","at",4777,"key","d"),Map("action","keyUp","at",8632,"key","d")],"height",600,"version",1,"width",800),
-"Magic Hills",Map("duration",25343,"events",[Map("action","keyDown","at",528,"key","a"),Map("action","keyDown","at",1336,"key","w"),Map("action","keyUp","at",1697,"key","w"),Map("action","keyDown","at",2208,"key","w"),Map("action","keyUp","at",2536,"key","w"),Map("action","keyDown","at",2792,"key","w"),Map("action","keyUp","at",3296,"key","w"),Map("action","keyDown","at",3616,"key","w"),Map("action","keyUp","at",3792,"key","w"),Map("action","keyDown","at",4936,"key","s"),Map("action","keyUp","at",5184,"key","s"),Map("action","keyDown","at",5312,"key","s"),Map("action","keyUp","at",5496,"key","s"),Map("action","keyDown","at",5808,"key","s"),Map("action","keyUp","at",6103,"key","s"),Map("action","keyDown","at",6264,"key","s"),Map("action","keyUp","at",6536,"key","s"),Map("action","keyDown","at",6664,"key","s"),Map("action","keyUp","at",7016,"key","s"),Map("action","keyDown","at",7200,"key","s"),Map("action","keyUp","at",7400,"key","s"),Map("action","keyDown","at",7640,"key","s"),Map("action","keyUp","at",7936,"key","s"),Map("action","keyDown","at",8152,"key","s"),Map("action","keyUp","at",8504,"key","s"),Map("action","keyDown","at",8712,"key","s"),Map("action","keyUp","at",8864,"key","s"),Map("action","keyDown","at",11024,"key","w"),Map("action","keyUp","at",11960,"key","a"),Map("action","keyDown","at",12960,"key","a"),Map("action","keyUp","at",14048,"key","w"),Map("action","keyDown","at",15272,"key","w"),Map("action","keyUp","at",17744,"key","w"),Map("action","keyDown","at",18440,"key","s"),Map("action","keyUp","at",18808,"key","s"),Map("action","keyDown","at",19112,"key","s"),Map("action","keyUp","at",23464,"key","a"),Map("action","keyUp","at",24520,"key","s")],"height",600,"version",1,"width",800),
-"Snowy Town",Map("duration",7377,"events",[Map("action","keyDown","at",1073,"key","d"),Map("action","keyUp","at",3593,"key","d"),Map("action","keyDown","at",3904,"key","w"),Map("action","keyUp","at",5745,"key","w"),Map("action","keyDown","at",5968,"key","d"),Map("action","keyUp","at",6624,"key","d")],"height",600,"version",1,"width",800),
+"Magic Town",Map("duration",11640,"events",[Map("action","keyDown","at",625,"key","d"),Map("action","keyUp","at",3267,"key","d"),Map("action","keyDown","at",3688,"key","s"),Map("action","keyUp","at",4849,"key","s"),Map("action","keyDown","at",5848,"key","d"),Map("action","keyUp","at",9601,"key","d")],"height",600,"version",1,"width",800),
+"Magic Hills",Map("duration",24336,"events",[Map("action","keyDown","at",488,"key","a"),Map("action","keyDown","at",2408,"key","w"),Map("action","keyUp","at",3809,"key","w"),Map("action","keyDown","at",5009,"key","s"),Map("action","keyUp","at",5833,"key","s"),Map("action","keyDown","at",6272,"key","s"),Map("action","keyUp","at",6670,"key","s"),Map("action","keyDown","at",7121,"key","s"),Map("action","keyUp","at",8425,"key","s"),Map("action","keyDown","at",10408,"key","s"),Map("action","keyUp","at",10978,"key","a"),Map("action","keyDown","at",11800,"key","a"),Map("action","keyUp","at",12208,"key","s"),Map("action","keyDown","at",14112,"key","w"),Map("action","keyUp","at",14280,"key","w"),Map("action","keyDown","at",14632,"key","s"),Map("action","keyUp","at",14800,"key","s"),Map("action","keyDown","at",15112,"key","s"),Map("action","keyUp","at",15296,"key","s"),Map("action","keyDown","at",15825,"key","s"),Map("action","keyUp","at",16720,"key","s"),Map("action","keyDown","at",17929,"key","w"),Map("action","keyUp","at",19520,"key","w"),Map("action","keyDown","at",20032,"key","w"),Map("action","keyUp","at",20760,"key","w"),Map("action","keyDown","at",21137,"key","w"),Map("action","keyUp","at",22425,"key","a"),Map("action","keyUp","at",22464,"key","w")],"height",600,"version",1,"width",800),
+"Snowy Town",Map("duration",6999,"events",[Map("action","keyDown","at",962,"key","d"),Map("action","keyUp","at",3784,"key","d"),Map("action","keyDown","at",4104,"key","w"),Map("action","keyUp","at",5608,"key","w")],"height",600,"version",1,"width",800),
 "Nightmare Train",Map("duration",16374,"events",[Map("action","keyDown","at",1150,"key","a"),Map("action","keyDown","at",2125,"key","LShift"),Map("action","keyUp","at",4052,"key","LShift"),Map("action","keyDown","at",4717,"key","w"),Map("action","keyUp","at",7477,"key","w"),Map("action","keyDown","at",8040,"key","s"),Map("action","keyUp","at",9871,"key","a"),Map("action","keyDown","at",10306,"key","a"),Map("action","keyUp","at",11164,"key","a"),Map("action","keyDown","at",11695,"key","a"),Map("action","keyUp","at",12883,"key","s"),Map("action","keyUp","at",13026,"key","a")],"height",600,"version",1,"width",800),
 "Future City",Map("duration",9420,"events",[Map("action","keyDown","at",828,"key","w"),Map("action","keyUp","at",4111,"key","w"),Map("action","keyDown","at",4234,"key","d"),Map("action","keyUp","at",4477,"key","d"),Map("action","keyDown","at",4554,"key","w"),Map("action","keyUp","at",6041,"key","w")],"height",600,"version",1,"width",800),
 "Strange Town",Map("duration",4185,"events",[Map("action","keyDown","at",940,"key","d"),Map("action","keyDown","at",2597,"key","s"),Map("action","keyUp","at",2606,"key","d"),Map("action","keyUp","at",3138,"key","s")],"height",600,"version",1,"width",800))
@@ -19540,8 +21169,9 @@ static Has(name) => this.Routes.Has(this.CanonicalName(name))
 static Get(name) => CrusadersRecording.Validate(this.Routes[this.CanonicalName(name)])
 }
 class AAInstalledAssets {
-static Revision := "shared-maps-haunted-throne-2026-10-24"
-static DefaultHashes := Map("c2f4a6e684ee7017dca29ba225eb24ed125f3d43bf384d34af7dc97e79a94781",true,"88944fc2f390cd225aa1b4681646458057091d28c98aeee19c4166ad6ef509a0",true,"06add74b25a9c24ad18c8cfc1d0776fc072beac90df4629c4aceb35ed49b40c6",true,"07d2f004f9228eea546a5273d90155d67e99c59beadb84ac2bc2816810452008",true,"1969d708cd713499dd117fc4c4964424944d7aa4cc23a1530c288606b31c968e",true,"1def071289551780242ea5dcca568b5ca9eafaa75743100c644d0c2b83f08c4e",true,"39e1e420bc44d0e00152cf8f1fa9090577bbf1aea861c509464296c51e3b4654",true,"3c2922480b49e6a43ed4d70de20671803a04cab761252742f25b71c7a83fdf55",true,"423a546073d3e9be16b2d9228fb529d7b6b66bee4ed3e45a77c777c460211bec",true,"4297a0ff2df53cc7aeccfde376fae8fce2f33a1c442baf772cea536f2e1597a6",true,"46fd172b2508b19eb78d85f920109508461e1351c86484d1864d26404dd4253f",true,"4dfe9f2ce635602f1f340879b55976adf4ff89465a840065d507a11163a56c7b",true,"530f6563273600c3ffa8255fb1126eb119f2b5a411e792526dab69d7fd078e0b",true,"546190d366e941de790cc2d83045ec9028b374dd67e170e4b7faeb88a0b6423a",true,"5fd4a6ed08d6d70f8b3c002a21aa6f5a5ea4fe5197e182ca7784d0b13989490b",true,"60cbc8b3b0c7353a03f8d263a097fef5e25783dc00a6d0ede76caba4aa4e75b0",true,"9f653579e359f00870430ed36f9f6887ce4527db0cfec8de62662886cf37ae0e",true,"a2d0899489a5fa3f8d8e3b46f12191891eef744d54dc126e3b72e2f70702e803",true,"a8639e5f5cc4c1c49dcd25702f54b79895a705194131535cebfef5e4f0be9a7c",true,"aa4d6c9f62bad91810b468a00d236fc939ead63c7b6b86aaae20fdd573b7cac7",true,"b96f0bca8f426e1ee271bcc92d49b42076a0ed949c88cb03f77b97335a0b0e29",true,"e574f2f2c5cbc7837b574969cb43afa3c132401ad40b21e7c712c95d2c248e8b",true,"e6ed96f8fecc40c5f509d56fabb47fe8455b1558219a80074d0a74d670c9fb00",true,"e70c371a53ea7756d37f19860cb8018deeb19715d1c0a34b578f659ed28acef3",true,"f20a960c21d67cfd794ba255d95873f367e91417820e26544bca0413f7a5b5c8",true,"f394710cfa967fbb0d636d6cdcaa199bd0dce287a5cdd615ffb48a89151461d5",true,"f4683be6acf501c2a0471cc2184a18c15971c8a332f970eeefd4b08c938b59c4",true,"f774024ec050f0ac71f85debed59513e2db9f9a67e35d2195f9e93d60b741a23",true,"8bf561caa34158e12e9bbfbf81efb74a6296c5e831e9df2944b1f9bc12ab38e7",true,"2e41573dd4ee4c6b6088fb81cb8125b53cf777b47273e128339d1ff8b3a72f13",true,"743e98d4f66e8eeafa686ec112f359094c747c0022b74a6f9acc0d013cfebf48",true,"fc2182b24272af71618fb705833d3e13ed2b1288bc8d4decd72662cd84bd4754",true,"ea6f70b00d3a659d6ae6a72a57dfc00837aef6955491b85907d1b40f90b12dfe",true,"47aa09591f88647ea62d716ef1555399707d2e07e38b7f2e77c55c93c4280a5e",true,"a46709512953e1b736b09efa775e69bff4f2a2396579117099bba44ab2c17835",true,"ccf9a0bde5c0a2333106547acc18350414b741c9785c9715846368b0fc620239",true,"042c6195e78425f9bf7415685c808125ff924e9d67a55b9341e03199861211bc",true,"7bda3a623f5f4706e9747c70c9da748ebdeeff8003abc80cef6df383b528f994",true,"f067b39afc42df2de0719d3fad058229d763a86a81a41ee3454b0fcf9eaaa185",true,"00971e36d22c0e8984c89f9c070cf5ad86397f25991e8eade1df935bc30798c8",true,"0a46c3c895d37cb02928709a7d5dbec8b4fdca25d5a0848f2ddb7fe0c0613110",true,"2918adc914e37b77bf4f35662e899f8a0fe0c4c899b562072b428b403e3a192c",true,"2c7df0c8e45f63a677220ecf2f8c5a2148d42f62fe478b5baeb99557bb303d6d",true,"2fc4146a8b799057e0ad1a9f8b05c823b9fbbfb58cb83352222f6b913ff9f2bd",true,"346292d6d42b7a6567eac9a551d4e8f3c6094e316d53c78d856a3fcb327eeb7d",true,"3a9847df98d551581b285fab7057b5913cf27cdb7ed732749399c5cade71d32c",true,"3ce55cc502dc3ece8a9e20e83971a42a57b2e5bd2ce196c9bd8bf349522618b8",true,"48d84a03a1e85369a4ac44de1ab148ef23207b80a45fe9f9c51bd3020bca8793",true,"4d57ece9f2a6a25fefa7356cf88475eca017b93f5750182a98450e7f098307c5",true,"55465ae6c338b05c3224962a24a16817ca5351da6089ab5ee2e8413d890df957",true,"5d131d07f194fe6400bd81bbc3cc650ba86ce784ea2ac0b7e5244d33676cae90",true,"5de26ae37e6808e5d36093f14c445c401696b2cab1b03f226ae747223bfe60eb",true,"70ad6f6ac1981454b61076d57ba73232ec35d95208481655c04c47b95e162965",true,"71aa3c02fd0dbf52ace7595361bf918a6e819068971c8e442d6b05fb0a72d3a3",true,"761379ef773b0be3d83ef121d678875830215002d535cc51e7930b08dbf421a5",true,"854685f52813b86eb162da518821225a13ca4f2ab4a8b40ece99712a53cdc31c",true,"97aff761299f2e7cbcce258290cc4666586b0ab278f0effb05d4ff6fa899ab6c",true,"a1d78f01da048f75f9a56a2d7934071e0365d7da2e2fda42d5d164914d926db4",true,"a313fb24ad8c4e3979847b86571824f8157bfd16fa6e783c75943b59ed3b67b6",true,"a8101779553e2255273dabb35556c3d7816de83f964700b1241bb688b14a74f2",true,"ab23fdf68c36e2a111a285fe0ef8c205be30f965ecd36129ef475667ffe52311",true,"b0f7e7dd3b76b7cd602545c7e39e646707987d53c0bd5fe16c27ae7e8c49e8ab",true,"b762409db6bc60dc79925d14c936661509bbfda15feedcb944c04f4d4331cedf",true,"cba6aa0871145b67c284a929b5d020ed3ecfac045bd8d49aac7ed201e9bd4c71",true,"d2a7ca936570e4055b743df47c155ac879e19b7c284408d4eba64f7e0dfbe098",true,"d6e578883d74bcd94372e44d2cb04c20b73801eb76f2029d252dab3fd5202b62",true,"e0cabba8b9df0a237a81b865fb13b5bd66a7f456bca90db6321c33b7092992e4",true,"ebadd2928dfb22c961d76b6f83bda79e9b4a900f7c3732ebc404a5009b0e391f",true,"f809e872e5c48daa6a3fc2050267e4509d8219504a293c096e8ead04d1ce75c5",true)
+static Revision := "shared-maps-routes-refresh-2026-10-24"
+static ExpectedHashes := Map("SpiritTown.png","401323dd0caa9db5198af51109861c3b13aa293bd06abee0e6839aec49866272","HauntedMansion.png","88944fc2f390cd225aa1b4681646458057091d28c98aeee19c4166ad6ef509a0","SkyAircraft.png","042c6195e78425f9bf7415685c808125ff924e9d67a55b9341e03199861211bc","HellishCity.png","f067b39afc42df2de0719d3fad058229d763a86a81a41ee3454b0fcf9eaaa185","AlienSpaceship.png","1def071289551780242ea5dcca568b5ca9eafaa75743100c644d0c2b83f08c4e","AntKingdom.png","88245e6868abf51e32385d968b4adb50cb1b30cbc116ae859af20bf29ffd99b1","DungeonThrone.png","c2f4a6e684ee7017dca29ba225eb24ed125f3d43bf384d34af7dc97e79a94781","FabledKingdom.png","085edff86f8b29fee3b8c2308d99edf413c3e23baf710cddfc5a259211e28622","FiendCity.png","c2cddd972851f4510370b6298a2ed0ee145dc0183d9b7f66afcf2ba2646df877","HauntedAcademy.png","f7c71d57a91727f56b1fccd03916dc23efc53c0d8a80156bafeacc0659c424fc","MagicTown.png","eca2eeddaf10ccb8c4c263c16d83ea20a48bdb28cc51baa1fd0a249b0e26ea3f","MountainTemple.png","34c597405bdd2a8ef700531242225ddbd78f7018568373bc87bf2bdeed699b03","NavyBay.png","530f6563273600c3ffa8255fb1126eb119f2b5a411e792526dab69d7fd078e0b","PlanetGreenie.png","f4683be6acf501c2a0471cc2184a18c15971c8a332f970eeefd4b08c938b59c4","PuppetIsland.png","f774024ec050f0ac71f85debed59513e2db9f9a67e35d2195f9e93d60b741a23","RainVillage.png","b96f0bca8f426e1ee271bcc92d49b42076a0ed949c88cb03f77b97335a0b0e29","RuinedCity.png","39e1e420bc44d0e00152cf8f1fa9090577bbf1aea861c509464296c51e3b4654","SandVillage.png","093c76bf78e3bb332a459f351352d44f6de83d95bbe91d0bbe342caec7079827","ShibuyaDistrict.png","4dfe9f2ce635602f1f340879b55976adf4ff89465a840065d507a11163a56c7b","SnowyKingdom.png","b54a2291134ca4433bf5a5b0f29f37f2481b9f8a4b6a7cd67ac9fdd9beeabea4","SpaceCenter.png","8f63d42d1545ff254e500cc74326230c89bd497c828cace9a2649f67b8cb18d2","SpiritWorld.png","71739265a4763ed85123d18c397c255b3534a7766166783753119dc6327255ac","VirtualDungeon.png","aa4d6c9f62bad91810b468a00d236fc939ead63c7b6b86aaae20fdd573b7cac7","MagicHills.png","7da742a3f1fe5d840a42862913b0b85759c36f79a7cad3c2e967718bff6ed73d","SnowyTown.png","ab4280b96ca959a7f79ff885fceb4a2b6bd73ec866689bf8677450e721874b1f","WalledCity.png","46fd172b2508b19eb78d85f920109508461e1351c86484d1864d26404dd4253f","AssassinPark.png","a8639e5f5cc4c1c49dcd25702f54b79895a705194131535cebfef5e4f0be9a7c","StormHideout.png","55465ae6c338b05c3224962a24a16817ca5351da6089ab5ee2e8413d890df957","CursedFestival.png","ebadd2928dfb22c961d76b6f83bda79e9b4a900f7c3732ebc404a5009b0e391f","NightmareTrain.png","3ce55cc502dc3ece8a9e20e83971a42a57b2e5bd2ce196c9bd8bf349522618b8","FutureCity.png","3a9847df98d551581b285fab7057b5913cf27cdb7ed732749399c5cade71d32c","StrangeTown.png","f809e872e5c48daa6a3fc2050267e4509d8219504a293c096e8ead04d1ce75c5","SacredPlanet.png","a1d78f01da048f75f9a56a2d7934071e0365d7da2e2fda42d5d164914d926db4","Portals.png","9f653579e359f00870430ed36f9f6887ce4527db0cfec8de62662886cf37ae0e")
+static DefaultHashes := Map("f7c71d57a91727f56b1fccd03916dc23efc53c0d8a80156bafeacc0659c424fc",true,"eca2eeddaf10ccb8c4c263c16d83ea20a48bdb28cc51baa1fd0a249b0e26ea3f",true,"c2cddd972851f4510370b6298a2ed0ee145dc0183d9b7f66afcf2ba2646df877",true,"b54a2291134ca4433bf5a5b0f29f37f2481b9f8a4b6a7cd67ac9fdd9beeabea4",true,"ab4280b96ca959a7f79ff885fceb4a2b6bd73ec866689bf8677450e721874b1f",true,"8f63d42d1545ff254e500cc74326230c89bd497c828cace9a2649f67b8cb18d2",true,"88245e6868abf51e32385d968b4adb50cb1b30cbc116ae859af20bf29ffd99b1",true,"7da742a3f1fe5d840a42862913b0b85759c36f79a7cad3c2e967718bff6ed73d",true,"71739265a4763ed85123d18c397c255b3534a7766166783753119dc6327255ac",true,"401323dd0caa9db5198af51109861c3b13aa293bd06abee0e6839aec49866272",true,"34c597405bdd2a8ef700531242225ddbd78f7018568373bc87bf2bdeed699b03",true,"093c76bf78e3bb332a459f351352d44f6de83d95bbe91d0bbe342caec7079827",true,"085edff86f8b29fee3b8c2308d99edf413c3e23baf710cddfc5a259211e28622",true,"c2f4a6e684ee7017dca29ba225eb24ed125f3d43bf384d34af7dc97e79a94781",true,"88944fc2f390cd225aa1b4681646458057091d28c98aeee19c4166ad6ef509a0",true,"06add74b25a9c24ad18c8cfc1d0776fc072beac90df4629c4aceb35ed49b40c6",true,"07d2f004f9228eea546a5273d90155d67e99c59beadb84ac2bc2816810452008",true,"1969d708cd713499dd117fc4c4964424944d7aa4cc23a1530c288606b31c968e",true,"1def071289551780242ea5dcca568b5ca9eafaa75743100c644d0c2b83f08c4e",true,"39e1e420bc44d0e00152cf8f1fa9090577bbf1aea861c509464296c51e3b4654",true,"3c2922480b49e6a43ed4d70de20671803a04cab761252742f25b71c7a83fdf55",true,"423a546073d3e9be16b2d9228fb529d7b6b66bee4ed3e45a77c777c460211bec",true,"4297a0ff2df53cc7aeccfde376fae8fce2f33a1c442baf772cea536f2e1597a6",true,"46fd172b2508b19eb78d85f920109508461e1351c86484d1864d26404dd4253f",true,"4dfe9f2ce635602f1f340879b55976adf4ff89465a840065d507a11163a56c7b",true,"530f6563273600c3ffa8255fb1126eb119f2b5a411e792526dab69d7fd078e0b",true,"546190d366e941de790cc2d83045ec9028b374dd67e170e4b7faeb88a0b6423a",true,"5fd4a6ed08d6d70f8b3c002a21aa6f5a5ea4fe5197e182ca7784d0b13989490b",true,"60cbc8b3b0c7353a03f8d263a097fef5e25783dc00a6d0ede76caba4aa4e75b0",true,"9f653579e359f00870430ed36f9f6887ce4527db0cfec8de62662886cf37ae0e",true,"a2d0899489a5fa3f8d8e3b46f12191891eef744d54dc126e3b72e2f70702e803",true,"a8639e5f5cc4c1c49dcd25702f54b79895a705194131535cebfef5e4f0be9a7c",true,"aa4d6c9f62bad91810b468a00d236fc939ead63c7b6b86aaae20fdd573b7cac7",true,"b96f0bca8f426e1ee271bcc92d49b42076a0ed949c88cb03f77b97335a0b0e29",true,"e574f2f2c5cbc7837b574969cb43afa3c132401ad40b21e7c712c95d2c248e8b",true,"e6ed96f8fecc40c5f509d56fabb47fe8455b1558219a80074d0a74d670c9fb00",true,"e70c371a53ea7756d37f19860cb8018deeb19715d1c0a34b578f659ed28acef3",true,"f20a960c21d67cfd794ba255d95873f367e91417820e26544bca0413f7a5b5c8",true,"f394710cfa967fbb0d636d6cdcaa199bd0dce287a5cdd615ffb48a89151461d5",true,"f4683be6acf501c2a0471cc2184a18c15971c8a332f970eeefd4b08c938b59c4",true,"f774024ec050f0ac71f85debed59513e2db9f9a67e35d2195f9e93d60b741a23",true,"8bf561caa34158e12e9bbfbf81efb74a6296c5e831e9df2944b1f9bc12ab38e7",true,"2e41573dd4ee4c6b6088fb81cb8125b53cf777b47273e128339d1ff8b3a72f13",true,"743e98d4f66e8eeafa686ec112f359094c747c0022b74a6f9acc0d013cfebf48",true,"fc2182b24272af71618fb705833d3e13ed2b1288bc8d4decd72662cd84bd4754",true,"ea6f70b00d3a659d6ae6a72a57dfc00837aef6955491b85907d1b40f90b12dfe",true,"47aa09591f88647ea62d716ef1555399707d2e07e38b7f2e77c55c93c4280a5e",true,"a46709512953e1b736b09efa775e69bff4f2a2396579117099bba44ab2c17835",true,"ccf9a0bde5c0a2333106547acc18350414b741c9785c9715846368b0fc620239",true,"042c6195e78425f9bf7415685c808125ff924e9d67a55b9341e03199861211bc",true,"7bda3a623f5f4706e9747c70c9da748ebdeeff8003abc80cef6df383b528f994",true,"f067b39afc42df2de0719d3fad058229d763a86a81a41ee3454b0fcf9eaaa185",true,"00971e36d22c0e8984c89f9c070cf5ad86397f25991e8eade1df935bc30798c8",true,"0a46c3c895d37cb02928709a7d5dbec8b4fdca25d5a0848f2ddb7fe0c0613110",true,"2918adc914e37b77bf4f35662e899f8a0fe0c4c899b562072b428b403e3a192c",true,"2c7df0c8e45f63a677220ecf2f8c5a2148d42f62fe478b5baeb99557bb303d6d",true,"2fc4146a8b799057e0ad1a9f8b05c823b9fbbfb58cb83352222f6b913ff9f2bd",true,"346292d6d42b7a6567eac9a551d4e8f3c6094e316d53c78d856a3fcb327eeb7d",true,"3a9847df98d551581b285fab7057b5913cf27cdb7ed732749399c5cade71d32c",true,"3ce55cc502dc3ece8a9e20e83971a42a57b2e5bd2ce196c9bd8bf349522618b8",true,"48d84a03a1e85369a4ac44de1ab148ef23207b80a45fe9f9c51bd3020bca8793",true,"4d57ece9f2a6a25fefa7356cf88475eca017b93f5750182a98450e7f098307c5",true,"55465ae6c338b05c3224962a24a16817ca5351da6089ab5ee2e8413d890df957",true,"5d131d07f194fe6400bd81bbc3cc650ba86ce784ea2ac0b7e5244d33676cae90",true,"5de26ae37e6808e5d36093f14c445c401696b2cab1b03f226ae747223bfe60eb",true,"70ad6f6ac1981454b61076d57ba73232ec35d95208481655c04c47b95e162965",true,"71aa3c02fd0dbf52ace7595361bf918a6e819068971c8e442d6b05fb0a72d3a3",true,"761379ef773b0be3d83ef121d678875830215002d535cc51e7930b08dbf421a5",true,"854685f52813b86eb162da518821225a13ca4f2ab4a8b40ece99712a53cdc31c",true,"97aff761299f2e7cbcce258290cc4666586b0ab278f0effb05d4ff6fa899ab6c",true,"a1d78f01da048f75f9a56a2d7934071e0365d7da2e2fda42d5d164914d926db4",true,"a313fb24ad8c4e3979847b86571824f8157bfd16fa6e783c75943b59ed3b67b6",true,"a8101779553e2255273dabb35556c3d7816de83f964700b1241bb688b14a74f2",true,"ab23fdf68c36e2a111a285fe0ef8c205be30f965ecd36129ef475667ffe52311",true,"b0f7e7dd3b76b7cd602545c7e39e646707987d53c0bd5fe16c27ae7e8c49e8ab",true,"b762409db6bc60dc79925d14c936661509bbfda15feedcb944c04f4d4331cedf",true,"cba6aa0871145b67c284a929b5d020ed3ecfac045bd8d49aac7ed201e9bd4c71",true,"d2a7ca936570e4055b743df47c155ac879e19b7c284408d4eba64f7e0dfbe098",true,"d6e578883d74bcd94372e44d2cb04c20b73801eb76f2029d252dab3fd5202b62",true,"e0cabba8b9df0a237a81b865fb13b5bd66a7f456bca90db6321c33b7092992e4",true,"ebadd2928dfb22c961d76b6f83bda79e9b4a900f7c3732ebc404a5009b0e391f",true,"f809e872e5c48daa6a3fc2050267e4509d8219504a293c096e8ead04d1ce75c5",true)
 static PlaceholderHashes := Map("e75475b489bba3e650f1f2ea541600153abf88b56b2c9c79e1a119440c9f768e",true)
 static IsBundledDefault(path) {
 try return this.DefaultHashes.Has(CrusadersConfigCodes.HashBytes(FileRead(path,"RAW")))
@@ -19555,6 +21185,25 @@ try return this.PlaceholderHashes.Has(CrusadersConfigCodes.HashBytes(FileRead(pa
 catch Error
 return false
 }
+static NeedsRefresh(path) {
+SplitPath(path,&name)
+if !this.ExpectedHashes.Has(name)
+throw Error("Unknown bundled map asset: " name)
+try return CrusadersConfigCodes.HashBytes(FileRead(path,"RAW")) != this.ExpectedHashes[name]
+catch Error
+return true
+}
+static imageVersions := Map()
+static ImageVersion(path,refresh := false) {
+if !FileExist(path)
+return "0"
+stamp := FileGetTime(path,"M") ":" FileGetSize(path)
+if !refresh && this.imageVersions.Has(path) && this.imageVersions[path].stamp = stamp
+return this.imageVersions[path].hash
+hash := CrusadersConfigCodes.HashBytes(FileRead(path,"RAW"))
+this.imageVersions[path] := {stamp:stamp,hash:hash}
+return hash
+}
 static Ensure(root := "") {
 if root = ""
 root := A_ScriptDir "\Images\Defaults"
@@ -19562,111 +21211,111 @@ DirCreate(root)
 marker := root "\.revision"
 refresh := true
 if FileExist(marker) {
-try refresh := !A_IsCompiled || FileRead(marker,"UTF-8") != this.Revision
+try refresh := FileRead(marker,"UTF-8") != this.Revision
 catch Error
 refresh := true
 }
 path := root "\SpiritTown.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\LegendStages\SpiritTown.png",path,1)
 path := root "\HauntedMansion.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Dungeons\HauntedMansion.png",path,1)
 path := root "\SkyAircraft.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Dungeons\SkyAircraft.png",path,1)
 path := root "\HellishCity.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Dungeons\HellishCity.png",path,1)
 path := root "\AlienSpaceship.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\AlienSpaceshipStory.png",path,1)
 path := root "\AntKingdom.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\AntKingdomStory.png",path,1)
 path := root "\DungeonThrone.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\DungeonThroneStory.png",path,1)
 path := root "\FabledKingdom.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\FabledKingdomStory.png",path,1)
 path := root "\FiendCity.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\FiendCityStory.png",path,1)
 path := root "\HauntedAcademy.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\HauntedAcademyStory.png",path,1)
 path := root "\MagicTown.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\MagicTownStory.png",path,1)
 path := root "\MountainTemple.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\MountainTempleStory.png",path,1)
 path := root "\NavyBay.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\NavyBayStory.png",path,1)
 path := root "\PlanetGreenie.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\PlanetGreenieStory.png",path,1)
 path := root "\PuppetIsland.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\PuppetIslandStory.png",path,1)
 path := root "\RainVillage.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\RainVillageStory.png",path,1)
 path := root "\RuinedCity.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\RuinedCityStory.png",path,1)
 path := root "\SandVillage.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\SandVillageStory.png",path,1)
 path := root "\ShibuyaDistrict.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\ShibuyaDistrictStory.png",path,1)
 path := root "\SnowyKingdom.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\SnowyKingdomStory.png",path,1)
 path := root "\SpaceCenter.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\SpaceCenterStory.png",path,1)
 path := root "\SpiritWorld.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\SpiritWorldStory.png",path,1)
 path := root "\VirtualDungeon.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\VirtualDungeonStory.png",path,1)
 path := root "\MagicHills.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\MagicHillsStory.png",path,1)
 path := root "\SnowyTown.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\SnowyTownStory.png",path,1)
 path := root "\WalledCity.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Story\WalledCityStory.png",path,1)
 path := root "\AssassinPark.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Dungeons\AssassinPark.png",path,1)
 path := root "\StormHideout.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Raids\StormHideout.png",path,1)
 path := root "\CursedFestival.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Raids\CursedFestival.png",path,1)
 path := root "\NightmareTrain.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Raids\NightmareTrain.png",path,1)
 path := root "\FutureCity.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Raids\FutureCity.png",path,1)
 path := root "\StrangeTown.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Raids\StrangeTown.png",path,1)
 path := root "\SacredPlanet.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Raids\SacredPlanet.png",path,1)
 path := root "\Portals.png"
-if refresh || !FileExist(path)
+if refresh || this.NeedsRefresh(path)
 FileInstall("Images\DefaultMapImages\Portals.png",path,1)
 if refresh {
 revisionHandle := FileOpen(marker,"w","UTF-8-RAW")
@@ -19785,6 +21434,9 @@ if !this.schedule || !this.schedule.active
 return
 if this.kind = "Half Hourly" {
 this.lastHalf := this.activeSlot
+SplitPath(this.stateFile,,&stateDirectory)
+if stateDirectory!=""
+DirCreate(stateDirectory)
 IniWrite(this.lastHalf,this.stateFile,"HalfHourly","LastAttempt")
 }
 this.schedule.CompleteAttempt()
@@ -19811,11 +21463,80 @@ static SnowyTownPath() {
 raw := '{"duration":6120,"events":[{"action":"keyDown","at":593,"key":"d"},{"action":"keyUp","at":2523,"key":"d"},{"action":"keyDown","at":2605,"key":"w"},{"action":"keyUp","at":3959,"key":"w"},{"action":"keyDown","at":3996,"key":"d"},{"action":"keyUp","at":5188,"key":"d"}],"height":600,"version":1,"width":800}'
 return Jxon_Load(&raw)
 }
+static SnowyScenery := [[55,220,0x161415],[165,220,0x351F19],[275,220,0x0E0E20],[385,220,0x0B0B1A],[495,220,0x090824],[605,220,0x051276],[715,220,0x021084],[55,270,0x211A16],[165,270,0x351E18],[275,270,0x140E14],[385,270,0x360D1B],[495,270,0x08115A],[605,270,0x411258],[715,270,0x0B0215],[55,320,0x201715],[165,320,0x43431F],[275,320,0x1D0E16],[385,320,0x3C1B21],[495,320,0x091157],[605,320,0x1B1051],[715,320,0x782629],[55,370,0x161516],[165,370,0x261313],[275,370,0x120F12],[385,370,0x130D16],[495,370,0x2E1223],[605,370,0x2E1028],[715,370,0x160A36],[55,420,0x1A1718],[165,420,0x151315],[275,420,0x1F1318],[385,420,0x201218],[495,420,0x1E0F19],[605,420,0x210E1B],[715,420,0x49223C]]
+static SnowyBackground(bitmap) {
+if Gdip_GetImageWidth(bitmap) != 800 || Gdip_GetImageHeight(bitmap) != 600
+return false
+matches := 0
+for sample in this.SnowyScenery {
+actual := Gdip_GetPixel(bitmap,sample[1],sample[2]), expected := sample[3]
+if Abs(((actual>>16)&255)-((expected>>16)&255))<=32
+&& Abs(((actual>>8)&255)-((expected>>8)&255))<=32 && Abs((actual&255)-(expected&255))<=32
+matches++
+}
+return matches>=29
+}
 static ReadMap(reader,bitmap) {
-scan := AATransitionVision.Read(reader,bitmap,["Snowy Town"])
-if scan["kind"] = "transition-map" && scan["context"] = "stage" && scan["act"] = 1
+scan := AATransitionVision.Read(reader,bitmap,["Snowy Town","Mountain Temple"])
+if scan["kind"] = "transition-map" && scan["map"] = "Snowy Town" && scan["context"] = "stage" && scan["act"] = 1
+return Map("kind","april-map","map","Snowy Town","text",scan["text"],"ownerWait",0)
+text := AAMansionRoute.CleanMapText(scan["text"])
+if InStr(text,"mountaintemple") && InStr(text,"foolshunt") && this.SnowyBackground(bitmap)
 return Map("kind","april-map","map","Snowy Town","text",scan["text"],"ownerWait",0)
 return Map("kind","none","text","","ownerWait",0)
+}
+static ReadExit(reader,bitmap) {
+result := this.ReadResult(reader,bitmap)
+if result["kind"] != "none"
+return result
+for center in [312,224,400,488,576] {
+green := 0
+for point in [[center-65,105],[center+65,105],[center-65,132],[center+65,132]]
+green += AADungeons.GreenPixel(bitmap,point[1],point[2])
+if green<2
+continue
+label := AAMansionRoute.CleanMapText(reader.Read(bitmap,center-88,95,176,55,3))
+if InStr(label,"returntolobby")
+return Map("kind","april-exit-choice","returnX",center,"returnY",120,"text",label,"ownerWait",0)
+}
+return AALobbyVision.Read(reader,bitmap)
+}
+static HandleExit(r,scan) {
+kind := scan["kind"], now := Adventures.Tick()
+signature := kind "|" scan.Get("returnX",0)
+r.aprilExitFrames := r.HasOwnProp("aprilExitSignature") && r.aprilExitSignature = signature ? r.aprilExitFrames+1 : 1
+r.aprilExitSignature := signature
+if r.aprilExitFrames<2 || now<r.due
+return
+if kind = "april-result-covered" {
+if scan.Get("panel",false)
+r.ClickAt(329,188)
+if scan.Get("overview",false)
+r.ClickAt(660,543)
+r.due := now+500
+return
+}
+if (kind = "victory" || kind = "defeat") && r.stage != "AprilExitLobby" {
+attempts := r.HasOwnProp("aprilNextAttempts") ? r.aprilNextAttempts : 0
+if attempts>=3
+return
+r.ClickAt(319,394), r.aprilNextAttempts := attempts+1
+r.Change("AprilExitChoice",30000), r.due := now+1500
+r.aprilExitFrames := 0, r.aprilExitSignature := ""
+r.app.Log("April Fools | Next clicked; waiting for Return to lobby")
+} else if kind = "april-exit-choice" {
+attempts := r.HasOwnProp("aprilReturnAttempts") ? r.aprilReturnAttempts : 0
+if attempts>=3
+return
+r.ClickAt(scan["returnX"],scan["returnY"]), r.aprilReturnAttempts := attempts+1
+r.Change("AprilExitLobby",120000), r.due := now+2000
+r.aprilExitFrames := 0, r.aprilExitSignature := ""
+r.app.Log("April Fools | Return to lobby clicked; waiting for lobby")
+} else if kind = "lobby" && r.stage = "AprilExitLobby" {
+r.Change("AprilResultRejoin",30000)
+r.app.Log("April Fools | Lobby confirmed; continuing mode queue")
+r.app.ResumeAfterAprilReturn()
+}
 }
 static Slots := [276,326,376,426,476,526]
 static Upgrades := [[620,172],[756,172],[620,264],[756,264],[620,356],[756,356],[620,450],[756,450]]
@@ -19979,8 +21700,8 @@ app := this.loop.app
 previous := A_CoordModeMouse
 CoordMode("Mouse","Screen")
 try {
-MouseGetPos(&startX,&startY)
 app.CheckClient()
+MouseGetPos(&startX,&startY)
 WinGetClientPos(&left,&top,,,app.hwnd)
 targetX := left+x, targetY := top+y
 loop 8 {
@@ -20059,7 +21780,7 @@ static ExtraMaps := ["Assassin Park","Hellish City","Sky Aircraft","Strange Town
 static Rooms := "Rare Chest|Chest|Shop|Hoard|Shrine|Boss|Curse|Grey Room|Green Room|Purple Room"
 static Items := "Golden Mushroom|Mask of Riches|Genie Lamp|Shimmering Moon Fragment|Philosopher's Stone|Golden Branch|Golden Fishhook|Fishhook|Archmage's Hat|Magic Tome|Scimitar|Glacial Axe|Ice Dagger|Sylvanthorn|Stormbringer|Mage Coat|Sword|Elf Bow|Longbow|Bow|Reaper Scythe|Speedy Boots|Dagger|Ninja Belt|Nimble Cloak|Aureus Maul|Headsplitter|Axe|Solar Cleaver|Celestial Blade"
 static Defaults := Map("DungeonTeam","0","DungeonRoomPriority",this.Rooms,"DungeonShopPriority",this.Items,
-"DungeonHoardReserve","0","DungeonShopLimit","3","DungeonShrineAction","Accept",
+"DungeonHoardReserve","0","DungeonShopLimit","2","DungeonShrineAction","Deny",
 "DungeonNormalChests","End","DungeonRareChests","End","DungeonPauseHearts","0",
 "DungeonRelicPreferred","","DungeonRelicBlocked","","DungeonUnknownRelic","Pause")
 static registered := false
@@ -20122,9 +21843,11 @@ return order
 static Validate(p) {
 if p["DungeonShrineAction"] = "Skip" || p["DungeonShrineAction"] = "Pause"
 p["DungeonShrineAction"] := "Deny"
-for pair in [["DungeonTeam",0,6],["DungeonPauseHearts",0,5],["DungeonHoardReserve",0,999999999],["DungeonShopLimit",0,30]]
+for pair in [["DungeonTeam",0,6],["DungeonPauseHearts",0,5],["DungeonHoardReserve",0,999999999]]
 if !RegExMatch(p[pair[1]],"^\d+$") || Integer(p[pair[1]]) < pair[2] || Integer(p[pair[1]]) > pair[3]
 throw Error("Invalid " pair[1] ".")
+if p["DungeonShopLimit"]!="1" && p["DungeonShopLimit"]!="2" && p["DungeonShopLimit"]!="3"
+p["DungeonShopLimit"] := "2"
 this.Ordered(p["DungeonRoomPriority"],this.Rooms)
 if !InStr("|" p["DungeonRoomPriority"] "|","|Grey Room|")
 p["DungeonRoomPriority"] .= "|Grey Room"
@@ -20133,7 +21856,7 @@ p["DungeonRoomPriority"] .= "|Green Room"
 if !InStr("|" p["DungeonRoomPriority"] "|","|Purple Room|")
 p["DungeonRoomPriority"] .= "|Purple Room"
 this.Ordered(p["DungeonShopPriority"],this.Items)
-for pair in [["DungeonShrineAction","Accept|Deny"],["DungeonNormalChests","Checkpoint|End"],["DungeonRareChests","End"],["DungeonUnknownRelic","Pause|Decline"]]
+for pair in [["DungeonShrineAction","Accept|Deny"],["DungeonNormalChests","Checkpoint|Both|End"],["DungeonRareChests","End"],["DungeonUnknownRelic","Pause|Decline"]]
 if !InStr("|" pair[2] "|","|" p[pair[1]] "|")
 throw Error("Invalid " pair[1] ".")
 for key in ["DungeonRelicPreferred","DungeonRelicBlocked"]
@@ -20221,29 +21944,58 @@ start := -1
 }
 return false
 }
+static CardAvailable(bitmap,x) {
+visible := 0
+for point in [[x+3,325],[x+75,325],[x+3,397],[x+75,397]] {
+bright := false
+loop 7 {
+dx:=A_Index-4
+loop 7 {
+c:=this.Pixel(bitmap,point[1]+dx,point[2]+A_Index-4)
+if Max((c>>16)&255,(c>>8)&255,c&255)>=55
+bright:=true
+}
+}
+visible += bright
+}
+return visible>=3
+}
 static RoomDifficulty(bitmap,x) {
-counts := Map("Grey Room",0,"Green Room",0,"Purple Room",0), border := Map("Grey Room",0,"Green Room",0,"Purple Room",0)
-points := []
-for dx in [12,20,35,50,65,72]
-for y in [332,338,390,396]
-points.Push([x+dx,y])
-for dx in [12,72]
-for y in [348,360,372,384]
-points.Push([x+dx,y])
-for point in points {
-c := this.Pixel(bitmap,point[1],point[2]), r := (c>>16)&255, g := (c>>8)&255, b := c&255
-counts["Grey Room"] += Abs(r-30)<=6 && Abs(g-31)<=6 && Abs(b-44)<=6
-counts["Green Room"] += Abs(r-18)<=6 && Abs(g-40)<=6 && Abs(b-15)<=6
-counts["Purple Room"] += Abs(r-27)<=6 && g<=6 && Abs(b-44)<=6
+border := Map("Grey Room",0,"Green Room",0,"Purple Room",0)
+leftCounts := Map("Grey Room",0,"Green Room",0,"Purple Room",0)
+rightCounts := leftCounts.Clone()
+for side in [0,1] {
+for dx in (side ? [72,73,74,75,76,77,78] : [6,7,8,9,10,11,12]) {
+column := Map("Grey Room",0,"Green Room",0,"Purple Room",0)
+loop 9 {
+c := this.Pixel(bitmap,x+dx,330+(A_Index-1)*8)
+r := (c>>16)&255, g := (c>>8)&255, b := c&255
+column["Grey Room"] += Abs(r-30)<=6 && Abs(g-31)<=6 && Abs(b-44)<=6
+column["Green Room"] += Abs(r-18)<=6 && Abs(g-40)<=6 && Abs(b-15)<=6
+column["Purple Room"] += Abs(r-27)<=6 && g<=6 && Abs(b-44)<=6
+}
+target := side ? rightCounts : leftCounts
+for difficulty,count in column
+target[difficulty] := Max(target[difficulty],count)
+}
 }
 for point in [[x+3,325],[x+75,325],[x+3,397],[x+75,397]] {
-c := this.Pixel(bitmap,point[1],point[2]), r := (c>>16)&255, g := (c>>8)&255, b := c&255
-border["Grey Room"] += b>=100 && r>=40 && g>=45 && Abs(r-g)<=25
-border["Green Room"] += g>=60 && g>r*1.5 && g>b*1.5
-border["Purple Room"] += b>=60 && r>=25 && g<25 && b>r*1.3
+found:=Map("Grey Room",false,"Green Room",false,"Purple Room",false)
+loop 7 {
+dx:=A_Index-4
+loop 7 {
+c:=this.Pixel(bitmap,point[1]+dx,point[2]+A_Index-4),r:=(c>>16)&255,g:=(c>>8)&255,b:=c&255
+found["Grey Room"] := found["Grey Room"] || (b>=100 && r>=40 && g>=45 && Abs(r-g)<=25)
+found["Green Room"] := found["Green Room"] || (g>=60 && g>r*1.5 && g>b*1.5)
+found["Purple Room"] := found["Purple Room"] || (b>=60 && r>=25 && g<25 && b>r*1.3)
 }
-for difficulty,count in counts
-if count>=(difficulty = "Purple Room" ? 14 : 20) && border[difficulty]>=(difficulty = "Grey Room" ? 2 : 3)
+}
+for difficulty,yes in found
+border[difficulty]+=yes
+}
+for difficulty,count in leftCounts
+if count>=5 && rightCounts[difficulty]>=5 && count+rightCounts[difficulty]>=12
+&& (border[difficulty]>=(difficulty = "Grey Room" ? 2 : 3) || border["Green Room"]>=3)
 return difficulty
 return ""
 }
@@ -20277,6 +22029,64 @@ if InStr(label,pair[1])
 rewards.Push(pair[2])
 return rewards
 }
+static DebugCurseCard(scan) {
+if scan.Get("kind","")!="dungeon-board"
+return false
+found:=false
+for card in scan.Get("cards",[]) {
+if !card.Get("available",true) || !this.MatchesPriority(card,"Curse")
+continue
+if !found || card["x"]<found["x"]
+found:=card
+}
+return found
+}
+static DebugBossCard(scan) {
+if scan.Get("kind","")!="dungeon-board" || scan.Get("depth",0)!=20
+return false
+found := false
+for card in scan.Get("cards",[]) {
+if card.Get("category","")!="Boss" || !card.Get("available",true)
+continue
+if !found || card["x"]<found["x"]
+found := card
+}
+return found
+}
+static Diagnostic(scan) {
+detail := "observed=" scan.Get("kind","none")
+for key in ["map","titleMap","festivalSceneryMatches","titleBluePixels","context","depth","hearts","inLobby","inMatch","enterX","enterY","closeX","closeY","curseText","curseRisk","visibleOffers","hoard","offers","shopRows","unreadable","cardChecks","normalCount","rareCount","normalEmpty","rareEmpty","chestRows","chestNotice","emptyCorroborated","continue","buttons"]
+if scan.Has(key)
+detail .= "; " key "=" (IsObject(scan[key]) ? Jxon_Dump(scan[key]) : scan[key])
+if scan.Has("cards")
+detail .= "; recognizedCards=" Jxon_Dump(scan["cards"])
+text := Trim(RegExReplace(scan.Get("text",""),"\s+"," "))
+return detail "; OCR=" (text != "" ? SubStr(text,1,700) : "[empty]")
+}
+static reportSerial := 0
+static SaveErrorReport(app,message,directory := "",capture := unset) {
+if directory = ""
+directory := A_ScriptDir "\Logs\Error Report"
+try {
+DirCreate(directory)
+stem := directory "\Dungeon-" FormatTime(,"yyyyMMdd-HHmmss") "-" DllCall("GetCurrentProcessId") "-" Adventures.Tick() "-" (++this.reportSerial)
+reportPath := stem ".txt"
+context := ""
+if app.HasOwnProp("model") && app.model.HasOwnProp("preferences") {
+context := "`nMode: " app.model.preferences.Get("Mode","") "`nConfigured map: " app.model.preferences.Get("Map","")
+if app.model.HasOwnProp("path") {
+SplitPath(app.model.path,&configName)
+context .= "`nConfig: " configName
+}
+}
+FileAppend("Bayzo's AA Macro v" CrusadersUpdater.Version "`nTime: " FormatTime(,"yyyy-MM-dd HH:mm:ss") context "`n`n" message "`n",reportPath,"UTF-8-RAW")
+app.Log("Dungeon Error Report saved: " reportPath)
+return reportPath
+} catch Error as err {
+app.Log("Dungeon Error Report could not be saved: " err.Message)
+return ""
+}
+}
 static MatchesPriority(card,category) {
 if card["category"] = category || card.Get("difficulty","") = category
 return true
@@ -20308,9 +22118,53 @@ static CurseRisk(text) {
 label := StrLower(RegExReplace(text,"[^A-Za-z]",""))
 return InStr(label,"shopping") || InStr(label,"shopprices") ? 1 : InStr(label,"explosi") || InStr(label,"plosiv") || InStr(label,"deathrange") || InStr(label,"deathsrange") ? 3 : 2
 }
-static ShopPrice(reader,bitmap,y) {
+static ShopItemName(text) {
+label := StrLower(RegExReplace(text,"[^A-Za-z]",""))
+for known in StrSplit(this.Items,"|") {
+key := StrLower(RegExReplace(known,"[^A-Za-z]",""))
+if label = key || label = "t" key || label = "x" key
+return known
+}
+variants := Map("spooduboote","Speedy Boots","bootespoody","Speedy Boots","glacilamo","Glacial Axe","glacislaho","Glacial Axe","raaporscuthe","Reaper Scythe","roaporscutho","Reaper Scythe","hagictono","Magic Tome","hagictone","Magic Tome","magictono","Magic Tome","goldonhuschroon","Golden Mushroom","goldonhhushroon","Golden Mushroom","goldonhuchroon","Golden Mushroom","goldonhushroon","Golden Mushroom","hinjabolt","Ninja Belt","ninjabolt","Ninja Belt","spooduboots","Speedy Boots","spoodyboots","Speedy Boots","bootsspoody","Speedy Boots","elfbou","Elf Bow","bootsspoodu","Speedy Boots","hagocoat","Mage Coat","ninbloclosk","Nimble Cloak","hinbloclosk","Nimble Cloak","hinblocloak","Nimble Cloak","hagocost","Mage Coat","magocost","Mage Coat","hinblclosk","Nimble Cloak","bou","Bow","suord","Sword","goldonbranch","Golden Branch","ninblocloak","Nimble Cloak","ninblcloak","Nimble Cloak","icodagger","Ice Dagger","amo","Axe","hackofrichos","Mask of Riches","thackofrichos","Mask of Riches","longbou","Longbow","icodaggor","Ice Dagger","icedaggor","Ice Dagger","aho","Axe","auroushaul","Aureus Maul","scinitar","Scimitar","ninblclosk","Nimble Cloak","hsckofrichos","Mask of Riches","thsckofrichos","Mask of Riches","xauroushaul","Aureus Maul")
+if variants.Has(label)
+return variants[label]
+best := 0, second := 0, item := ""
+for known in StrSplit(this.Items,"|") {
+key := StrLower(RegExReplace(known,"[^A-Za-z]",""))
+if StrLen(key)<6 || Abs(StrLen(label)-StrLen(key))>2
+continue
+score := 1-AAMansionRoute.EditDistance(label,key)/Max(StrLen(label),StrLen(key))
+if score>best
+second := best, best := score, item := known
+else second := Max(second,score)
+}
+return best>=0.83 && best-second>=0.10 ? item : ""
+}
+static ShopImageItem(bitmap,y) {
+path := A_ScriptDir "\Images\Detection\AA\Dungeons\shop-shimmering-fragment.png"
+if !FileExist(path)
+FileInstall("Images\Detection\AA\Dungeons\shop-shimmering-fragment.png",path,1)
+id := "dungeon-shop-fragment-" y
+if !CrusadersDetection.definitions.Has(id)
+CrusadersDetection.definitions[id] := {name:"Shimmering Moon Fragment shop item",group:"Dungeons",file:"AA\Dungeons\shop-shimmering-fragment.png",kind:"Image",x:385,y:y+2,w:150,h:45,tolerance:12,frames:2,cx:0,cy:0,cw:0,ch:0}
+return CrusadersDetection.FindBitmap(bitmap,id) ? "Shimmering Moon Fragment" : ""
+}
+static SameShopNames(offers,expected) {
+counts := Map()
+for offer in offers
+counts[offer["name"]] := counts.Get(offer["name"],0)+1
+for name in expected {
+if !counts.Get(name,0)
+return false
+counts[name]--
+}
+return offers.Length=expected.Length
+}
+static ShopPrice(reader,bitmap,y,trace := 0) {
 wide := RegExReplace(reader.Read(bitmap,536,y+5,54,28,4),"[^0-9]","")
 tight := RegExReplace(reader.Read(bitmap,542,y+12,33,17,5),"[^0-9]","")
+if IsObject(trace)
+trace["wide"]:=wide,trace["tight"]:=tight
 if wide != "" && wide = tight
 return wide
 if wide!="" && tight!="" && Integer(wide)>0 && Integer(tight)>Integer(wide) && Integer(tight)<=Integer(wide)*1.75 {
@@ -20319,6 +22173,18 @@ if alternate=tight
 return tight
 }
 third := RegExReplace(reader.Read(bitmap,542,y+12,33,17,3),"[^0-9]","")
+if IsObject(trace)
+trace["third"]:=third
+focused := []
+for scale in [3,4,5] {
+value := RegExReplace(reader.Read(bitmap,538,y+9,30,18,scale),"[^0-9]","")
+focused.Push(value)
+if IsObject(trace)
+trace["focused" scale]:=value
+}
+if focused[1]!="" && focused[1]=focused[2] && focused[1]=focused[3]
+&& (focused[1]=wide || focused[1]=tight || focused[1]=third)
+return focused[1]
 if tight != "" && Integer(tight)=0 && wide != "" && third != "" && Integer(third)>Integer(wide) && Integer(third)<=Integer(wide)*1.75
 return third
 if tight != "" && tight = third {
@@ -20327,7 +22193,23 @@ return tight
 if Integer(tight)>Integer(wide) && Integer(tight)<=Integer(wide)*1.75
 return tight
 }
+alternate := RegExReplace(reader.Read(bitmap,536,y+5,54,28,3),"[^0-9]","")
+if wide != "" && alternate != "" && Integer(alternate)=Integer(wide)
 return wide
+if wide != ""
+for scale in [2,4,5] {
+alternate := RegExReplace(reader.Read(bitmap,537,y+7,32,23,scale),"[^0-9]","")
+if alternate != "" && Integer(alternate)=Integer(wide)
+return wide
+}
+if wide!="" {
+corroboration := RegExReplace(reader.Read(bitmap,535,y+10,34,17,3),"[^0-9]","")
+if IsObject(trace)
+trace["digitCrop"]:=corroboration
+if corroboration=wide
+return wide
+}
+return ""
 }
 static BossRoom(bitmap,x) {
 fill := 0, frame := 0
@@ -20344,9 +22226,36 @@ frame += ((c>>16)&255)>=45 && ((c>>8)&255)<15 && (c&255)<15
 }
 return fill>=60 && frame>=3
 }
-static VisibleShopOffers(bitmap) {
-count := 0
-for y in [205,259,313] {
+static ChestNotice(reader,bitmap) {
+readings := [],normal := 0,rare := 0
+for crop in [[115,390,565,135,2],[140,410,530,110,3],[140,375,530,110,3]] {
+text := reader.Read(bitmap,crop*),label := StrLower(RegExReplace(text,"[^A-Za-z]",""))
+readings.Push(text)
+if InStr(label,"notenoughrarechest") || InStr(label,"notenoughraretreasurechest")
+rare++
+else if InStr(label,"notenoughtreasurechest")
+normal++
+if normal>=2 || rare>=2
+break
+}
+return Map("normalEmpty",normal>0,"rareEmpty",rare>0,"emptyCorroborated",normal>=2 || rare>=2,"chestNotice",readings)
+}
+static ChestCount(reader,bitmap,y,trace := 0) {
+text := reader.Read(bitmap,371,y,38,30,5)
+if IsObject(trace)
+trace["primary"] := text
+if RegExMatch(text,"i)^\s*[x×]\s*(\d{1,6})\s*$",&amount)
+return Integer(amount[1])
+if !RegExMatch(text,"^\s*(\d{1,6})\s*$",&bare)
+return -1
+other := reader.Read(bitmap,368,y+2,38,24,4)
+if IsObject(trace)
+trace["alternate"] := other
+if RegExMatch(other,"i)^\s*[x×]?\s*(\d{1,6})\s*$",&check) && Integer(check[1])=Integer(bare[1])
+return Integer(bare[1])
+return -1
+}
+static ShopOfferVisible(bitmap,y) {
 yellow := 0
 loop 12 {
 px := 540+(A_Index-1)*4
@@ -20355,8 +22264,12 @@ c := this.Pixel(bitmap,px,y+8+(A_Index-1)*3)
 yellow += ((c>>16)&255)>170 && ((c>>8)&255)>110 && (c&255)<100
 }
 }
-count += yellow>=30
+return yellow>=30
 }
+static VisibleShopOffers(bitmap) {
+count := 0
+for y in [205,259,313]
+count += this.ShopOfferVisible(bitmap,y)
 return count
 }
 static EmptyShop(bitmap) {
@@ -20376,7 +22289,46 @@ static GreenPixel(bitmap,x,y) {
 c := this.Pixel(bitmap,x,y), r := (c>>16)&255, g := (c>>8)&255, b := c&255
 return g>130 && g>r*1.6 && g>b*1.4
 }
+static ReadDeath(reader,bitmap) {
+if !this.GreenPixel(bitmap,325,375) || !this.GreenPixel(bitmap,475,375)
+return 0
+heading := reader.Read(bitmap,255,205,300,65,3)
+label := StrLower(RegExReplace(heading,"[^A-Za-z]",""))
+imageTitle := false, title := InStr(label,"youdied")>0
+if !title {
+path := A_ScriptDir "\Images\Detection\AA\Dungeons\death-title.png"
+if !FileExist(path)
+FileInstall("Images\Detection\AA\Dungeons\death-title.png",path,1)
+if !CrusadersDetection.definitions.Has("dungeon-death-title")
+CrusadersDetection.definitions["dungeon-death-title"] := {name:"Dungeon You Died",group:"Dungeons",file:"AA\Dungeons\death-title.png",kind:"Image",x:220,y:195,w:360,h:90,tolerance:25,frames:2,cx:0,cy:0,cw:0,ch:0}
+imageTitle := CrusadersDetection.FindBitmap(bitmap,"dungeon-death-title"), title := imageTitle
+}
+if !title
+return 0
+button := reader.Read(bitmap,310,360,185,48,3)
+depth := reader.Read(bitmap,250,320,300,35,3)
+if !imageTitle && !InStr(StrLower(button),"continue") && !InStr(StrLower(RegExReplace(depth,"[^A-Za-z]","")),"depthreached")
+return 0
+lobbyHud := reader.Read(bitmap,720,430,80,150,3)
+wave := reader.Read(bitmap,140,60,220,65,3)
+inLobby := RegExMatch(lobbyHud,"i)\bAreas\b") && !RegExMatch(wave,"i)\bWave\s*\d+")
+return Map("kind","dungeon-died","inLobby",!!inLobby,"continueX",400,"continueY",383,"closeX",670,"closeY",147,"text",heading "`n" depth "`n" button,"ownerWait",0)
+}
+static ReadReturnLobby(reader,bitmap) {
+green := 0
+for point in [[240,105],[380,105],[240,132],[380,132]]
+green += this.GreenPixel(bitmap,point[1],point[2])
+if green<2
+return 0
+left := AAMansionRoute.CleanMapText(reader.Read(bitmap,220,95,180,55,3))
+right := AAMansionRoute.CleanMapText(reader.Read(bitmap,400,95,185,55,3))
+if InStr(left,"returntolobby") && InStr(right,"opendungeon")
+return Map("kind","dungeon-return-lobby","returnX",312,"returnY",120,"text",left " " right,"ownerWait",0)
+return 0
+}
 static FastMenu(reader,bitmap) {
+if (death := this.ReadDeath(reader,bitmap))
+return death
 if this.GreenPixel(bitmap,270,335) && this.GreenPixel(bitmap,370,335) {
 text := reader.Read(bitmap,235,240,335,125,2), result := this.Parse(text)
 if result["kind"] = "dungeon-finish"
@@ -20391,6 +22343,9 @@ if this.GreenPixel(bitmap,440,394) && this.GreenPixel(bitmap,540,394) {
 text := reader.Read(bitmap,150,175,210,65,2), result := this.Parse(text)
 if result["kind"] = "dungeon-shop" || result["kind"] = "dungeon-chests"
 return result
+for pair in [["chests-title","dungeon-chests"],["shop-title","dungeon-shop"]]
+if CrusadersDetection.FindBitmap(bitmap,"dungeon-" pair[1])
+return Map("kind",pair[2],"text",text,"ownerWait",0)
 }
 accept := this.Pixel(bitmap,375,394), deny := this.Pixel(bitmap,550,394)
 if ((accept>>16)&255)>150 && ((accept>>8)&255)>100 && (accept&255)<80 && ((deny>>16)&255)>160 && ((deny>>8)&255)<80 && (deny&255)<80 {
@@ -20417,7 +22372,7 @@ if this.framePixels && bitmap=this.frameBitmap && x>=0 && x<800 && y>=0 && y<600
 return NumGet(this.framePixels,y*this.frameStride+x*4,"UInt")
 return Gdip_GetPixel(bitmap,x,y)
 }
-static Read(reader,bitmap,transition := false,fastBoard := false,seed := 0) {
+static Read(reader,bitmap,transition := false,fastBoard := false,seed := 0,readShopMoney := true) {
 previous := [this.framePixels,this.frameBitmap,this.frameStride]
 this.framePixels := 0, this.frameBitmap := 0, this.frameStride := 0
 if Gdip_GetImageWidth(bitmap)=800 && Gdip_GetImageHeight(bitmap)=600 && Gdip_LockBits(bitmap,0,0,800,600,&stride,&pixels,&bits,1)=0 {
@@ -20429,12 +22384,12 @@ this.framePixels := copy, this.frameBitmap := bitmap, this.frameStride := stride
 }
 } finally Gdip_UnlockBits(bitmap,&bits)
 }
-try return this.ReadFrame(reader,bitmap,transition,fastBoard,seed)
+try return this.ReadFrame(reader,bitmap,transition,fastBoard,seed,readShopMoney)
 finally {
 this.framePixels := previous[1], this.frameBitmap := previous[2], this.frameStride := previous[3]
 }
 }
-static ReadFrame(reader,bitmap,transition := false,fastBoard := false,seed := 0) {
+static ReadFrame(reader,bitmap,transition := false,fastBoard := false,seed := 0,readShopMoney := true) {
 if transition {
 scan := AATransitionVision.Read(reader,bitmap,CrusadersCatalog.Maps["Dungeons"])
 if scan["kind"] != "none" && (scan["context"] = "dungeon" || scan["context"] = "alternate-loading") {
@@ -20445,6 +22400,8 @@ if scan["context"] != ""
 return Map("kind","none","text",scan["text"],"ownerWait",0)
 return this.ActiveRoom(reader,bitmap)
 }
+if fastBoard && (death := this.ReadDeath(reader,bitmap))
+return death
 if fastBoard {
 text := reader.Read(bitmap,280,175,215,40,4)
 result := this.Parse(text)
@@ -20489,29 +22446,41 @@ if !initial && button {
 close := this.PurpleClose(bitmap,button[1])
 if close {
 result["closeX"] := close[1], result["closeY"] := close[2]
-result["curseRisk"] := this.CurseRisk(reader.Read(bitmap,button[1]-67,315,138,65,4))
+result["curseText"] := reader.Read(bitmap,button[1]-67,315,138,65,4)
+result["curseRisk"] := this.CurseRisk(result["curseText"])
 }
 }
 }
 if result["kind"] = "dungeon-shop" {
-result["offers"] := [], result["empty"] := this.EmptyShop(bitmap), result["visibleOffers"] := this.VisibleShopOffers(bitmap)
+result["unreadable"] := [], result["offers"] := [],result["shopRows"] := [], result["empty"] := this.EmptyShop(bitmap), result["visibleOffers"] := this.VisibleShopOffers(bitmap)
+if readShopMoney {
 hoardText := RegExReplace(reader.Read(bitmap,176,411,43,28,4),"[^0-9]","")
 result["hoard"] := hoardText != "" ? Integer(hoardText) : -1
+}
 for y in [205,259,313] {
+if !this.ShopOfferVisible(bitmap,y)
+continue
 nameText := reader.Read(bitmap,412,y,121,15,4)
-label := StrLower(RegExReplace(nameText,"[^A-Za-z]","")), item := ""
-for known in StrSplit(this.Items,"|") {
-key := StrLower(RegExReplace(known,"[^A-Za-z]",""))
-if label = key || label = "t" key || label = "x" key
-item := known
+retry := reader.Read(bitmap,407,y-5,130,22,5)
+primary := this.ShopItemName(nameText), alternate := this.ShopItemName(retry)
+conflict := primary!="" && alternate!="" && primary!=alternate
+item := conflict ? "" : primary!="" ? primary : alternate
+imageItem := ""
+if item="" && !conflict
+item := imageItem := this.ShopImageItem(bitmap,y)
+row := Map("row",((y-205)//54+1),"rawName",nameText,"retryName",retry,"item",item,"nameConflict",conflict,"imageItem",imageItem)
+priceText := ""
+if readShopMoney {
+priceTrace := Map(),priceText := this.ShopPrice(reader,bitmap,y,priceTrace)
+row["price"]:=priceText,row["priceOCR"]:=priceTrace
 }
-if item = "" {
-variants := Map("hinjabolt","Ninja Belt","ninjabolt","Ninja Belt","spooduboots","Speedy Boots","spoodyboots","Speedy Boots","bootsspoody","Speedy Boots","elfbou","Elf Bow","bootsspoodu","Speedy Boots","hagocoat","Mage Coat","ninbloclosk","Nimble Cloak","hinbloclosk","Nimble Cloak","hinblocloak","Nimble Cloak","hagocost","Mage Coat","magocost","Mage Coat","hinblclosk","Nimble Cloak","bou","Bow","suord","Sword","goldonbranch","Golden Branch","ninblocloak","Nimble Cloak","ninblcloak","Nimble Cloak","icodagger","Ice Dagger","amo","Axe","hackofrichos","Mask of Riches","thackofrichos","Mask of Riches","longbou","Longbow","icodaggor","Ice Dagger","icedaggor","Ice Dagger","aho","Axe","auroushaul","Aureus Maul","scinitar","Scimitar","ninblclosk","Nimble Cloak","hsckofrichos","Mask of Riches","thsckofrichos","Mask of Riches","xauroushaul","Aureus Maul")
-item := variants.Get(label,"")
-}
-priceText := this.ShopPrice(reader,bitmap,y)
-if item != "" && priceText != ""
-result["offers"].Push(Map("name",item,"price",Integer(priceText),"x",563,"y",y+20))
+result["shopRows"].Push(row)
+if item != "" && (!readShopMoney || priceText != "") {
+offer := Map("name",item,"x",563,"y",y+20)
+if readShopMoney
+offer["price"]:=Integer(priceText)
+result["offers"].Push(offer)
+} else result["unreadable"].Push("Row " row["row"] ": " (conflict ? "conflicting item names: " primary " / " alternate : item="" ? "item name unreadable" : "price unreadable"))
 }
 result["continue"] := InStr(StrLower(reader.Read(bitmap,420,390,152,35,3)),"continue") > 0
 }
@@ -20520,39 +22489,38 @@ buttons := StrLower(RegExReplace(reader.Read(bitmap,355,385,255,48,3),"[^A-Za-z]
 result["buttons"] := InStr(buttons,"accept") && InStr(buttons,"deny")
 }
 if result["kind"] = "dungeon-chests" {
+result["chestRows"] := []
 for row in [["normal",260],["rare",320]] {
-countText := reader.Read(bitmap,371,row[2],38,30,5)
-result[row[1] "Count"] := RegExMatch(countText,"i)[x×]\s*(\d+)",&amount) ? Integer(amount[1]) : -1
+countTrace := Map()
+result[row[1] "Count"] := this.ChestCount(reader,bitmap,row[2],countTrace)
+result["chestRows"].Push(Map("type",row[1],"count",result[row[1] "Count"],"countOCR",countTrace))
 }
-notice := StrLower(RegExReplace(reader.Read(bitmap,140,435,530,45,3),"[^A-Za-z]",""))
-result["normalEmpty"] := InStr(notice,"notenoughtreasurechest") > 0
-result["rareEmpty"] := InStr(notice,"notenoughrarechest") > 0
+for key,value in this.ChestNotice(reader,bitmap)
+result[key] := value
 result["continue"] := InStr(StrLower(reader.Read(bitmap,400,389,170,40,3)),"continue") > 0
 }
 if result["kind"] = "dungeon-board" {
 result["cards"] := []
+result["cardChecks"] := []
 heartsText := fastBoard ? "" : reader.Read(bitmap,210,385,80,40,4)
 if RegExMatch(heartsText,"([0-5])\s*/\s*5",&life)
 result["hearts"] := Integer(life[1])
 for x in [202,280,357,435,512] {
+if !this.CardAvailable(bitmap,x) {
+result["cardChecks"].Push(Map("x",x,"rejected","fewer than 3 bright frame corners"))
+continue
+}
 difficulty := this.RoomDifficulty(bitmap,x)
 boss := difficulty = "" && this.BossRoom(bitmap,x)
+result["cardChecks"].Push(Map("x",x,"difficulty",difficulty,"boss",!!boss,"frameBright",true))
 if difficulty = "" && !boss
 continue
 cardText := this.ReadCardText(reader,bitmap,x,boss ? 3 : difficulty = "Purple Room" ? 3 : 4)
 rewards := this.CardRewards(cardText)
-if difficulty = "Purple Room" {
-i := rewards.Length
-while i>=1 {
-if rewards[i] = "Curse"
-rewards.RemoveAt(i)
-i--
-}
-}
 if boss {
 if !RegExMatch(StrLower(cardText),"boss|8066|b066")
 continue
-result["cards"].Push(Map("category","Boss","difficulty","Boss","rewards",["Boss"],"x",x+43,"y",360))
+result["cards"].Push(Map("category","Boss","difficulty","Boss","available",true,"rewards",["Boss"],"x",x+43,"y",360))
 continue
 }
 category := difficulty
@@ -20578,18 +22546,145 @@ result["cards"].Push(Map("category",category,"difficulty",difficulty,"rewards",r
 return result
 }
 }
+class AAChestDebug {
+__New(io) {
+this.io := io,this.phase := "detect",this.chest := "normal",this.frames := 0,this.signature := "",this.due := 0,this.deadline := Adventures.Tick()+30000
+}
+Act(x,y,next,now,wait := 500) {
+this.io.Click(x,y)
+if next="reward"
+this.openingCounted := false
+this.phase := next,this.due := now+wait,this.deadline := now+45000,this.frames := 0,this.signature := ""
+}
+Handle(scan,now) {
+if this.phase="done" || now<this.due
+return
+if now>this.deadline
+throw Error("Chest debug timed out; phase=" this.phase "; chest=" this.chest "; " AADungeons.Diagnostic(scan))
+kind := scan["kind"]
+if HasMethod(this.io,"ObserveChests")
+this.io.ObserveChests(scan)
+empty := this.chest="normal" ? scan.Get("normalEmpty",false) : scan.Get("rareEmpty",false) || scan.Get("normalEmpty",false)
+signature := kind "|" empty "|" scan.Get("continue",false) "|" scan.Get("finishX",0)
+this.frames := signature=this.signature ? this.frames+1 : 1,this.signature := signature
+if this.frames<2 && !(this.phase="reward" && kind="dungeon-chests" && empty && scan.Get("emptyCorroborated",false))
+return
+if this.phase="finish" {
+if kind="dungeon-finish" && scan.Has("finishX") {
+this.Act(scan["finishX"],scan["finishY"],"done",now)
+this.io.Log("Chest debug complete: Finish clicked; no further actions")
+}
+return
+}
+if this.phase="reward" || this.phase="reward-chain" {
+if kind="dungeon-chests" && empty {
+if this.chest="normal" {
+this.chest := "rare",this.phase := "clear-common",this.deadline := now+30000
+this.io.Log("Chest debug: common empty popup confirmed; waiting for it to clear before rare test")
+} else this.Act(485,407,"finish",now)
+this.frames := 0,this.signature := ""
+} else if kind="reward" {
+if !this.HasOwnProp("openingCounted") || !this.openingCounted {
+this.openingCounted := true
+if HasMethod(this.io,"ChestOpened")
+this.io.ChestOpened(this.chest)
+}
+if !this.io.Reward()
+throw Error("Chest reward webhook could not be queued; reward left open")
+this.Act(400,300,"reward-chain",now,1500)
+}
+if this.phase="reward-chain" && kind="dungeon-chests" && !empty
+this.phase := "menu"
+else return
+}
+if kind!="dungeon-chests" || !scan.Get("continue",false)
+return
+if this.phase="clear-common" {
+if scan.Get("normalEmpty",false) || scan.Get("rareEmpty",false)
+return
+this.phase := "menu"
+}
+if this.phase="detect" || this.phase="menu" {
+this.io.Log("Chest debug: opening " this.chest " chest")
+this.Act(565,this.chest="normal" ? 259 : 319,"reward",now,350)
+}
+}
+}
 class AADungeonRun {
 __New(runner) {
 this.runner := runner, this.phase := "board", this.depth := 0, this.hearts := -1
 this.candidate := "", this.frames := 0, this.minSerial := 0, this.lastAction := 0
 this.roomWins := 0, this.roomLosses := 0, this.completed := 0
 }
-RequestStage() => this.HasOwnProp("chestPending") && this.chestPending ? "dungeon-chest-reward" : this.phase = "loading" ? "dungeon-transition" : (this.phase = "board" || this.phase = "await-entry-board") ? "dungeon-board" : "dungeon"
+RequestStage() => (this.phase = "death-returning" || this.phase = "await-death-exit") ? "dungeon-death-exit" : this.HasOwnProp("chestPending") && this.chestPending ? "dungeon-chest-reward" : this.phase = "loading" ? "dungeon-transition" : (this.phase = "board" || this.phase = "await-entry-board") ? "dungeon-board" : "dungeon"
+CheckDeathExit() {
+if (this.phase != "await-death-exit" && this.phase != "death-returning" && this.phase != "await-lobby-death-continue") || !this.HasOwnProp("deathWaitStarted")
+return false
+if Adventures.Tick()-this.deathWaitStarted<(this.phase = "death-returning" ? 120000 : 15000)
+return false
+this.RejoinDiagnostic("Death exit timed out; expected " (this.phase = "death-returning" ? "confirmed lobby after Return to lobby" : this.phase = "await-lobby-death-continue" ? "Enter Dungeon after Continue" : "Return to lobby after closing death X")
+"; closeAttempts=" this.GetAttempts("deathAttempts") "; returnAttempts=" this.GetAttempts("deathReturnAttempts"))
+return true
+}
+GetAttempts(name) => this.HasOwnProp(name) ? this.%name% : 0
+RejoinDiagnostic(reason) {
+if this.runner.app.HasOwnProp("owner") && this.runner.app.owner.HasOwnProp("dungeonBossDebug") && this.runner.app.owner.dungeonBossDebug {
+this.runner.app.SaveDungeonErrorReport("L boss test failed: " reason)
+this.runner.app.owner.dungeonBossDebug := false,this.runner.app.owner.dungeonCycleDebug := false
+this.runner.Pause("L boss test failed; Error Report saved")
+return
+}
+detail := this.HasOwnProp("lastObservation") ? this.lastObservation : "No completed scan received"
+this.runner.app.Log("Dungeon recovery: " reason "; phase=" this.phase "; currentDepth=" this.depth "; " detail "; rejoining lobby")
+if HasMethod(this.runner.app,"SaveDungeonErrorReport")
+this.runner.app.SaveDungeonErrorReport("Dungeon recovery: " reason "; phase=" this.phase "; currentDepth=" this.depth "; " detail)
+this.phase := "rejoining"
+this.runner.app.RejoinNextMode(true)
+}
 ContinueShop() {
 if this.phase != "shop-purchased" || Adventures.Tick() < this.runner.due
 return
+this.phase := "shop-verifying", this.frames := 0, this.candidate := ""
+this.minSerial := this.runner.worker.serial+1
+this.runner.due := 0
+}
+LeaveShop(message) {
 this.Click(495,407), this.phase := "await-shop-return"
-this.runner.app.Log("Shop: one purchase attempted; timed Continue click")
+this.runner.app.Log(message)
+}
+ObserveShopTimeout(scan,now) {
+if this.phase="await-shop-return" || this.phase="shop-purchased"
+return false
+if this.phase!="shop-ready" && this.phase!="shop-verifying" {
+this.shopPurchases := 0,this.shopAttempted := Map()
+this.shopUnreadableSince := 0,this.emptySince := 0,this.lastShopIssue := ""
+this.shopContinueFrames := 0,this.phase := "shop-ready"
+}
+this.shopContinueFrames := scan.Get("continue",false) ? this.GetAttempts("shopContinueFrames")+1 : 0
+if this.phase="shop-verifying" {
+if now-this.shopPending.at>=8000 && this.shopContinueFrames>=2 {
+reason := "Shop: purchase unconfirmed for " this.shopPending.name "; expected purchased name absent, fewer rows, remaining names=" Jxon_Dump(this.shopPending.remainingNames) "; " AADungeons.Diagnostic(scan) "; continuing without another purchase click"
+if HasMethod(this.runner.app,"SaveDungeonErrorReport")
+this.runner.app.SaveDungeonErrorReport(reason)
+this.LeaveShop(reason)
+return true
+}
+return false
+}
+offers := scan.Get("offers",[])
+if offers.Length=scan.Get("visibleOffers",-1) && (offers.Length>0 || scan.Get("empty",false)) {
+this.shopUnreadableSince := 0
+return false
+}
+if !this.shopUnreadableSince
+this.shopUnreadableSince := now
+if now-this.shopUnreadableSince<8000 || this.shopContinueFrames<2
+return false
+reason := "Shop offers stayed unreadable: recognized " offers.Length "/" scan.Get("visibleOffers",3) " item names; " AADungeons.Diagnostic(scan)
+if HasMethod(this.runner.app,"SaveDungeonErrorReport")
+this.runner.app.SaveDungeonErrorReport(reason)
+this.LeaveShop(reason "; continuing without a purchase")
+return true
 }
 Handle(scan) {
 r := this.runner, now := Adventures.Tick(), kind := scan["kind"]
@@ -20597,30 +22692,96 @@ if this.phase = "rejoining"
 return
 if scan.Get("id",0) < this.minSerial || now < r.due
 return
+this.lastObservation := AADungeons.Diagnostic(scan)
+if r.app.HasOwnProp("owner") && r.app.owner.HasOwnProp("dungeonBossDebug") && r.app.owner.dungeonBossDebug {
+owner := r.app.owner
+if kind="dungeon-chests" {
+if !owner.dungeonBossChestQueued {
+owner.dungeonBossChestQueued := true
+SetTimer(ObjBindMethod(owner,"BeginBossChestTest"),-1)
+}
+return
+}
+if kind="dungeon-died" || kind="dungeon-entry-menu" {
+this.RejoinDiagnostic("L boss test ended before chest menu; expected successful boss result")
+return
+}
+}
+if HasMethod(r.app,"ObserveDungeonChests")
+r.app.ObserveDungeonChests(scan)
 if kind = "dungeon-died" {
-signature := "dungeon-died"
+signature := "dungeon-died|" scan.Get("inLobby",false)
 this.frames := this.candidate = signature ? this.frames+1 : 1, this.candidate := signature
 if this.frames < 2
 return
+if scan.Get("inLobby",false) {
+if this.phase != "await-lobby-death-continue" {
+this.deathWaitStarted := now, this.deathLobbyAttempts := 0, this.deathLobbyLast := 0
+}
+if this.deathLobbyAttempts>=3 || (this.deathLobbyLast && now-this.deathLobbyLast<1500)
+return
+this.chestPending := false, this.chestsContinued := false
+this.Click(scan.Get("continueX",400),scan.Get("continueY",383))
+this.deathLobbyAttempts++, this.deathLobbyLast := now
+this.phase := "await-lobby-death-continue"
+r.app.Log("Dungeon lobby death summary: Continue clicked; waiting for Enter Dungeon")
+return
+}
+if !this.HasOwnProp("deathWaitStarted") {
+this.deathWaitStarted := now, this.deathAttempts := 0, this.deathLastClick := 0
+}
+if this.deathAttempts>=3 || (this.deathLastClick && now-this.deathLastClick<1500)
+return
 this.chestPending := false
-this.Click(400,383)
-this.chestsContinued := true, this.phase := "board"
-r.app.Log("Dungeon lives exhausted; continuing from death screen")
+this.Click(scan.Get("closeX",670),scan.Get("closeY",147))
+this.deathAttempts++, this.deathLastClick := now
+this.chestsContinued := true, this.phase := "await-death-exit"
+r.app.Log("Dungeon lives exhausted: close X attempt " this.deathAttempts "; confirming screen closes")
 return
 }
 if this.HasOwnProp("chestPending") && this.chestPending {
-if now > this.chestDeadline
-throw Error("Chest reward did not complete. Check the reward screen, then resume.")
+if now > this.chestDeadline {
+this.RejoinDiagnostic("Chest reward timed out after 45 seconds; expected reward dismissal followed by the chest menu; rewardDismissed=" this.chestRewardDismissed)
+return
+}
 if kind = "reward" {
 if now < this.rewardNotBefore
 return
+if !this.GetAttempts("chestOpeningCounted") && this.HasOwnProp("chestType") {
+this.chestOpeningCounted := true
+if HasMethod(r.app,"CountDungeonChest")
+r.app.CountDungeonChest(this.chestType)
+}
+if !this.GetAttempts("chestRewardReported") {
+this.chestRewardReported := true
+if HasMethod(r.app,"SendDungeonReward") {
+try r.app.SendDungeonReward()
+catch Error as err
+r.app.Log("Dungeon reward webhook failed: " err.Message)
+}
+}
 this.Click(400,300)
-this.chestRewardDismissed := true
+this.chestRewardDismissed := true,this.chestRewardReported := false
 this.rewardNotBefore := Adventures.Tick()+1500
 r.due := this.rewardNotBefore
-r.app.Log("Dismissing chest reward; waiting for chest menu")
+r.app.Log("Dismissing chest reward; checking for another reward or chest menu")
 return
 }
+pendingType := this.HasOwnProp("chestType") ? this.chestType : ""
+if kind="dungeon-chests" && pendingType!="" && scan.Get(pendingType "Empty",false) {
+this.chestEmptyFrames := this.GetAttempts("chestEmptyFrames")+1
+if this.chestEmptyFrames<2 && !scan.Get("emptyCorroborated",false)
+return
+this.chestPending := false,this.chestRewardDismissed := true
+if pendingType="normal" {
+this.commonChestsExhausted := true
+r.app.Log("No more common chests: confirmed popup; switching to rare chests")
+} else {
+this.rareChestsExhausted := true
+r.app.Log("No more rare chests: confirmed popup; continuing Dungeon")
+}
+this.candidate := "",this.frames := 0
+} else this.chestEmptyFrames := 0
 if !this.chestRewardDismissed
 return
 if kind = "dungeon-result" {
@@ -20631,12 +22792,69 @@ if kind != "dungeon-chests"
 return
 this.chestPending := false
 }
+if kind="dungeon-shop" {
+if this.ObserveShopTimeout(scan,now)
+return
+} else this.shopContinueFrames := 0
+if kind="dungeon-chests" {
+unknown := ""
+for row in [["normal","DungeonNormalChests"],["rare","DungeonRareChests"]] {
+allowed := (r.app.model.preferences["DungeonNormalChests"]="Both" || (row[1]="normal" && r.app.model.preferences["DungeonNormalChests"]="Checkpoint")) || (this.HasOwnProp("bossCleared") && this.bossCleared)
+if allowed && !scan.Get(row[1] "Empty",false) && scan.Get(row[1] "Count",-1)<0
+unknown .= (unknown!="" ? ", " : "") row[1]
+}
+if unknown!="" {
+if !this.GetAttempts("chestUnreadableSince")
+this.chestUnreadableSince := now
+if now-this.chestUnreadableSince>=20000 {
+this.RejoinDiagnostic("Chest counts unreadable for 20 seconds: " unknown "; expected a confirmed count before opening chests")
+return
+}
+} else this.chestUnreadableSince := 0
+} else this.chestUnreadableSince := 0
 signature := kind "|" scan.Get("map","") "|" scan.Get("depth",0)
 if kind = "dungeon-board"
 signature .= "|" Jxon_Dump(scan.Get("cards",[]))
+if kind = "dungeon-shop" {
+for offer in scan.Get("offers",[])
+signature .= "|" offer["name"] "@" offer["x"] "," offer["y"]
+signature .= "|" scan.Get("visibleOffers",0) "|" scan.Get("empty",false) "|" scan.Get("continue",false)
+}
+if kind = "dungeon-room"
+signature .= "|" scan.Get("enterX",0) "|" scan.Get("enterY",0)
+. "|" scan.Get("closeX",0) "|" scan.Get("closeY",0) "|" scan.Get("curseRisk",2)
+if kind = "dungeon-entry-menu"
+signature .= "|" scan.Get("inLobby",false) "|" scan.Get("inMatch",false)
+. "|" scan.Get("enterX",0) "|" scan.Get("enterY",0)
+if kind = "dungeon-chests"
+signature .= "|" scan.Get("normalCount",-1) "|" scan.Get("rareCount",-1)
+. "|" scan.Get("normalEmpty",false) "|" scan.Get("rareEmpty",false) "|" scan.Get("continue",false)
+if kind = "dungeon-shrine"
+signature .= "|" scan.Get("buttons",false)
 this.frames := signature = this.candidate ? this.frames+1 : 1, this.candidate := signature
 if this.frames < 2
 return
+if kind != "none" && kind != "dungeon-return-lobby" && this.phase != "death-returning" && this.HasOwnProp("deathWaitStarted") {
+this.DeleteProp("deathWaitStarted")
+r.app.Log("Dungeon death screen closed")
+}
+if kind = "dungeon-return-lobby" && this.HasOwnProp("deathWaitStarted") {
+if !this.HasOwnProp("deathReturnAttempts")
+this.deathReturnAttempts := 0, this.deathReturnLast := 0
+if this.deathReturnAttempts>=3 || (this.deathReturnLast && now-this.deathReturnLast<2000)
+return
+this.Click(scan["returnX"],scan["returnY"])
+this.deathReturnAttempts++, this.deathReturnLast := now
+this.phase := "death-returning", this.deathWaitStarted := now
+r.app.Log("Dungeon death: Return to lobby clicked; waiting for confirmed lobby")
+return
+}
+if kind = "lobby" && this.phase = "death-returning" {
+this.phase := "rejoining"
+r.app.Log("Dungeon death: lobby confirmed; continuing Dungeon navigation")
+r.app.ResumeDungeonLobby()
+return
+}
 if kind = "dungeon-finish" {
 if this.phase != "await-finish-entry" && scan.Has("finishX") {
 this.Click(scan["finishX"],scan["finishY"]), this.phase := "await-finish-entry", this.chestsContinued := true
@@ -20652,9 +22870,9 @@ r.app.Continuation()
 r.app.RejoinNextMode(true)
 return
 }
-if kind = "dungeon-entry-menu" && this.phase = "board" && this.depth = 0 && scan.Get("inLobby",false) && scan.Has("enterX") {
+if kind = "dungeon-entry-menu" && ((this.phase = "board" && this.depth = 0) || this.phase = "await-lobby-death-continue") && scan.Get("inLobby",false) && scan.Has("enterX") {
 this.Click(scan["enterX"],scan["enterY"])
-this.phase := "await-entry-board"
+this.phase := "await-entry-board", this.depth := 0
 r.app.Log("Starting new Dungeon run; waiting for route board")
 return
 }
@@ -20666,9 +22884,7 @@ this.phase := "combat"
 r.Change("AwaitVote",120000)
 r.app.Log("Dungeon transition was missed; confirmed active room uses previously identified map: " name)
 } else {
-this.phase := "rejoining"
-r.app.Log("Dungeon combat already started without a confirmed room map; rejoining lobby to recover preserved progress")
-r.app.RejoinNextMode(true)
+this.RejoinDiagnostic("Wave counter confirms combat, but neither a recognized transition map nor a validated room-popup map was available")
 }
 return
 }
@@ -20683,6 +22899,35 @@ if this.phase = "shop-purchased" {
 this.ContinueShop()
 return
 }
+if this.phase = "shop-verifying" {
+pending := this.shopPending, stillVisible := false
+for offer in scan.Get("offers",[])
+if offer["name"] = pending.name
+stillVisible := true
+offers := scan.Get("offers",[]), visible := scan.Get("visibleOffers",-1)
+if !stillVisible && visible>=0 && visible=pending.visibleOffers-1 && offers.Length=visible && AADungeons.SameShopNames(offers,pending.remainingNames) && (visible>0 || scan.Get("empty",false)) {
+this.shopPurchases++
+r.app.Log("Shop: purchase confirmed (" this.shopPurchases ") - " pending.name)
+limit := r.app.model.preferences.Get("DungeonShopLimit","2")
+limit := limit="1" ? 1 : limit="3" ? 3 : 2
+if this.shopPurchases>=limit {
+this.LeaveShop("Shop: purchase limit reached; continuing")
+return
+}
+this.phase := "shop-ready"
+if scan.Get("empty",false) && scan.Get("offers",[]).Length = 0 {
+this.LeaveShop("Shop: all offers purchased; continuing")
+return
+}
+} else {
+if stillVisible && visible=pending.visibleOffers && offers.Length=visible && now-pending.at>=2000 {
+this.phase := "shop-ready"
+r.app.Log("Shop: item stayed available after one attempt: " pending.name "; trying next priority")
+} else {
+return
+}
+}
+}
 if scan.Get("empty",false) && scan.Get("continue",false) && scan.Get("offers",[]).Length = 0 {
 if !this.HasOwnProp("emptySince") || !this.emptySince
 this.emptySince := now
@@ -20693,13 +22938,16 @@ r.app.Log("Shop: confirmed empty; continuing")
 return
 }
 this.emptySince := 0
-offers := scan.Get("offers",[]), hoard := scan.Get("hoard",-1)
-if !offers.Length || offers.Length != scan.Get("visibleOffers",3) || hoard < 0 {
+offers := scan.Get("offers",[])
+if !offers.Length || offers.Length != scan.Get("visibleOffers",3) {
 if !this.HasOwnProp("shopUnreadableSince") || !this.shopUnreadableSince
 this.shopUnreadableSince := now
-if now-this.shopUnreadableSince>=8000 && scan.Get("continue",false) {
-this.Click(495,407), this.phase := "await-shop-return"
-r.app.Log("Shop offers stayed unreadable; continuing without a purchase")
+reason := "recognized " offers.Length "/" scan.Get("visibleOffers",3) " item names"
+for issue in scan.Get("unreadable",[])
+reason .= "; " issue
+if reason != this.lastShopIssue {
+this.lastShopIssue := reason
+r.app.Log("Shop: retrying detection - " reason)
 }
 return
 }
@@ -20707,7 +22955,7 @@ this.shopUnreadableSince := 0
 best := 0
 for name in AADungeons.Ordered(r.app.model.preferences["DungeonShopPriority"],AADungeons.Items) {
 for offer in offers
-if offer["name"] = name && offer["price"] <= hoard && offer["price"] > 0 {
+if offer["name"] = name && !this.shopAttempted.Has(name) {
 best := offer
 break
 }
@@ -20716,11 +22964,19 @@ break
 }
 if best {
 this.Click(best["x"],best["y"]), this.phase := "shop-purchased"
-r.due := Adventures.Tick()+1500
-r.app.Log("Shop: buying one priority item: " best["name"])
+this.shopAttempted[best["name"]] := true
+remainingNames := [],removed := false
+for offer in offers {
+if !removed && offer["name"]=best["name"]
+removed := true
+else remainingNames.Push(offer["name"])
+}
+this.shopPending := {name:best["name"],remainingNames:remainingNames,visibleOffers:scan.Get("visibleOffers",offers.Length),at:now}
+r.due := Adventures.Tick()+500
+r.app.Log("Shop: buying priority item: " best["name"])
 } else {
 this.Click(495,407), this.phase := "await-shop-return"
-r.app.Log("Shop: no affordable priority item; continuing")
+r.app.Log("Shop: all recognized priority items attempted; continuing")
 }
 return
 }
@@ -20733,20 +22989,28 @@ r.app.Log("Shrine: " (action = "Accept" ? "Accept" : "Deny") "; waiting for Dung
 return
 }
 if kind = "dungeon-chests" {
+if scan.Get("normalEmpty",false) {
+this.commonChestsExhausted := true
+r.app.Log("No more common chests: confirmed popup; using rare chest row")
+}
+if scan.Get("rareEmpty",false)
+this.rareChestsExhausted := true
 if !scan.Get("continue",false)
 return
 for row in [["normal",259],["rare",319]] {
-allowed := r.app.model.preferences["DungeonNormalChests"] = "Checkpoint" || (this.HasOwnProp("bossCleared") && this.bossCleared)
+allowed := (r.app.model.preferences["DungeonNormalChests"]="Both" || (row[1]="normal" && r.app.model.preferences["DungeonNormalChests"]="Checkpoint")) || (this.HasOwnProp("bossCleared") && this.bossCleared)
+if (row[1]="normal" && this.GetAttempts("commonChestsExhausted")) || (row[1]="rare" && this.GetAttempts("rareChestsExhausted"))
+continue
 count := scan.Get(row[1] "Count",-1)
 if allowed && !scan.Get(row[1] "Empty",false) {
 if count < 0
 return
 if count > 0 {
 this.Click(565,row[2])
-this.chestPending := true, this.chestRewardDismissed := false
+this.chestPending := true, this.chestRewardDismissed := false,this.chestType := row[1],this.chestEmptyFrames := 0,this.chestRewardReported := false,this.chestOpeningCounted := false
 this.rewardNotBefore := Adventures.Tick()+2000
 this.chestDeadline := Adventures.Tick()+45000
-r.due := this.rewardNotBefore
+r.due := Adventures.Tick()+350
 r.app.Log("Opening " row[1] " chest")
 return
 }
@@ -20763,32 +23027,10 @@ this.Click(488,121), this.phase := "board"
 r.app.Log("Opening Dungeon route board")
 return
 }
-if this.phase = "purple-inspect" {
-if kind != "dungeon-room" || !scan.Has("enterX") || !scan.Has("closeX")
-return
-this.purpleScores.Push(scan.Get("curseRisk",2))
-this.Click(scan["closeX"],scan["closeY"]), this.phase := "purple-return"
-return
-}
-if this.phase = "purple-return" {
-if kind != "dungeon-board"
-return
-if scan.Get("depth",0) != this.depth
-throw Error("Dungeon board changed during purple room inspection.")
-if this.purpleScores.Length < this.purpleOptions.Length {
-card := this.purpleOptions[this.purpleScores.Length+1]
-this.Click(card["x"],card["y"]), this.phase := "purple-inspect"
-} else {
-bestIndex := 1
-for index,risk in this.purpleScores
-if risk < this.purpleScores[bestIndex]
-bestIndex := index
-card := this.purpleOptions[bestIndex]
-this.Click(card["x"],card["y"]), this.phase := "details"
-}
-return
-}
 if kind = "dungeon-board" && this.phase != "loading" {
+this.commonChestsExhausted := false,this.rareChestsExhausted := false,this.chestEmptyFrames := 0
+if this.phase = "details" && now-this.lastAction<2000
+return
 this.depth := scan["depth"]
 if this.depth < 1 || this.depth > 20
 throw Error("Dungeon depth is unreadable. Check the route board.")
@@ -20807,39 +23049,15 @@ if !best {
 if !this.HasOwnProp("unreadableBoardSince") || !this.unreadableBoardSince
 this.unreadableBoardSince := now
 if now-this.unreadableBoardSince>=20000 {
-this.phase := "rejoining"
-r.app.Log("Dungeon room cards remain unreadable after 20 seconds; rejoining to recover preserved progress")
-r.app.RejoinNextMode(true)
+this.RejoinDiagnostic("No selectable room matched the configured priorities for 20 seconds; expected a bright frame and recognized Grey/Green/Purple/Boss card")
 }
 return
 }
 this.unreadableBoardSince := 0
 if best["category"] = "Purple Room" {
-options := [], maxScore := -1
-for card in scan["cards"] {
-if card["category"] != "Purple Room"
-continue
-score := 0
-for category in roomOrder {
-if InStr("|Purple Room|Green Room|Grey Room|Curse|Boss|","|" category "|")
-continue
-found := false
-for reward in card.Get("rewards",[])
-if reward = category
-found := true
-score := score*2+(found ? 1 : 0)
-}
-if score > maxScore
-maxScore := score, options := []
-if score = maxScore
-options.Push(card)
-}
-best := options[1]
-if options.Length > 1 {
-this.purpleOptions := options, this.purpleScores := []
-this.Click(best["x"],best["y"]), this.phase := "purple-inspect"
-return
-}
+for card in scan["cards"]
+if card["category"]="Purple Room" && card.Get("available",true) && card["x"]<best["x"]
+best:=card
 }
 this.pendingRoomMap := ""
 this.Click(best["x"],best["y"]), this.phase := "details"
@@ -20852,10 +23070,16 @@ return
 this.pendingRoomMap := AADungeons.MapName(scan.Get("map",""))
 this.Click(scan["enterX"],scan["enterY"]), this.phase := "loading"
 r.app.Log("Entering Dungeon room; waiting for transition map")
+if r.app.HasOwnProp("owner") && r.app.owner.HasOwnProp("dungeonCycleDebug") && r.app.owner.dungeonCycleDebug && !(r.app.owner.HasOwnProp("dungeonBossDebug") && r.app.owner.dungeonBossDebug) {
+r.app.owner.dungeonCycleDebug := false
+r.app.Log("L Dungeon test complete: available room selected and Enter clicked")
+r.Pause("L Dungeon test complete; room Enter clicked, no unit actions started")
+}
 return
 }
 if kind = "dungeon-map" && this.phase = "loading" {
 name := scan["map"]
+r.app.Log("Dungeon transition confirmed: " AADungeons.Diagnostic(scan))
 r.app.LoadDungeonMap(name)
 r.defeated := false, r.resultCounted := false
 this.phase := "combat"
@@ -20867,13 +23091,47 @@ Click(x,y) {
 r := this.runner
 r.ClickAt(x,y)
 this.minSerial := r.worker.serial+1, this.frames := 0, this.candidate := ""
-r.due := Adventures.Tick()+500
+this.lastAction := Adventures.Tick(),this.shopContinueFrames := 0
+r.due := this.lastAction+350
 r.deadline := Adventures.Tick()+120000
 }
-Resume() {
-this.minSerial := 0, this.frames := 0, this.candidate := ""
+Resume(elapsed := 0) {
+for field in ["deathWaitStarted","deathLastClick","deathLobbyLast","deathReturnLast",
+"chestDeadline","rewardNotBefore","chestUnreadableSince","unreadableBoardSince","shopUnreadableSince","emptySince","lastAction"]
+if this.HasOwnProp(field) && this.%field% > 0
+this.%field% += elapsed
+if this.HasOwnProp("shopPending") && this.shopPending.at > 0
+this.shopPending.at += elapsed
+this.minSerial := 0, this.frames := 0, this.candidate := "",this.shopContinueFrames := 0
 if this.phase = "details"
 this.phase := "board"
+}
+}
+class AACurseEntryDebug {
+phase := "details"
+previous := ""
+frames := 0
+map := ""
+Handle(scan) {
+identity := ""
+if this.phase="details" && scan.Get("kind","")="dungeon-room" && scan.Has("enterX") && scan.Has("enterY")
+identity := scan["enterX"] "," scan["enterY"] "," scan.Get("map","")
+if this.phase="map" && scan.Get("kind","")="dungeon-map" && AADungeons.MapName(scan.Get("map",""))!=""
+identity := AADungeons.MapName(scan["map"])
+if identity="" {
+this.previous:="",this.frames:=0
+return ""
+}
+this.frames := identity=this.previous ? this.frames+1 : 1,this.previous:=identity
+if this.frames<2
+return ""
+this.previous:="",this.frames:=0
+if this.phase="details" {
+this.phase:="map"
+return "enter"
+}
+this.map:=identity,this.phase:="done"
+return "done"
 }
 }
 SetWorkingDir(A_ScriptDir)
@@ -20883,7 +23141,7 @@ parent := Integer(A_Args[2])
 if parent > 0
 ProcessWaitClose(parent,8)
 if parent <= 0 || ProcessExist(parent) {
-MsgBox("Restart could not finish because the previous macro did not close. Close it and open Start Macro.cmd.","Bayzo's AA Macro v1.4")
+MsgBox("Restart could not finish because the previous macro did not close. Close it and open Start Macro.cmd.","Bayzo's AA Macro v2.2")
 ExitApp(1)
 }
 A_Args.RemoveAt(1,2)
@@ -20899,7 +23157,8 @@ if !AAInstance.Acquire(mutexName)
 ExitApp()
 SendMode("Event")
 DetectHiddenWindows(true)
-A_IconTip := "Bayzo's AA Macro v1.4"
+A_IconHidden := false
+A_IconTip := "Bayzo's AA Macro v2.2"
 AAInstalledAssets.Ensure()
 AAAprilFools.Register()
 if FileExist(CrusadersTheme.AppIcon)
@@ -20915,7 +23174,7 @@ try {
 global selector := CrusadersCreateSelector()
 global macroWindow := AAWindow()
 } catch Error as err {
-MsgBox("The macro could not open.`n`n" err.Message "`nLine " err.Line,"Bayzo's AA Macro v1.4","Iconx")
+MsgBox("The macro could not open.`n`n" err.Message "`nLine " err.Line,"Bayzo's AA Macro v2.2","Iconx")
 ExitApp(1)
 }
 finally SetWinDelay(previousWindowDelay)

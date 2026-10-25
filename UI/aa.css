@@ -214,12 +214,14 @@ footer.indexes-footer #reset-config{grid-column:2;width:100%;min-width:0;margin-
 .my-update-files {max-height:150px;overflow:auto;overflow-wrap:anywhere}
 @media(max-width:900px){.my-config-card{align-items:flex-start;flex-direction:column}}
 
-/* Keep the bottom keybind rows reachable when Dungeon facts make Overview taller. */
-body[data-theme=crimson] #panel:has(.main-overview){overflow-x:hidden;overflow-y:auto}
+/* The statistics sidebar has no visible scrollbar. */
+body[data-theme=crimson] #panel:has(.main-overview){overflow-x:hidden;overflow-y:auto;scrollbar-width:none}
+body[data-theme=crimson] #panel:has(.main-overview)::-webkit-scrollbar{display:none;width:0;height:0}
 .main-overview .overview-section{flex:0 0 auto}
 .main-keybind-list{grid-template-columns:repeat(2,minmax(0,1fr));padding-bottom:8px}
 .main-keybind-list span{min-width:0;overflow-wrap:anywhere}
 .my-config-editor-heading{grid-column:1/-1;min-width:0}
+.my-config-edit-status{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin:12px 0 4px;min-width:0}.my-config-edit-status>p{margin:0;max-width:100%;line-height:1.5;overflow-wrap:anywhere}.my-config-edit-status>button{margin:0;flex-shrink:0}
 .config-export-page:has(.my-config-editor-heading){grid-template-rows:auto minmax(220px,1fr);overflow:auto}
 .config-export-page:has(.my-config-editor-heading)>.share-section{grid-row:2}
 .my-config-library{display:flex;flex-direction:column;height:auto;min-height:100%;overflow:visible}
@@ -302,7 +304,8 @@ body[data-theme=crimson] .full-settings #settings:has(.my-config-library){overfl
 .my-config-page-heading p{font-size:12px;line-height:18px;margin:0;color:var(--muted)}
 .config-export-page .my-config-tabs{margin:12px 0 20px;flex-shrink:0;height:44px;min-height:44px}
 .config-export-page .my-config-tabs button{width:146px;flex:0 0 146px;height:34px;min-height:34px;padding:0 12px}
-.my-config-library-tools{display:flex;justify-content:flex-end;min-height:34px;margin:-4px 0 12px}.my-config-library-tools button{display:flex;align-items:center;gap:7px;font-size:12px;height:32px;padding:0 12px}.my-config-library-tools svg{width:15px;height:15px}
+.my-config-library-tools{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-height:34px;margin:-4px 0 12px}.my-config-library-tools button{display:flex;align-items:center;gap:7px;font-size:12px;height:32px;padding:0 12px}.my-config-library-tools svg{width:15px;height:15px}
+#my-restore-dialog{width:min(580px,calc(100vw - 40px));max-height:calc(100vh - 60px);overflow:auto;padding:24px;border:1px solid var(--line);border-radius:10px;color:var(--text);background:var(--surface)}#my-restore-dialog::backdrop{background:#0009}#my-restore-dialog h2{margin:0 0 12px}#my-restore-dialog p{font-size:13px;line-height:1.5;color:var(--muted);margin:10px 0}#my-restore-dialog select{width:100%;margin-top:8px}#my-restore-dialog label{display:block;font-size:13px}.creator-restore-files{padding:0;list-style:none;max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:6px}.creator-restore-files li{display:flex;gap:12px;justify-content:space-between;padding:10px;border-bottom:1px solid var(--line);font-size:12px}.creator-restore-files span{overflow-wrap:anywhere;min-width:0}.creator-restore-files small{white-space:nowrap;color:var(--muted)}#my-restore-dialog .creator-restore-confirm{display:flex;align-items:center;gap:8px}.creator-restore-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.creator-restore-footer button{height:35px;padding:0 14px}#my-restore-message{color:var(--accent)!important}
 
 footer.indexes-footer .index-controls #copy-settings-control{grid-column:2;grid-row:2;position:relative;min-width:0}
 #copy-settings-control[hidden],#copy-settings-menu[hidden]{display:none!important}
@@ -323,3 +326,63 @@ footer.indexes-footer .index-controls #copy-settings-menu button:hover{backgroun
 #panel .april-fools-requirement strong{font-size:19px;line-height:1.4;font-weight:650}
 #panel .april-fools-requirement p{margin:8px 0 0;font-size:13px;line-height:1.6;color:var(--muted)}
 #panel .april-fools-built-in-note{font-size:12px;line-height:1.6;color:var(--muted)}
+
+/* Dungeon policies: compact team row, followed by three aligned encounter controls. */
+.dungeon-settings .dungeon-team-encounters{grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+.dungeon-settings .dungeon-team-encounters>.dungeon-team-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,30%);align-items:center;gap:20px;padding:18px}
+.dungeon-card-heading{display:flex;align-items:center;gap:12px;min-width:0}
+.dungeon-card-icon{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border:1px solid var(--line);border-radius:9px;background:var(--field);color:var(--accent)}
+.dungeon-card-icon svg{width:18px;height:18px}
+.dungeon-settings .dungeon-card-heading h3{margin:0 0 4px;font-size:14px;line-height:20px}
+.dungeon-card-heading p{margin:0;color:var(--muted);font-size:11px;line-height:17px}
+.dungeon-settings .dungeon-team-card .dungeon-fields{margin:0;padding:0}
+.dungeon-settings .dungeon-team-encounters>.dungeon-encounter-card{padding:18px;display:block}
+.dungeon-settings .dungeon-team-encounters>.dungeon-encounter-card .dungeon-fields{grid-template-columns:repeat(3,minmax(0,1fr));margin:16px 0 0;padding:16px 0 0;gap:18px;border-top:1px solid var(--line)}
+.dungeon-action-setting{min-width:0;display:flex;flex-direction:column;gap:10px}
+.dungeon-action-label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;line-height:18px}
+.dungeon-action-label svg{width:15px;height:15px;color:var(--accent)}
+.dungeon-action-setting p{margin:0;color:var(--muted);font-size:11px;line-height:17px}
+.dungeon-settings .dungeon-team-encounters .field-caption{min-height:16px;font-size:11px}
+.dungeon-settings .dungeon-team-encounters select{width:100%;font-size:12px;padding-left:10px;padding-right:24px}
+@media(max-height:780px){.dungeon-settings .dungeon-team-encounters{gap:10px}.dungeon-settings .dungeon-team-encounters>.dungeon-policy-card{padding:13px}.dungeon-settings .dungeon-team-encounters>.dungeon-encounter-card .dungeon-fields{margin-top:12px;padding-top:12px;gap:12px}.dungeon-action-setting{gap:7px}}
+@media(max-width:850px){.dungeon-settings .dungeon-team-encounters>.dungeon-team-card{grid-template-columns:1fr;gap:12px}.dungeon-settings .dungeon-team-encounters>.dungeon-encounter-card .dungeon-fields{grid-template-columns:1fr}.dungeon-view-content:has(.dungeon-team-encounters){overflow-y:auto}}
+
+/* Keep the full native game viewport visible on 1280x720 desktops, with
+   room reserved for the taskbar. The right-hand controls retain scrolling. */
+@media(max-height:700px){
+ body[data-theme=crimson] header{height:32px;padding:0 12px}
+ body[data-theme=crimson] .brand img{width:22px;height:22px}
+ body[data-theme=crimson] .brand strong{font-size:13px}
+ body[data-theme=crimson] .game-area{padding-top:4px}
+ body[data-theme=crimson] .game-area>.section-title{height:18px;margin-bottom:4px;font-size:10px}
+ body[data-theme=crimson] .game-meta{height:12px;font-size:10px;line-height:12px}
+ body[data-theme=crimson] .rail{padding-top:6px;gap:2px}
+ body[data-theme=crimson] .rail button{height:48px}
+}
+
+/* Short desktops need space for both the index picker and its scrollable
+   editor; a fixed editor basis otherwise collapses the picker to a slit. */
+@media(max-height:780px){
+ body[data-theme=crimson] .indexes-panel .index-picker{flex:0 0 180px;min-height:180px}
+ body[data-theme=crimson] .indexes-panel .index-editor{flex:1 1 0;min-height:96px;overflow:hidden}
+ body[data-theme=crimson] .indexes-panel .editor-scroll{overflow-y:auto;min-height:0}
+}
+
+.dungeon-item-name{text-transform:none}
+
+/* Keep the expanded Dungeon facts from pushing the shortcut rows below the panel. */
+.main-overview{min-height:0}
+.main-overview .overview-section{padding:8px 0}
+body[data-theme=crimson] .main-overview .overview-section h2{margin-bottom:6px}
+.main-overview .overview-map-facts{gap:5px}
+.main-overview .main-keybinds{padding-bottom:16px}
+.main-keybind-list{line-height:1.5;row-gap:6px}
+
+.main-overview .overview-section{padding:6px 0}
+.main-overview .overview-map-facts{gap:4px}
+.main-overview .overview-map-facts dt,.main-overview .overview-map-facts dd{line-height:18px}
+.main-overview .overview-results{margin-bottom:8px}
+.main-overview .overview-results dd{font-size:28px;line-height:34px}
+.main-overview .session-results .overview-facts{gap:4px;padding-top:8px}
+.main-overview .challenge-overview dd{margin-top:4px;font-size:17px;line-height:23px}
+.main-overview .main-keybinds{position:sticky;bottom:0;z-index:2;background:var(--surface);border-top:1px solid var(--line);padding:8px 0 12px}
