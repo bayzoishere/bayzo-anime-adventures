@@ -68,50 +68,6 @@ class CrusadersUpdater {
 ; === END STUBS ===
 
 
-#NoTrayIcon
-class AAInstance {
-static handle := 0
-static Acquire(name := "Local\BayzoAAMacroInteractive") {
-if this.handle
-throw Error("The interactive instance lock is already held by this process.")
-handle := DllCall("kernel32\CreateMutexW","Ptr",0,"Int",0,"Str",name,"Ptr")
-status := A_LastError
-if !handle
-throw Error("Could not check whether the macro is already open. Windows error " status ".")
-if status = 183 {
-DllCall("kernel32\CloseHandle","Ptr",handle)
-this.ActivateExisting()
-return false
-}
-this.handle := handle
-OnExit(ObjBindMethod(this,"Release"))
-return true
-}
-static ActivateExisting() {
-previous := A_DetectHiddenWindows
-DetectHiddenWindows(true)
-try {
-for hwnd in WinGetList() {
-if !DllCall("GetPropW","Ptr",hwnd,"Str","BayzosAAInteractive","Ptr")
-continue
-try {
-WinShow("ahk_id " hwnd)
-WinRestore("ahk_id " hwnd)
-WinActivate("ahk_id " hwnd)
-}
-return
-}
-} finally DetectHiddenWindows(previous)
-}
-static Release(*) {
-if this.handle {
-handle := this.handle, this.handle := 0
-DllCall("kernel32\CloseHandle","Ptr",handle)
-}
-}
-}
-#Requires AutoHotkey v2.0
-#SingleInstance Off
 static FitBounds(left,top,right,bottom,width,height,x := unset,y := unset) {
 width := Min(width,Max(1,right-left-8)), height := Min(height,Max(1,bottom-top-8))
 x := IsSet(x) ? Max(left,Min(x,right-width)) : left+(right-left-width)//2
