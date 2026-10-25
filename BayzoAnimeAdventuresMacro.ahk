@@ -1,8 +1,7 @@
 ; <COMPILER: v1.1.37.02a2>
 #Requires AutoHotkey v2.0
 #SingleInstance Off
-
-; === STRIPPED STUBS (network/cloud/update removed - safe rebuild v2.2) ===
+#NoTrayIcon
 SafeTarget(path) {
     SplitPath(path,,&directory)
     loop {
@@ -15,59 +14,295 @@ SafeTarget(path) {
     }
 }
 
-class CrusadersConfigCodes {
-    static SharingBusy := false
-    static MaxCode := 1048576
-    static SafeTarget(path) => SafeTarget(path)
-    static HashBytes(bytes) {
-        provider := 0, hash := 0
-        try {
-            if !DllCall("advapi32\CryptAcquireContextW","Ptr*",&provider,"Ptr",0,"Ptr",0,"UInt",24,"UInt",0xF0000000)
-            || !DllCall("advapi32\CryptCreateHash","Ptr",provider,"UInt",0x800C,"Ptr",0,"UInt",0,"Ptr*",&hash)
-            || !DllCall("advapi32\CryptHashData","Ptr",hash,"Ptr",bytes,"UInt",bytes.Size,"UInt",0)
-                throw Error("Could not verify config integrity.")
-            result := Buffer(32), size := 32
-            if !DllCall("advapi32\CryptGetHashParam","Ptr",hash,"UInt",2,"Ptr",result,"UInt*",&size,"UInt",0)
-                throw Error("Could not verify config integrity.")
-            hex := ""
-            loop 32
-                hex .= Format("{:02x}",NumGet(result,A_Index-1,"UChar"))
-            return hex
-        } finally {
-            if hash
-                DllCall("advapi32\CryptDestroyHash","Ptr",hash)
-            if provider
-                DllCall("advapi32\CryptReleaseContext","Ptr",provider,"UInt",0)
-        }
-    }
-    static ExportSelected(*) => ""
-    static Upload(*) => ""
-    static Import(*) => 0
-    static Decode(*) => ""
-    static Work(*) => ""
-    static Stage(*) => 0
-    static Clean(*) => 0
-    static ClipboardCode(*) => ""
-    static IsHosted(*) => false
-    static List(*) => []
-    static Preview(*) => ""
-    static Resolve(*) => ""
-    static Settings := ["ZoomInDelay", "ZoomOutDelay", "DragDelay", "ScanDelay", "PlacementRetryDelay", "StageClickDelay", "VictoryDelay", "WebhookScreenshotDelay", "PathingDelay", "DailyChallengeEnabled", "ChallengeEnabled", "ChallengeFirstMode", "ChallengeForceLeave"]
+class AAInstance {
+static handle := 0
+static Acquire(name := "Local\BayzoAAMacroInteractive") {
+if this.handle
+throw Error("The interactive instance lock is already held by this process.")
+handle := DllCall("kernel32\CreateMutexW","Ptr",0,"Int",0,"Str",name,"Ptr")
+status := A_LastError
+if !handle
+throw Error("Could not check whether the macro is already open. Windows error " status ".")
+if status = 183 {
+DllCall("kernel32\CloseHandle","Ptr",handle)
+this.ActivateExisting()
+return false
 }
-
+this.handle := handle
+OnExit(ObjBindMethod(this,"Release"))
+return true
+}
+static ActivateExisting() {
+previous := A_DetectHiddenWindows
+DetectHiddenWindows(true)
+try {
+for hwnd in WinGetList() {
+if !DllCall("GetPropW","Ptr",hwnd,"Str","BayzosAAInteractive","Ptr")
+continue
+try {
+WinShow("ahk_id " hwnd)
+WinRestore("ahk_id " hwnd)
+WinActivate("ahk_id " hwnd)
+}
+return
+}
+} finally DetectHiddenWindows(previous)
+}
+static Release(*) {
+if this.handle {
+handle := this.handle, this.handle := 0
+DllCall("kernel32\CloseHandle","Ptr",handle)
+}
+}
+}
+#Requires AutoHotkey v2.0
+#SingleInstance Off
 class CrusadersUpdater {
     static Version := "2.2-clean"
     static Repo := ""
-    static AssetRoot := EnvGet("LOCALAPPDATA") "\BayzoAnimeAdventuresMacro"
+    static AssetRoot := EnvGet("LOCALAPPDATA") "\\BayzoAnimeAdventuresMacro"
     static Check(window) => 0
     static Respond(accepted, window) => 0
     static checked := true
     static pending := 0
     static installing := false
+})$",&left) || !RegExMatch(b,"i)^v?(\d+(?:\.\d+){0,3})$",&right)
+throw Error("Invalid release version.")
+left := StrSplit(left[1],"."), right := StrSplit(right[1],".")
+loop Max(left.Length,right.Length) {
+x := A_Index<=left.Length ? Integer(left[A_Index]) : 0
+y := A_Index<=right.Length ? Integer(right[A_Index]) : 0
+if x!=y
+return x>y ? 1 : -1
 }
-; === END STUBS ===
-
-
+return 0
+}
+static Release(data) {
+if !(data is Map) || data.Get("draft",true) || data.Get("prerelease",true)
+return 0
+tag := data.Get("tag_name","")
+if this.Compare(tag,this.Version)<=0
+return 0
+assets := data.Get("assets",[]), zip := 0
+if !(assets is Array)
+return 0
+for asset in assets {
+if !(asset is Map) || !RegExMatch(asset.Get("name",""),"i)^Bayzos-AA-Macro-v[0-9]+(?:\.[0-9]+){1,3}(?:-DUNGEONS)?\.zip$")
+continue
+if zip || asset.Get("state","")!="uploaded" || asset.Get("size",0)<=0 || asset["size"]>209715200
+return 0
+url := asset.Get("browser_download_url","")
+if SubStr(url,1,StrLen("https://github.com/" this.Repo "/releases/download/"))!="https://github.com/" this.Repo "/releases/download/"
+return 0
+if RegExMatch(url,"[\s\x00-\x1f]")
+return 0
+zip := asset
+}
+return zip ? {tag:tag,notes:SubStr(data.Get("body","") "",1,50000),url:zip["browser_download_url"],size:zip["size"],digest:zip.Get("digest","")} : 0
+}
+static ErrorMessage(err) {
+message := err.Message
+if InStr(message,"80072F0D") || InStr(StrLower(message),"certificate authority")
+return "Windows could not verify the update server certificate (0x80072F0D). Check the PC date/time and Windows trusted-root updates; if HTTPS scanning or a proxy is enabled, check its certificate setup. Certificate checks remain enabled."
+return message
+}
+static LatestRequest(asynchronous := true) {
+request := ComObject("WinHttp.WinHttpRequest.5.1")
+request.SetTimeouts(2000,2000,3000,3000)
+request.Open("GET","https://api.github.com/repos/" this.Repo "/releases/latest",asynchronous)
+request.SetRequestHeader("User-Agent","Bayzos-AA-Macro/" this.Version)
+request.SetRequestHeader("Accept","application/vnd.github+json")
+return request
+}
+static Encode(text) {
+bytes := Buffer(StrPut(text,"UTF-16")), StrPut(text,bytes,"UTF-16")
+flags := 0x40000001, size := bytes.Size-2, length := 0
+if !DllCall("Crypt32\CryptBinaryToStringW","Ptr",bytes,"UInt",size,"UInt",flags,"Ptr",0,"UInt*",&length)
+throw Error("Could not encode updater command.")
+output := Buffer(length*2)
+if !DllCall("Crypt32\CryptBinaryToStringW","Ptr",bytes,"UInt",size,"UInt",flags,"Ptr",output,"UInt*",&length)
+throw Error("Could not encode updater command.")
+return StrGet(output,"UTF-16")
+}
+static Started() {
+created := Buffer(8), exited := Buffer(8), kernel := Buffer(8), user := Buffer(8)
+if !DllCall("GetProcessTimes","Ptr",DllCall("GetCurrentProcess","Ptr"),"Ptr",created,"Ptr",exited,"Ptr",kernel,"Ptr",user)
+throw Error("Could not identify the current macro process.")
+return NumGet(created,"Int64") ""
+}
+static DownloadRequest(release) {
+request := ComObject("WinHttp.WinHttpRequest.5.1")
+request.SetTimeouts(5000,5000,15000,30000)
+request.Open("GET",release.url,true)
+return request
+}
+static Install(release,window) {
+if this.downloading
+throw Error("An update download is already running.")
+job := A_Temp "\BayzosAAUpdate-" DllCall("GetCurrentProcessId") "-" CrusadersRuntime.Tick()
+DirCreate(job), zip := job "\update.zip"
+request := this.DownloadRequest(release)
+this.downloading := {request:request,release:release,window:window,directory:job,zip:zip,started:CrusadersRuntime.Tick()}
+try {
+request.Send()
+SetTimer(this.downloadTimer,100)
+} catch Error as err {
+this.CancelDownload()
+throw err
+}
+}
+static CancelDownload(resetInstalling := true) {
+job := this.downloading, this.downloading := 0
+SetTimer(this.downloadTimer,0)
+if IsObject(job)
+try job.request.Abort()
+if resetInstalling
+this.installing := false
+}
+static PollDownload() {
+if this.pollingDownload || !IsObject(this.downloading)
+return
+this.pollingDownload := true
+job := this.downloading
+try {
+if job.window.restoring {
+this.CancelDownload()
+return
+}
+if CrusadersRuntime.Tick()-job.started>=120000
+throw Error("The update download timed out.")
+if !job.request.WaitForResponse(0)
+return
+if !IsObject(this.downloading) || ObjPtr(this.downloading)!=ObjPtr(job)
+return
+if job.request.Status!=200
+throw Error("The update could not be downloaded.")
+stream := ComObject("ADODB.Stream"), stream.Type := 1
+try {
+stream.Open(), stream.Write(job.request.ResponseBody), stream.SaveToFile(job.zip,2)
+} finally stream.Close()
+if FileGetSize(job.zip)!=job.release.size
+throw Error("The downloaded update is incomplete.")
+if job.window.restoring || !IsObject(this.downloading) || ObjPtr(this.downloading)!=ObjPtr(job)
+return
+this.CancelDownload(false)
+this.LaunchInstaller(job.release,job.directory,job.zip)
+} catch Error as err {
+this.DownloadFailed(job.release,job.window,err)
+} finally this.pollingDownload := false
+}
+static DownloadFailed(release,window,err) {
+this.CancelDownload()
+if window.restoring
+return
+this.pending := release
+window.Log("Update download failed: " this.ErrorMessage(err))
+window.core.PostWebMessageAsJson(Jxon_Dump(Map("updateFailed",true)))
+}
+static LaunchInstaller(release,job,zip) {
+helper := A_IsCompiled ? CrusadersUpdater.AssetRoot "\UpdateInstaller.ps1" : A_ScriptDir "\Other\UpdateInstaller.ps1"
+FileCopy(helper,job "\install.ps1")
+config := Map("InstallDirectory",A_ScriptDir,"Zip",zip,"Executable","AnimeAdventuresMacro.exe",
+"ParentPid",DllCall("GetCurrentProcessId"),"ParentStarted",this.Started(),"Preserve",this.Preserve,
+"Digest",release.digest,"Test",false,"RestartArguments",[])
+config["ExpectedVersion"] := RegExReplace(release.tag,"i)^v")
+FileAppend(Jxon_Dump(config),job "\config.json","UTF-8")
+command := "& '" StrReplace(job "\install.ps1","'","''") "' -ConfigPath '" StrReplace(job "\config.json","'","''") "'"
+FileAppend("@echo off`r`npowershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand " this.Encode(command)
+. "`r`n(goto) 2>nul & del `"%~f0`"`r`n",job "\install.bat","CP0")
+Run('"' job '\install.bat"',job,"Hide")
+ExitApp()
+}
+static Check(window) {
+if this.Repo = ""
+return
+if this.checked || !A_IsCompiled
+return
+this.checked := true
+try this.StartCheck(window)
+catch Error as err {
+this.CancelCheck()
+window.Log("Update check could not start: " this.ErrorMessage(err))
+}
+}
+static StartCheck(window) {
+if this.checking || window.restoring
+return
+request := this.LatestRequest(true)
+this.checking := {request:request,window:window,started:CrusadersRuntime.Tick()}
+try {
+request.Send()
+SetTimer(this.checkTimer,100)
+} catch Error as err {
+this.CancelCheck()
+throw err
+}
+}
+static CancelCheck() {
+job := this.checking, this.checking := 0
+SetTimer(this.checkTimer,0)
+if IsObject(job)
+try job.request.Abort()
+}
+static PollCheck() {
+if this.pollingCheck || !IsObject(this.checking)
+return
+this.pollingCheck := true
+job := this.checking
+try {
+if job.window.restoring {
+this.CancelCheck()
+return
+}
+if CrusadersRuntime.Tick()-job.started>=12000
+throw Error("The update server did not respond in time.")
+if !job.request.WaitForResponse(0)
+return
+if !IsObject(this.checking) || ObjPtr(this.checking)!=ObjPtr(job)
+return
+status := job.request.Status
+if status=404 {
+this.CancelCheck()
+return
+}
+if status!=200
+throw Error("Update server returned HTTP " status ".")
+json := job.request.ResponseText
+release := this.Release(Jxon_Load(&json))
+this.CancelCheck()
+if release && !job.window.restoring {
+job.window.core.PostWebMessageAsJson(Jxon_Dump(Map("update",Map("current",this.Version,"tag",release.tag,"notes",release.notes))))
+this.pending := release
+}
+} catch Error as err {
+this.CancelCheck()
+if !job.window.restoring
+job.window.Log("Update check unavailable: " this.ErrorMessage(err))
+} finally this.pollingCheck := false
+}
+static Respond(accepted,window) {
+if !this.pending
+return
+release := this.pending, this.pending := 0
+if !accepted
+return
+window.Stop()
+this.installing := true
+try this.Install(release,window)
+catch Error as err {
+this.DownloadFailed(release,window,err)
+}
+}
+}
+AADisplay.UsePhysicalPixels()
+class AADisplay {
+static UsePhysicalPixels() {
+static change := DllCall("GetProcAddress","Ptr",DllCall("GetModuleHandle","Str","user32","Ptr"),
+"AStr","SetThreadDpiAwarenessContext","Ptr")
+if !change
+return false
+return !!(DllCall(change,"Ptr",-4,"Ptr") || DllCall(change,"Ptr",-3,"Ptr"))
+}
 static FitBounds(left,top,right,bottom,width,height,x := unset,y := unset) {
 width := Min(width,Max(1,right-left-8)), height := Min(height,Max(1,bottom-top-8))
 x := IsSet(x) ? Max(left,Min(x,right-width)) : left+(right-left-width)//2
@@ -81,7 +316,8 @@ catch
 return 96
 }
 }
-if A_Args.Length = 1 && A_Args[1] = "--update-version" {
+; --update-version block removed (auto-update disabled)
+if false {
 FileAppend(CrusadersUpdater.Version, "*")
 ExitApp()
 }
@@ -2738,6 +2974,45 @@ recordings.Push(recording)
 package["configs"] := configs, package["recordings"] := recordings
 return Map("current",false,"name",row["name"],"revision",row["revision"],"changed",changed,"conflicts",conflicts,"removed",removed,"row",row,"payload",changed.Length ? CrusadersConfigCodes.Encode(package) : "","fullPayload",full)
 }
+}
+class CrusadersConfigCodes {
+    static SharingBusy := false
+    static MaxCode := 1048576
+    static SafeTarget(path) => SafeTarget(path)
+    static HashBytes(bytes) {
+        provider := 0, hash := 0
+        try {
+            if !DllCall("advapi32\\CryptAcquireContextW","Ptr*",&provider,"Ptr",0,"Ptr",0,"UInt",24,"UInt",0xF0000000)
+            || !DllCall("advapi32\\CryptCreateHash","Ptr",provider,"UInt",0x800C,"Ptr",0,"UInt",0,"Ptr*",&hash)
+            || !DllCall("advapi32\\CryptHashData","Ptr",hash,"Ptr",bytes,"UInt",bytes.Size,"UInt",0)
+                throw Error("Could not verify config integrity.")
+            result := Buffer(32), size := 32
+            if !DllCall("advapi32\\CryptGetHashParam","Ptr",hash,"UInt",2,"Ptr",result,"UInt*",&size,"UInt",0)
+                throw Error("Could not verify config integrity.")
+            hex := ""
+            loop 32
+                hex .= Format("{:02x}",NumGet(result,A_Index-1,"UChar"))
+            return hex
+        } finally {
+            if hash
+                DllCall("advapi32\\CryptDestroyHash","Ptr",hash)
+            if provider
+                DllCall("advapi32\\CryptReleaseContext","Ptr",provider,"UInt",0)
+        }
+    }
+    static ExportSelected(*) => ""
+    static Upload(*) => ""
+    static Import(*) => 0
+    static Decode(*) => ""
+    static Work(*) => ""
+    static Stage(*) => 0
+    static Clean(*) => 0
+    static ClipboardCode(*) => ""
+    static IsHosted(*) => false
+    static List(*) => []
+    static Preview(*) => ""
+    static Resolve(*) => ""
+    static Settings := ["ZoomInDelay", "ZoomOutDelay", "DragDelay", "ScanDelay", "PlacementRetryDelay", "StageClickDelay", "VictoryDelay", "WebhookScreenshotDelay", "PathingDelay", "DailyChallengeEnabled", "ChallengeEnabled", "ChallengeFirstMode", "ChallengeForceLeave"]
 }
 class CrusadersStorage {
 static Temporary(path) {
@@ -13613,8 +13888,7 @@ static Seal(directory, identity, installer := "") {
 files := Map()
 for name in this.Files
 files[name] := this.Fingerprint(directory "\" name)
-installerFingerprint := (installer != "") ? this.Fingerprint(installer) : ""
-json := Jxon_Dump(Map("identity", identity, "files", files, "installer", installerFingerprint))
+json := Jxon_Dump(Map("identity", identity, "files", files, "installer", (installer != "") ? this.Fingerprint(installer) : ""))
 marker := directory "\assets.json", temporary := CrusadersStorage.Temporary(marker)
 previous := FileExist(marker) ? FileRead(marker) : ""
 try {
@@ -13852,6 +14126,7 @@ if !A_IsCompiled
 return A_ScriptDir "\UI"
 identity := CrusadersInterfaceAssets.Fingerprint(A_ScriptFullPath)
 directory := EnvGet("LOCALAPPDATA") "\BayzoAnimeAdventuresMacro\UI\" identity
+; installer removed (auto-update disabled)
 if CrusadersInterfaceAssets.Valid(directory, identity, "")
 return directory
 DirCreate(directory)
